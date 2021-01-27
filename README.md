@@ -1,17 +1,17 @@
-<p align="center">
-  <img width="200" src="https://open-wc.org/hero.png"></img>
-</p>
-
-## Open-wc Starter App
+## Skeleton PWA
 
 [![Built with open-wc recommendations](https://img.shields.io/badge/built%20with-open--wc-blue.svg)](https://github.com/open-wc)
+
+This PWA skeleton includes an installer and update button. Properties are pushed down to webcomponents and messages are fired up via Redux.
+Online/offline state is tracked and displayed to the user via the snackbar.
 
 ## Quickstart
 
 To get started:
 
 ```sh
-npm init @open-wc
+clone this repository
+npm install
 # requires node 10 & npm 6 or higher
 ```
 
