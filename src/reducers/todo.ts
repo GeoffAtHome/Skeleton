@@ -1,6 +1,11 @@
-
 import { Reducer } from 'redux';
-import { CREATE_TODO, READ_TODO, UPDATE_TODO, DELETE_TODO, IToDoDataState } from '../actions/todo';
+import {
+  CREATE_TODO,
+  READ_TODO,
+  UPDATE_TODO,
+  DELETE_TODO,
+  IToDoDataState,
+} from '../actions/todo';
 import { RootAction, RootState } from '../store';
 
 const INITIAL_STATE: IToDoDataState = {
@@ -8,38 +13,39 @@ const INITIAL_STATE: IToDoDataState = {
   _index: '',
 };
 
-const toDoDataMap: Reducer<IToDoDataState, RootAction> = (state = INITIAL_STATE, action) => {
+const toDoDataMap: Reducer<IToDoDataState, RootAction> = (
+  state = INITIAL_STATE,
+  action
+) => {
   switch (action.type) {
     case CREATE_TODO:
       return {
         ...state,
-        _index: action._index
-      }
+        _index: action._index,
+      };
 
     case READ_TODO:
       return {
         ...state,
-        _index: action._index
-      }
+        _index: action._index,
+      };
 
     case UPDATE_TODO:
       return {
         ...state,
-        _index: action._index
-      }
+        _index: action._index,
+      };
 
-    case DELETE_TODO    :
+    case DELETE_TODO:
       return {
         ...state,
-        _index: action._index
-      }
+        _index: action._index,
+      };
 
-
-      default:
-          return state;
+    default:
+      return state;
   }
 };
-
 
 export default toDoDataMap;
 

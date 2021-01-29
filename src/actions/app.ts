@@ -19,33 +19,48 @@ export const UPDATE_DRAWER_STATE = 'UPDATE_DRAWER_STATE';
 export const OPEN_SNACKBAR = 'OPEN_SNACKBAR';
 export const CLOSE_SNACKBAR = 'CLOSE_SNACKBAR';
 export const NOTIFY_MESSAGE = 'NOTIFY_MESSAGE';
-
-export interface AppActionUpdatePage extends Action<'UPDATE_PAGE'> { page: string };
-export interface AppActionUpdateOffline extends Action<'UPDATE_OFFLINE'> { offline: boolean };
-export interface AppActionUpdateDrawerState extends Action<'UPDATE_DRAWER_STATE'> { opened: boolean };
-export interface AppActionOpenSnackbar extends Action<'OPEN_SNACKBAR'> { };
-export interface AppActionCloseSnackbar extends Action<'CLOSE_SNACKBAR'> { };
-export interface AppActionNotifyMessages extends Action<'NOTIFY_MESSAGE'> { message: string }
-export type AppAction = AppActionUpdatePage | AppActionUpdateOffline | AppActionUpdateDrawerState | AppActionOpenSnackbar | AppActionCloseSnackbar | AppActionNotifyMessages;
+export interface AppActionUpdatePage extends Action<'UPDATE_PAGE'> {
+  page: string;
+}
+export interface AppActionUpdateOffline extends Action<'UPDATE_OFFLINE'> {
+  offline: boolean;
+}
+export interface AppActionUpdateDrawerState
+  extends Action<'UPDATE_DRAWER_STATE'> {
+  opened: boolean;
+}
+export interface AppActionOpenSnackbar extends Action<'OPEN_SNACKBAR'> {}
+export interface AppActionCloseSnackbar extends Action<'CLOSE_SNACKBAR'> {}
+export interface AppActionNotifyMessages extends Action<'NOTIFY_MESSAGE'> {
+  message: string;
+}
+export type AppAction =
+  | AppActionUpdatePage
+  | AppActionUpdateOffline
+  | AppActionUpdateDrawerState
+  | AppActionOpenSnackbar
+  | AppActionCloseSnackbar
+  | AppActionNotifyMessages;
 
 type ThunkResult = ThunkAction<void, RootState, undefined, AppAction>;
 
 const updatePage: ActionCreator<AppActionUpdatePage> = (page: string) => {
   return {
     type: UPDATE_PAGE,
-    page
+    page,
   };
 };
 
-export const updateDrawerState: ActionCreator<AppActionUpdateDrawerState> = (opened: boolean) => {
+export const updateDrawerState: ActionCreator<AppActionUpdateDrawerState> = (
+  opened: boolean
+) => {
   return {
     type: UPDATE_DRAWER_STATE,
-    opened
+    opened,
   };
 };
 
-
-const loadPage: ActionCreator<ThunkResult> = (page: string) => (dispatch) => {
+const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
   switch (page) {
     case 'welcome':
       import('../components/welcome-page').then(() => {
@@ -65,8 +80,9 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => (dispatch) => {
   dispatch(updatePage(page));
 };
 
-
-export const navigate: ActionCreator<ThunkResult> = (path: string) => (dispatch) => {
+export const navigate: ActionCreator<ThunkResult> = (
+  path: string
+) => dispatch => {
   // Extract the page name from path.
   const page = path === '/' ? 'welcome' : path.slice(1);
 
@@ -75,41 +91,46 @@ export const navigate: ActionCreator<ThunkResult> = (path: string) => (dispatch)
   dispatch(loadPage(page));
 
   // Close the drawer - in case the *path* change came from a link in the drawer.
-  if (window.matchMedia("(max-width: 700px)").matches) {
+  if (window.matchMedia('(max-width: 700px)').matches) {
     dispatch(updateDrawerState(false));
   }
 };
 
-
-
 let snackbarTimer: number;
 
-export const showSnackbar: ActionCreator<ThunkResult> = () => (dispatch) => {
+export const showSnackbar: ActionCreator<ThunkResult> = () => dispatch => {
   dispatch({
-    type: OPEN_SNACKBAR
+    type: OPEN_SNACKBAR,
   });
   window.clearTimeout(snackbarTimer);
-  snackbarTimer = window.setTimeout(() =>
-    dispatch({ type: CLOSE_SNACKBAR }), 3000);
+  snackbarTimer = window.setTimeout(
+    () => dispatch({ type: CLOSE_SNACKBAR }),
+    3000
+  );
 };
 
-export const notifyMessage: ActionCreator<ThunkResult> = (message: string) => (dispatch) => {
+export const notifyMessage: ActionCreator<ThunkResult> = (
+  message: string
+) => dispatch => {
   dispatch(showSnackbar());
   dispatch({
     type: NOTIFY_MESSAGE,
-    message
+    message,
   });
 };
 
-export const updateOffline: ActionCreator<ThunkResult> = (offline: boolean) => (dispatch, getState) => {
+export const updateOffline: ActionCreator<ThunkResult> = (offline: boolean) => (
+  dispatch,
+  getState
+) => {
   // Show the snackbar only if offline status changes.
   if (offline !== getState().app!.offline) {
     dispatch(showSnackbar());
   }
-  const message: string = `You are now${  offline ? 'offline.' : 'online.'}`;
+  const message: string = `You are now${offline ? 'offline.' : 'online.'}`;
 
   dispatch({
     type: NOTIFY_MESSAGE,
-    message
+    message,
   });
 };

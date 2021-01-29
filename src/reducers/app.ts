@@ -9,7 +9,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Reducer } from 'redux';
-import { UPDATE_PAGE, UPDATE_OFFLINE, OPEN_SNACKBAR, CLOSE_SNACKBAR, UPDATE_DRAWER_STATE } from '../actions/app';
+import {
+  UPDATE_PAGE,
+  UPDATE_OFFLINE,
+  OPEN_SNACKBAR,
+  CLOSE_SNACKBAR,
+  UPDATE_DRAWER_STATE,
+} from '../actions/app';
 import { RootAction } from '../store';
 
 export interface AppState {
@@ -20,13 +26,12 @@ export interface AppState {
   title: string;
 }
 
-
 const INITIAL_STATE: AppState = {
   page: '',
   offline: false,
   drawerOpened: false,
   snackbarOpened: false,
-  title: ''
+  title: '',
 };
 
 const app: Reducer<AppState, RootAction> = (state = INITIAL_STATE, action) => {
@@ -34,27 +39,27 @@ const app: Reducer<AppState, RootAction> = (state = INITIAL_STATE, action) => {
     case UPDATE_PAGE:
       return {
         ...state,
-        page: action.page
+        page: action.page,
       };
     case UPDATE_OFFLINE:
       return {
         ...state,
-        offline: action.offline
+        offline: action.offline,
       };
     case UPDATE_DRAWER_STATE:
       return {
         ...state,
-        drawerOpened: action.opened
+        drawerOpened: action.opened,
       };
     case OPEN_SNACKBAR:
       return {
         ...state,
-        snackbarOpened: true
+        snackbarOpened: true,
       };
     case CLOSE_SNACKBAR:
       return {
         ...state,
-        snackbarOpened: false
+        snackbarOpened: false,
       };
     default:
       return state;

@@ -16,6 +16,6 @@ export class PageViewElement extends LitElement {
     return this.active;
   }
 
-  @property({type: Boolean})
+  @property({ type: Boolean })
   active = false;
 }

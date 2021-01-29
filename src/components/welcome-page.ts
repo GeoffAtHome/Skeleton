@@ -16,28 +16,27 @@ import { SharedStyles } from './shared-styles';
 
 @customElement('welcome-page')
 export class WelcomePage extends PageViewElement {
-    static get styles() {
-        return [
-            SharedStyles,
-            css`
-            :host {
-                display: block;
-                padding: 10px;
-              }
-              `
+  static get styles() {
+    return [
+      SharedStyles,
+      css`
+        :host {
+          display: block;
+          padding: 10px;
+        }
+      `,
+    ];
+  }
 
-        ];
-    }
-
-    protected render() {
-        return html`
-        <h1>Initial app version v0.0.1</h1>
-        <p>App description</p>
-        <br>
-        <h1>Releases</h1>
-        <ul>
+  protected render() {
+    return html`
+      <h1>Initial app version v0.0.1</h1>
+      <p>App description</p>
+      <br />
+      <h1>Releases</h1>
+      <ul>
         <li>v0.0.1 - Initial version</li>
-        </ul>
+      </ul>
     `;
-    }
+  }
 }

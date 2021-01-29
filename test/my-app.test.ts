@@ -1,6 +1,6 @@
 import { html, fixture, expect } from '@open-wc/testing';
 
-import { MyApp } from '../src/components/my-app.js';
+import { MyApp } from '../src/components/my-app';
 
 describe('MyApp', () => {
   let element: MyApp;

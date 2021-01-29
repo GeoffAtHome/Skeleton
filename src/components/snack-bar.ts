@@ -12,7 +12,7 @@ import { LitElement, html, css, property, customElement } from 'lit-element';
 
 @customElement('snack-bar')
 export class SnackBar extends LitElement {
-  @property({type: Boolean})
+  @property({ type: Boolean })
   active = false;
 
   static get styles() {
@@ -50,8 +50,6 @@ export class SnackBar extends LitElement {
   }
 
   protected render() {
-    return html`
-      <slot></slot>
-    `;
+    return html` <slot></slot> `;
   }
 }

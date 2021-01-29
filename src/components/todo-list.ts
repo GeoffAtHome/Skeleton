@@ -16,7 +16,6 @@ import { SharedStyles } from './shared-styles';
 
 @customElement('todo-list')
 export class ToDoList extends PageViewElement {
-
   static get styles() {
     return [
       SharedStyles,
@@ -26,13 +25,11 @@ export class ToDoList extends PageViewElement {
           flex-wrap: wrap;
           justify-content: center;
         }
-        `
+      `,
     ];
   }
 
   protected render() {
-    return html`
-      <h2>ToDo List</h2>
-    `;
+    return html` <h2>ToDo List</h2> `;
   }
 }
