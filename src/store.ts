@@ -14,6 +14,7 @@ import { lazyReducerEnhancer } from 'pwa-helpers/lazy-reducer-enhancer';
 
 import app, { AppState } from './reducers/app';
 import { AppAction } from './actions/app';
+import { ToDoAction, IToDoDataState } from './actions/todo'
 
 declare global {
   interface Window {
@@ -26,9 +27,10 @@ declare global {
 // Overall state extends static states and partials lazy states.
 export interface RootState {
   app?: AppState;
+  todoData?: IToDoDataState;
 }
 
-export type RootAction = AppAction
+export type RootAction = AppAction | ToDoAction
 
 // Sets up a Chrome extension for time travel debugging.
 // See https://github.com/zalmoxisus/redux-devtools-extension for more information.

@@ -9,8 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Reducer } from 'redux';
-import { UPDATE_PAGE, UPDATE_OFFLINE, OPEN_SNACKBAR, CLOSE_SNACKBAR, UPDATE_DRAWER_STATE, UPDATE_SECTION, UPDATE_BADGESET, UPDATE_BADGE } from '../actions/app';
-import { BadgeDataType, SectionDataType } from '../actions/badgedata';
+import { UPDATE_PAGE, UPDATE_OFFLINE, OPEN_SNACKBAR, CLOSE_SNACKBAR, UPDATE_DRAWER_STATE } from '../actions/app';
 import { RootAction } from '../store';
 
 export interface AppState {
@@ -18,9 +17,6 @@ export interface AppState {
   offline: boolean;
   drawerOpened: boolean;
   snackbarOpened: boolean;
-  section: BadgeDataType;
-  badgeSet: SectionDataType;
-  badge: string;
   title: string;
 }
 
@@ -30,9 +26,6 @@ const INITIAL_STATE: AppState = {
   offline: false,
   drawerOpened: false,
   snackbarOpened: false,
-  section: '',
-  badgeSet: '',
-  badge: '',
   title: ''
 };
 
@@ -63,25 +56,6 @@ const app: Reducer<AppState, RootAction> = (state = INITIAL_STATE, action) => {
         ...state,
         snackbarOpened: false
       };
-
-    case UPDATE_SECTION:
-      return {
-        ...state,
-        section: action.section
-      }
-
-    case UPDATE_BADGESET:
-      return {
-        ...state,
-        badgeSet: action.badgeSet
-      }
-
-    case UPDATE_BADGE:
-      return {
-        ...state,
-        badge: action.badge
-      }
-
     default:
       return state;
   }
