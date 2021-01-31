@@ -21,8 +21,8 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
 ) => {
   switch (action.type) {
     case CREATE_TODO:
-      const key = Date.now();
-      state._toDoList[key] = { ...action._item };
+      // eslint-disable-next-line no-param-reassign
+      state._toDoList[Date.now()] = { ...action._item };
       return {
         ...state,
       };
@@ -34,12 +34,14 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
       };
 
     case UPDATE_TODO:
+      // eslint-disable-next-line no-param-reassign
       state._toDoList[action._index] = { ...action._item };
       return {
         ...state,
       };
 
     case DELETE_TODO:
+      // eslint-disable-next-line no-param-reassign
       delete state._toDoList[action._index.toString()];
       return {
         ...state,

@@ -17,11 +17,10 @@ import {
   query,
 } from 'lit-element';
 
-// These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles';
+import '@material/mwc-button';
+import { Checkbox } from '@material/mwc-checkbox';
+import { TextField } from '@material/mwc-textfield';
 
-// This element is connected to the Redux store.
-import { store } from '../store';
 // These are the actions needed by this element.
 import {
   toDoDelete,
@@ -30,19 +29,19 @@ import {
   toDoUpdate,
 } from '../actions/todo';
 
-import '@material/mwc-button';
-import '@material/mwc-checkbox';
-import '@material/mwc-textfield';
-import { TextField } from '@material/mwc-textfield';
-import { Checkbox } from '@material/mwc-checkbox';
+// This element is connected to the Redux store.
+import { store } from '../store';
+
+// These are the shared styles needed by this element.
+import { SharedStyles } from './shared-styles';
 
 @customElement('todo-item')
 export class TodoItem extends LitElement {
   @query('#itemText')
-  private itemText: TextField | undefined;
+  private itemText!: TextField;
 
   @query('#completed')
-  private itemCompleted: Checkbox | undefined;
+  private itemCompleted!: Checkbox;
 
   @property({ type: Object })
   itemData: IToDo = defaultToDoItem;
@@ -100,25 +99,20 @@ export class TodoItem extends LitElement {
   }
 
   private completedItem() {
-    if (this.itemCompleted !== undefined) {
-      this.itemData._completed = this.itemCompleted?.checked;
-      if (this.itemData._completed) {
-        this.itemText?.setAttribute('disabled', '');
-      } else {
-        this.itemText?.removeAttribute('disabled');
-      }
+    this.itemData._completed = this.itemCompleted.checked;
 
-      store.dispatch(toDoUpdate(this.key, this.itemData));
-    }
+    // eslint-disable-next-line no-unused-expressions
+    this.itemData._completed
+      ? this.itemText.setAttribute('disabled', '')
+      : this.itemText.removeAttribute('disabled');
+    store.dispatch(toDoUpdate(this.key, this.itemData));
   }
 
   private updateItem() {
-    if (this.itemText !== undefined) {
-      const title = this.itemText.value.trim();
-      if (this.itemData._title !== title) {
-        this.itemData._title = title;
-        store.dispatch(toDoUpdate(this.key, this.itemData));
-      }
+    const title = this.itemText.value.trim();
+    if (this.itemData._title !== title) {
+      this.itemData._title = title;
+      store.dispatch(toDoUpdate(this.key, this.itemData));
     }
   }
 }

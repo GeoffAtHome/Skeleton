@@ -284,10 +284,10 @@ export class MyApp extends connect(store)(LitElement) {
     this._snackbarOpened = state.app!.snackbarOpened;
     this._drawerOpened = state.app!.drawerOpened;
 
-    const toDoData = toDoDataSelector(state);
+    const toDoDataState = toDoDataSelector(state);
 
-    if (toDoData !== undefined) {
-      this.itemData = { ...toDoData._toDoList };
+    if (toDoDataState !== undefined) {
+      this.itemData = { ...toDoDataState._toDoList };
     }
     this.appTitle = getTitle(this._page);
   }
