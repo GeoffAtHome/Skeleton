@@ -1,5 +1,7 @@
 import { Reducer } from 'redux';
+
 import {
+  LOAD_TODO,
   CREATE_TODO,
   READ_TODO,
   UPDATE_TODO,
@@ -7,7 +9,15 @@ import {
   IToDoDataState,
   defaultToDoItem,
 } from '../actions/todo';
+
 import { RootAction, RootState } from '../store';
+import {
+  createDB,
+  createItem,
+  deleteItem,
+  readItem,
+  updateItem,
+} from './poucbDBInterface';
 
 const INITIAL_STATE: IToDoDataState = {
   _toDoList: {},
@@ -15,12 +25,20 @@ const INITIAL_STATE: IToDoDataState = {
   _item: defaultToDoItem,
 };
 
+const todoDB: PouchDB.Database = await createDB('todo');
+
 const toDoData: Reducer<IToDoDataState, RootAction> = (
   state = INITIAL_STATE,
   action
 ) => {
   switch (action.type) {
+    case LOAD_TODO:
+      // eslint-disable-next-line no-param-reassign
+      state._toDoList = { ...action._data };
+      return { ...state };
+
     case CREATE_TODO:
+      createItem(todoDB, action._item);
       // eslint-disable-next-line no-param-reassign
       state._toDoList[Date.now()] = { ...action._item };
       return {
@@ -28,12 +46,14 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
       };
 
     case READ_TODO:
+      readItem(todoDB, action._index);
       return {
         ...state,
         _index: action._index,
       };
 
     case UPDATE_TODO:
+      updateItem(todoDB, { ...action._item });
       // eslint-disable-next-line no-param-reassign
       state._toDoList[action._index] = { ...action._item };
       return {
@@ -41,6 +61,7 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
       };
 
     case DELETE_TODO:
+      deleteItem(todoDB, action._index);
       // eslint-disable-next-line no-param-reassign
       delete state._toDoList[action._index.toString()];
       return {

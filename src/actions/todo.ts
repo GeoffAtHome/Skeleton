@@ -1,5 +1,6 @@
 import { Action, ActionCreator } from 'redux';
 
+export const LOAD_TODO = 'LOAD_TODO';
 export const CREATE_TODO = 'CREATE_TODO';
 export const READ_TODO = 'READ_TODO';
 export const UPDATE_TODO = 'UPDATE_TODO';
@@ -26,6 +27,9 @@ export interface IToDoDataState {
   _item: IToDo;
 }
 
+export interface ToDoLoad extends Action<'LOAD_TODO'> {
+  _data: ToDoDataList;
+}
 export interface ToDoCreate extends Action<'CREATE_TODO'> {
   _item: IToDo;
 }
@@ -40,7 +44,19 @@ export interface ToDoDelete extends Action<'DELETE_TODO'> {
   _index: String;
 }
 
-export type ToDoAction = ToDoCreate | ToDoRead | ToDoUpdate | ToDoDelete;
+export type ToDoAction =
+  | ToDoLoad
+  | ToDoCreate
+  | ToDoRead
+  | ToDoUpdate
+  | ToDoDelete;
+
+export const toDoLoad: ActionCreator<ToDoLoad> = _data => {
+  return {
+    type: LOAD_TODO,
+    _data,
+  };
+};
 
 export const toDoCreate: ActionCreator<ToDoCreate> = _item => {
   return {

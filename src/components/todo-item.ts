@@ -18,7 +18,13 @@ import {
 } from 'lit-element';
 
 import '@material/mwc-button';
+// eslint-disable-next-line import/no-duplicates
+import '@material/mwc-checkbox';
+// eslint-disable-next-line import/no-duplicates
+import '@material/mwc-textfield';
+// eslint-disable-next-line import/no-duplicates
 import { Checkbox } from '@material/mwc-checkbox';
+// eslint-disable-next-line import/no-duplicates
 import { TextField } from '@material/mwc-textfield';
 
 // These are the actions needed by this element.
@@ -44,7 +50,7 @@ export class TodoItem extends LitElement {
   private itemCompleted!: Checkbox;
 
   @property({ type: Object })
-  itemData: IToDo = defaultToDoItem;
+  item!: IToDo;
 
   @property({ type: String })
   key = '';
@@ -69,13 +75,13 @@ export class TodoItem extends LitElement {
     return html`<div>
       <mwc-checkbox
         id="completed"
-        .checked=${this.itemData._completed}
+        .checked=${this.item._completed}
         @change="${this.completedItem}"
       ></mwc-checkbox>
       <mwc-textfield
         id="itemText"
-        .disabled=${this.itemData._completed}
-        value=${this.itemData._title}
+        .disabled=${this.item._completed}
+        value=${this.item._title}
         @change="${this.updateItem}"
       ></mwc-textfield>
       <mwc-icon-button @click="${this.deleteItem}">
@@ -99,20 +105,20 @@ export class TodoItem extends LitElement {
   }
 
   private completedItem() {
-    this.itemData._completed = this.itemCompleted.checked;
+    this.item._completed = this.itemCompleted.checked;
 
     // eslint-disable-next-line no-unused-expressions
-    this.itemData._completed
+    this.item._completed
       ? this.itemText.setAttribute('disabled', '')
       : this.itemText.removeAttribute('disabled');
-    store.dispatch(toDoUpdate(this.key, this.itemData));
+    store.dispatch(toDoUpdate(this.key, this.item));
   }
 
   private updateItem() {
     const title = this.itemText.value.trim();
-    if (this.itemData._title !== title) {
-      this.itemData._title = title;
-      store.dispatch(toDoUpdate(this.key, this.itemData));
+    if (this.item._title !== title) {
+      this.item._title = title;
+      store.dispatch(toDoUpdate(this.key, this.item));
     }
   }
 }
