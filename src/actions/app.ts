@@ -47,7 +47,7 @@ type ThunkResult = ThunkAction<void, RootState, undefined, AppAction>;
 const updatePage: ActionCreator<AppActionUpdatePage> = (page: string) => {
   return {
     type: UPDATE_PAGE,
-    page,
+    page
   };
 };
 
@@ -56,7 +56,7 @@ export const updateDrawerState: ActionCreator<AppActionUpdateDrawerState> = (
 ) => {
   return {
     type: UPDATE_DRAWER_STATE,
-    opened,
+    opened
   };
 };
 
@@ -84,7 +84,8 @@ export const navigate: ActionCreator<ThunkResult> = (
   path: string
 ) => dispatch => {
   // Extract the page name from path.
-  const page = path === '/' ? 'welcome' : path.slice(1);
+  const parts = path.split('#');
+  const page = parts.length === 1 ? 'welcome' : parts[1];
 
   // Any other info you might want to extract from the path (like page type),
   // you can do here
@@ -100,7 +101,7 @@ let snackbarTimer: number;
 
 export const showSnackbar: ActionCreator<ThunkResult> = () => dispatch => {
   dispatch({
-    type: OPEN_SNACKBAR,
+    type: OPEN_SNACKBAR
   });
   window.clearTimeout(snackbarTimer);
   snackbarTimer = window.setTimeout(
@@ -115,7 +116,7 @@ export const notifyMessage: ActionCreator<ThunkResult> = (
   dispatch(showSnackbar());
   dispatch({
     type: NOTIFY_MESSAGE,
-    message,
+    message
   });
 };
 
@@ -131,6 +132,6 @@ export const updateOffline: ActionCreator<ThunkResult> = (offline: boolean) => (
 
   dispatch({
     type: NOTIFY_MESSAGE,
-    message,
+    message
   });
 };

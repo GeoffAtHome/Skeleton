@@ -34,7 +34,7 @@ declare global {
 // Overall state extends static states and partials lazy states.
 export interface RootState {
   app?: AppState;
-  todoData?: IToDoDataState;
+  toDoData?: IToDoDataState;
 }
 
 export type RootAction = AppAction | ToDoAction;

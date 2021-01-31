@@ -5,23 +5,26 @@ import {
   UPDATE_TODO,
   DELETE_TODO,
   IToDoDataState,
+  defaultToDoItem,
 } from '../actions/todo';
 import { RootAction, RootState } from '../store';
 
 const INITIAL_STATE: IToDoDataState = {
-  _toDoList: [],
+  _toDoList: {},
   _index: '',
+  _item: defaultToDoItem,
 };
 
-const toDoDataMap: Reducer<IToDoDataState, RootAction> = (
+const toDoData: Reducer<IToDoDataState, RootAction> = (
   state = INITIAL_STATE,
   action
 ) => {
   switch (action.type) {
     case CREATE_TODO:
+      const key = Date.now();
+      state._toDoList[key] = { ...action._item };
       return {
         ...state,
-        _index: action._index,
       };
 
     case READ_TODO:
@@ -31,15 +34,15 @@ const toDoDataMap: Reducer<IToDoDataState, RootAction> = (
       };
 
     case UPDATE_TODO:
+      state._toDoList[action._index] = { ...action._item };
       return {
         ...state,
-        _index: action._index,
       };
 
     case DELETE_TODO:
+      delete state._toDoList[action._index.toString()];
       return {
         ...state,
-        _index: action._index,
       };
 
     default:
@@ -47,7 +50,7 @@ const toDoDataMap: Reducer<IToDoDataState, RootAction> = (
   }
 };
 
-export default toDoDataMap;
+export default toDoData;
 
 // Per Redux best practices, the shop data in our store is structured
 // for efficiency (small size and fast updates).
@@ -60,4 +63,4 @@ export default toDoDataMap;
 // We use a tiny library called `reselect` to create efficient
 // selectors. More info: https://github.com/reduxjs/reselect.
 
-export const toDoDataSelector = (state: RootState) => state.todoData;
+export const toDoDataSelector = (state: RootState) => state.toDoData;

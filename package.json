@@ -29,7 +29,7 @@
     "storybook:build": "tsc && build-storybook",
     "build": "rimraf dist && tsc && rollup -c rollup.config.js",
     "start:build": "npm run build && web-dev-server --root-dir dist --app-index index.html --open --compatibility none",
-    "start": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\""
+    "start": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\" --open auto"
   },
   "name": "my-app",
   "version": "0.0.0",
@@ -38,9 +38,11 @@
   "license": "MIT",
   "dependencies": {
     "@material/mwc-button": "^0.20.0",
+    "@material/mwc-checkbox": "^0.20.0",
     "@material/mwc-drawer": "^0.20.0",
     "@material/mwc-tab": "^0.20.0",
     "@material/mwc-tab-bar": "^0.20.0",
+    "@material/mwc-textfield": "^0.20.0",
     "@material/mwc-top-app-bar": "^0.20.0",
     "@polymer/polymer": "^3.4.1",
     "@pwabuilder/pwainstall": "^1.6.7",
