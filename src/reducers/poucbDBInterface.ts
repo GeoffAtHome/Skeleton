@@ -1,5 +1,5 @@
-// import PouchDB from 'pouchdb/dist/pouchdb';
-import PouchDB from 'pouchdb';
+// import PouchDB from 'pouchdb/dist/pouchdb.js';
+import * as PouchDB from 'pouchdb';
 // import { store } from '../store';
 
 function pouchDBError(error: any) {
@@ -7,7 +7,7 @@ function pouchDBError(error: any) {
   console.log(`DB Error:${error}`);
 }
 
-export async function createDB(dbName: string): Promise<PouchDB.Database<{}>> {
+export function createPouchDB(dbName: string): PouchDB.Database {
   return new PouchDB(dbName);
 }
 
@@ -20,7 +20,7 @@ export async function createDB(dbName: string): Promise<PouchDB.Database<{}>> {
   }
 } */
 
-export async function createItem(db: PouchDB.Database, item: any) {
+export async function createItemPouchDB(db: PouchDB.Database, item: any) {
   try {
     await db.post(item);
   } catch (err) {
@@ -28,7 +28,7 @@ export async function createItem(db: PouchDB.Database, item: any) {
   }
 }
 
-export async function readItem(db: PouchDB.Database, id: any) {
+export async function readItemPouchDB(db: PouchDB.Database, id: any) {
   let item = {};
   try {
     item = await db.get(id);
@@ -39,7 +39,7 @@ export async function readItem(db: PouchDB.Database, id: any) {
   return item;
 }
 
-export async function updateItem(db: PouchDB.Database, item: any) {
+export async function updateItemPouchDB(db: PouchDB.Database, item: any) {
   try {
     // Get revision
     const revItem = await db.get(item._id);
@@ -51,7 +51,7 @@ export async function updateItem(db: PouchDB.Database, item: any) {
   }
 }
 
-export async function deleteItem(db: PouchDB.Database, item: any) {
+export async function deleteItemPouchDB(db: PouchDB.Database, item: any) {
   try {
     const revItem = await db.get(item._id);
     await db.remove(revItem._id, revItem._rev);
