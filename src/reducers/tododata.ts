@@ -1,4 +1,13 @@
 import { Reducer } from 'redux';
+import {
+  DataList,
+  createPouchDB,
+  createItemPouchDB,
+  deleteItemPouchDB,
+  readItemPouchDB,
+  updateItemPouchDB,
+  loadPouchDB,
+} from './poucbDBInterface';
 
 import {
   LOAD_TODO,
@@ -8,22 +17,16 @@ import {
   DELETE_TODO,
   IToDoDataState,
   defaultToDoItem,
-  toDoCreated,
-  CREATED_TODO,
   LOADED_TODO,
   toDoLoaded,
   CLEAR_COMPLETED_TODO,
+  CHANGES_TODO,
+  toDoChanges,
+  DELETES_TODO,
+  toDoDeletes,
 } from '../actions/tododata';
 
-import { RootAction, RootState } from '../store';
-import {
-  createPouchDB,
-  createItemPouchDB,
-  deleteItemPouchDB,
-  readItemPouchDB,
-  updateItemPouchDB,
-  loadPouchDB,
-} from './poucbDBInterface';
+import { RootAction, RootState, store } from '../store';
 
 const INITIAL_STATE: IToDoDataState = {
   _toDoList: {},
@@ -31,7 +34,22 @@ const INITIAL_STATE: IToDoDataState = {
   _item: defaultToDoItem,
 };
 
-const todoDB: PouchDB.Database = createPouchDB('todo');
+function toDoChangesDispatch(docs: any) {
+  store.dispatch(toDoChanges(docs));
+}
+
+function toDoDeletedDispatch(docs: any) {
+  store.dispatch(toDoDeletes(docs));
+}
+
+const rootURL = 'https://scoutpostadmin.soord.org.uk:6984/';
+// const rootURL = 'http://localhost:5984/';
+const todoDB: PouchDB.Database = createPouchDB(
+  'todo',
+  rootURL,
+  toDoChangesDispatch,
+  toDoDeletedDispatch
+);
 
 const toDoData: Reducer<IToDoDataState, RootAction> = (
   state = INITIAL_STATE,
@@ -43,19 +61,10 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
       return { ...state };
 
     case LOADED_TODO:
-      // eslint-disable-next-line no-param-reassign
-      state._toDoList = { ...action._data };
-      return { ...state };
+      return { ...state, _toDoList: { ...action._data } };
 
     case CREATE_TODO:
-      createItemPouchDB(todoDB, action._item, toDoCreated);
-      return {
-        ...state,
-      };
-
-    case CREATED_TODO:
-      // eslint-disable-next-line no-param-reassign
-      state._toDoList[action._id] = { ...action._item };
+      createItemPouchDB(todoDB, action._item);
       return {
         ...state,
       };
@@ -68,17 +77,13 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
       };
 
     case UPDATE_TODO:
-      updateItemPouchDB(todoDB, { ...action._item });
-      // eslint-disable-next-line no-param-reassign
-      state._toDoList[action._id] = { ...action._item };
+      updateItemPouchDB(todoDB, action._id, action._item);
       return {
         ...state,
       };
 
     case DELETE_TODO:
       deleteItemPouchDB(todoDB, action._id);
-      // eslint-disable-next-line no-param-reassign
-      delete state._toDoList[action._id.toString()];
       return {
         ...state,
       };
@@ -90,12 +95,28 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
         })
         .forEach(item => {
           deleteItemPouchDB(todoDB, item[0]);
-          // eslint-disable-next-line no-param-reassign
-          delete state._toDoList[item[0].toString()];
         });
       return {
         ...state,
       };
+
+    case CHANGES_TODO:
+      return {
+        ...state,
+        _toDoList: { ...state._toDoList, ...action._docs },
+      };
+
+    case DELETES_TODO: {
+      const newList = { ...state._toDoList };
+      Object.keys(action._docs).forEach(key => {
+        delete newList[key];
+      });
+      return {
+        ...state,
+        _toDoList: newList,
+      };
+    }
+
     default:
       return state;
   }

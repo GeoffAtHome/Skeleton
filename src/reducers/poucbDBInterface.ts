@@ -17,18 +17,7 @@ export interface DataList {
   [index: string]: any;
 }
 
-export function createPouchDB(dbName: string): PouchDB.Database {
-  return new PouchDB(dbName, remoteDBOptions);
-}
-
-/* export async function getData(db: PouchDB, dispatcher: function(data: any) none) {
-  try {
-    const data = await db.allDocs({ include_docs: true });
-    store.dispatch(dispatcher(data));
-  } catch (err) {
-    pouchDBError(err);
-  }
-} */
+type changeCallback = (change: any) => void;
 
 export async function loadPouchDB(
   db: PouchDB.Database,
@@ -47,14 +36,9 @@ export async function loadPouchDB(
   }
 }
 
-export async function createItemPouchDB(
-  db: PouchDB.Database,
-  item: any,
-  action: ActionCreator<any>
-) {
+export async function createItemPouchDB(db: PouchDB.Database, item: any) {
   try {
-    const savedItem = await db.post(item);
-    store.dispatch(action(savedItem.id, item));
+    await db.post(item);
   } catch (err) {
     pouchDBError(err);
   }
@@ -71,13 +55,18 @@ export async function readItemPouchDB(db: PouchDB.Database, id: any) {
   return item;
 }
 
-export async function updateItemPouchDB(db: PouchDB.Database, item: any) {
+export async function updateItemPouchDB(
+  db: PouchDB.Database,
+  id: string,
+  item: any
+) {
   try {
+    const newItem = item;
     // Get revision
-    const revItem = await db.get(item._id);
-    // eslint-disable-next-line no-param-reassign
-    item._rev = revItem._rev;
-    await db.put(item);
+    const revItem = await db.get(id);
+    newItem._rev = revItem._rev;
+    newItem._id = id;
+    await db.put(newItem);
   } catch (err) {
     pouchDBError(err);
   }
@@ -90,4 +79,80 @@ export async function deleteItemPouchDB(db: PouchDB.Database, id: string) {
   } catch (err) {
     pouchDBError(err);
   }
+}
+
+function syncChange(
+  changes: PouchDB.Replication.SyncResult<any>,
+  changesCB: changeCallback,
+  deletesCB: changeCallback
+) {
+  const changedDocs = changes.change.docs.filter(item => {
+    return !('_deleted' in item);
+  });
+  const deletedDocs = changes.change.docs.filter(item => {
+    return '_deleted' in item;
+  });
+  if (changedDocs.length) {
+    const updates: DataList = {};
+    for (const item of changes.change.docs) {
+      const key = item._id;
+      delete item._id;
+      delete item._rev;
+
+      updates[key] = item;
+    }
+    changesCB(updates);
+  }
+
+  if (deletedDocs.length) {
+    const removes: DataList = {};
+    for (const item of changes.change.docs) {
+      const key = item._id;
+      delete item._id;
+      delete item._rev;
+
+      removes[key] = item;
+    }
+    deletesCB(removes);
+  }
+}
+
+function syncPaused(localDB: string, x: any) {
+  console.log(`${localDB} Paused: ${x}`);
+}
+function syncActive(localDB: string) {
+  console.log(`${localDB} Active:`);
+}
+function syncDenied(localDB: string, x: any) {
+  console.log(`${localDB} Denied: ${x}`);
+}
+function syncComplete(localDB: string, x: any) {
+  console.log(`${localDB} Complete: ${x}`);
+}
+function syncError(localDB: string, x: any) {
+  console.log(`${localDB} Error: ${x}`);
+}
+
+export function createPouchDB(
+  dbName: string,
+  rootURL: string,
+  changes: changeCallback,
+  deletes: changeCallback
+): PouchDB.Database {
+  const localDB = new PouchDB(dbName);
+  const remoteURL = rootURL + dbName;
+  const options = { live: true };
+  localDB.replicate.from(remoteURL).on('complete', _info => {
+    syncComplete(localDB.name, _info);
+    localDB
+      .sync(remoteURL, options)
+      .on('change', info => syncChange(info, changes, deletes)) // handle change
+      .on('paused', err => syncPaused(localDB.name, err)) // replication paused (e.g. replication up to date, user went offline)
+      .on('active', () => syncActive(localDB.name)) // replicate resumed (e.g. new changes replicating, user went back online)
+      .on('denied', err => syncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
+      .on('complete', info => syncComplete(localDB.name, info)) // handle complete
+      .on('error', err => syncError(localDB.name, err)); // handle error
+  });
+
+  return localDB;
 }
