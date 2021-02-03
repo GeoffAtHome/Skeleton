@@ -57,6 +57,7 @@ export class TodoItem extends LitElement {
         :host {
           min-width: 200px;
           padding: 10px;
+          display: block;
         }
 
         mwc-textfield[disabled] {
@@ -67,15 +68,15 @@ export class TodoItem extends LitElement {
   }
 
   protected render() {
-    return html`<div>
+    return html`
       <mwc-checkbox
         id="completed"
-        .checked=${this.item.completed}
+        ?checked=${this.item.completed}
         @change="${this.completedItem}"
       ></mwc-checkbox>
       <mwc-textfield
         id="itemText"
-        .disabled=${this.item.completed}
+        ?disabled=${this.item.completed}
         value=${this.item.title}
         @change="${this.updateItem}"
       ></mwc-textfield>
@@ -92,7 +93,7 @@ export class TodoItem extends LitElement {
           />
         </svg>
       </mwc-icon-button>
-    </div>`;
+    `;
   }
 
   private deleteItem() {

@@ -10,9 +10,9 @@ export interface FilterFunctionList {
 }
 
 export const TODO_FILTERS: FilterFunctionList = [
-  (todo: [string, IToDo]) => true,
-  (todo: [string, IToDo]) => !todo[1].completed,
-  (todo: [string, IToDo]) => todo[1].completed,
+  (todo: IToDo) => true,
+  (todo: IToDo) => !todo.completed,
+  (todo: IToDo) => todo.completed,
 ];
 
 export interface IFilterState {
