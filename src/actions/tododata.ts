@@ -1,5 +1,4 @@
 import { Action, ActionCreator } from 'redux';
-import { DataList } from '../reducers/poucbDBInterface';
 
 export const LOAD_TODO = 'LOAD_TODO';
 export const LOADED_TODO = 'LOADED_TODO';
@@ -28,8 +27,6 @@ export const defaultToDoItem: IToDo = {
 };
 export interface IToDoDataState {
   _toDoList: ToDoDataList;
-  _id: string;
-  _item: IToDo;
 }
 
 export interface ToDoLoad extends Action<'LOAD_TODO'> {}

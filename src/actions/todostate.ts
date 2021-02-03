@@ -2,7 +2,6 @@ import { Action, ActionCreator } from 'redux';
 import { IToDo } from './tododata';
 
 export const FILTER_CHANGE = 'FILTER_CHANGE';
-
 export const filterStates = ['All', 'Completed', 'Active'];
 export type IFilters = 'All' | 'Active' | 'Completed';
 

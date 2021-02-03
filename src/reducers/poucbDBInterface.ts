@@ -147,7 +147,7 @@ export function createPouchDB(
   // eslint-disable-next-line no-undef
   const localDB = new PouchDB(dbName);
   const remoteURL = rootURL + dbName;
-  const options = { live: true };
+  const options = { live: true, retry: true };
   localDB.replicate.from(remoteURL).on('complete', _info => {
     syncComplete(localDB.name, _info);
     localDB

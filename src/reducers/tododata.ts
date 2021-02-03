@@ -1,6 +1,5 @@
 import { Reducer } from 'redux';
 import {
-  DataList,
   createPouchDB,
   createItemPouchDB,
   deleteItemPouchDB,
@@ -15,14 +14,13 @@ import {
   READ_TODO,
   UPDATE_TODO,
   DELETE_TODO,
-  IToDoDataState,
-  defaultToDoItem,
-  LOADED_TODO,
-  toDoLoaded,
   CLEAR_COMPLETED_TODO,
+  LOADED_TODO,
   CHANGES_TODO,
-  toDoChanges,
   DELETES_TODO,
+  IToDoDataState,
+  toDoLoaded,
+  toDoChanges,
   toDoDeletes,
 } from '../actions/tododata';
 
@@ -30,8 +28,6 @@ import { RootAction, RootState, store } from '../store';
 
 const INITIAL_STATE: IToDoDataState = {
   _toDoList: {},
-  _id: '',
-  _item: defaultToDoItem,
 };
 
 function toDoChangesDispatch(docs: any) {
