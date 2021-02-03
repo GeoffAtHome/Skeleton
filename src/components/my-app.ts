@@ -36,15 +36,6 @@ import '@pwabuilder/pwainstall';
 import '@pwabuilder/pwaupdate';
 import { menuIcon, arrowBackIcon } from './my-icons';
 import './snack-bar';
-import { IToDo, ToDoDataList } from '../actions/todo';
-// We are lazy loading its reducer.
-import toDoData, { toDoDataSelector } from '../reducers/todo';
-
-if (toDoDataSelector(store.getState()) === undefined) {
-  store.addReducers({
-    toDoData,
-  });
-}
 
 function _BackButtonClicked() {
   window.history.back();
@@ -71,9 +62,6 @@ export class MyApp extends connect(store)(LitElement) {
 
   @property({ type: String })
   appTitle = '';
-
-  @property({ type: Object })
-  itemData: ToDoDataList = {};
 
   @property({ type: String })
   private _page = '';
@@ -229,10 +217,7 @@ export class MyApp extends connect(store)(LitElement) {
               <welcome-page class="page" ?active="${this._page === 'welcome'}"
                 >Welcome</welcome-page
               >
-              <todo-list
-                class="page"
-                ?active="${this._page === 'todo'}"
-                .itemData=${this.itemData}
+              <todo-list class="page" ?active="${this._page === 'todo'}"
                 >Welcome</todo-list
               >
               <my-view404
@@ -283,12 +268,6 @@ export class MyApp extends connect(store)(LitElement) {
     this._offline = state.app!.offline;
     this._snackbarOpened = state.app!.snackbarOpened;
     this._drawerOpened = state.app!.drawerOpened;
-
-    const toDoDataState = toDoDataSelector(state);
-
-    if (toDoDataState !== undefined) {
-      this.itemData = { ...toDoDataState._toDoList };
-    }
     this.appTitle = getTitle(this._page);
   }
 

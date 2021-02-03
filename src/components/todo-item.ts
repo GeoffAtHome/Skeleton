@@ -28,12 +28,7 @@ import { Checkbox } from '@material/mwc-checkbox';
 import { TextField } from '@material/mwc-textfield';
 
 // These are the actions needed by this element.
-import {
-  toDoDelete,
-  defaultToDoItem,
-  IToDo,
-  toDoUpdate,
-} from '../actions/todo';
+import { toDoDelete, IToDo, toDoUpdate } from '../actions/tododata';
 
 // This element is connected to the Redux store.
 import { store } from '../store';
@@ -75,13 +70,13 @@ export class TodoItem extends LitElement {
     return html`<div>
       <mwc-checkbox
         id="completed"
-        .checked=${this.item._completed}
+        .checked=${this.item.completed}
         @change="${this.completedItem}"
       ></mwc-checkbox>
       <mwc-textfield
         id="itemText"
-        .disabled=${this.item._completed}
-        value=${this.item._title}
+        .disabled=${this.item.completed}
+        value=${this.item.title}
         @change="${this.updateItem}"
       ></mwc-textfield>
       <mwc-icon-button @click="${this.deleteItem}">
@@ -105,10 +100,10 @@ export class TodoItem extends LitElement {
   }
 
   private completedItem() {
-    this.item._completed = this.itemCompleted.checked;
+    this.item.completed = this.itemCompleted.checked;
 
     // eslint-disable-next-line no-unused-expressions
-    this.item._completed
+    this.item.completed
       ? this.itemText.setAttribute('disabled', '')
       : this.itemText.removeAttribute('disabled');
     store.dispatch(toDoUpdate(this.key, this.item));
@@ -116,8 +111,8 @@ export class TodoItem extends LitElement {
 
   private updateItem() {
     const title = this.itemText.value.trim();
-    if (this.item._title !== title) {
-      this.item._title = title;
+    if (this.item.title !== title) {
+      this.item.title = title;
       store.dispatch(toDoUpdate(this.key, this.item));
     }
   }

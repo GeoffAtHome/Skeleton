@@ -8,7 +8,12 @@ import {
   DELETE_TODO,
   IToDoDataState,
   defaultToDoItem,
-} from '../actions/todo';
+  toDoCreated,
+  CREATED_TODO,
+  LOADED_TODO,
+  toDoLoaded,
+  CLEAR_COMPLETED_TODO,
+} from '../actions/tododata';
 
 import { RootAction, RootState } from '../store';
 import {
@@ -17,11 +22,12 @@ import {
   deleteItemPouchDB,
   readItemPouchDB,
   updateItemPouchDB,
+  loadPouchDB,
 } from './poucbDBInterface';
 
 const INITIAL_STATE: IToDoDataState = {
   _toDoList: {},
-  _index: '',
+  _id: '',
   _item: defaultToDoItem,
 };
 
@@ -33,41 +39,63 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
 ) => {
   switch (action.type) {
     case LOAD_TODO:
+      loadPouchDB(todoDB, toDoLoaded);
+      return { ...state };
+
+    case LOADED_TODO:
       // eslint-disable-next-line no-param-reassign
       state._toDoList = { ...action._data };
       return { ...state };
 
     case CREATE_TODO:
-      createItemPouchDB(todoDB, action._item);
+      createItemPouchDB(todoDB, action._item, toDoCreated);
+      return {
+        ...state,
+      };
+
+    case CREATED_TODO:
       // eslint-disable-next-line no-param-reassign
-      state._toDoList[Date.now()] = { ...action._item };
+      state._toDoList[action._id] = { ...action._item };
       return {
         ...state,
       };
 
     case READ_TODO:
-      readItemPouchDB(todoDB, action._index);
+      readItemPouchDB(todoDB, action._id);
       return {
         ...state,
-        _index: action._index,
+        _id: action._id,
       };
 
     case UPDATE_TODO:
       updateItemPouchDB(todoDB, { ...action._item });
       // eslint-disable-next-line no-param-reassign
-      state._toDoList[action._index] = { ...action._item };
+      state._toDoList[action._id] = { ...action._item };
       return {
         ...state,
       };
 
     case DELETE_TODO:
-      deleteItemPouchDB(todoDB, action._index);
+      deleteItemPouchDB(todoDB, action._id);
       // eslint-disable-next-line no-param-reassign
-      delete state._toDoList[action._index.toString()];
+      delete state._toDoList[action._id.toString()];
       return {
         ...state,
       };
 
+    case CLEAR_COMPLETED_TODO:
+      Object.entries(state._toDoList)
+        .filter(item => {
+          return item[1].completed;
+        })
+        .forEach(item => {
+          deleteItemPouchDB(todoDB, item[0]);
+          // eslint-disable-next-line no-param-reassign
+          delete state._toDoList[item[0].toString()];
+        });
+      return {
+        ...state,
+      };
     default:
       return state;
   }
