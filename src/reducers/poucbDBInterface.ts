@@ -118,18 +118,23 @@ function syncChange(
 }
 
 function syncPaused(localDB: string, x: any) {
+  // eslint-disable-next-line no-console
   console.log(`${localDB} Paused: ${x}`);
 }
 function syncActive(localDB: string) {
+  // eslint-disable-next-line no-console
   console.log(`${localDB} Active:`);
 }
 function syncDenied(localDB: string, x: any) {
+  // eslint-disable-next-line no-console
   console.log(`${localDB} Denied: ${x}`);
 }
 function syncComplete(localDB: string, x: any) {
+  // eslint-disable-next-line no-console
   console.log(`${localDB} Complete: ${x}`);
 }
 function syncError(localDB: string, x: any) {
+  // eslint-disable-next-line no-console
   console.log(`${localDB} Error: ${x}`);
 }
 
@@ -139,6 +144,7 @@ export function createPouchDB(
   changes: changeCallback,
   deletes: changeCallback
 ): PouchDB.Database {
+  // eslint-disable-next-line no-undef
   const localDB = new PouchDB(dbName);
   const remoteURL = rootURL + dbName;
   const options = { live: true };
