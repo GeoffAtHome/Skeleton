@@ -5,6 +5,16 @@
 import { ActionCreator } from 'redux';
 import { store } from '../store';
 
+// We are lazy loading its reducer.
+import syncState, { syncStateSelector } from '../reducers/syncState';
+import { syncStateChange } from '../actions/syncState';
+
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({
+    syncState,
+  });
+}
+
 function pouchDBError(error: any) {
   // eslint-disable-next-line no-console
   console.log(`DB Error:${error}`);
@@ -120,22 +130,27 @@ function syncChange(
 function syncPaused(localDB: string, x: any) {
   // eslint-disable-next-line no-console
   console.log(`${localDB} Paused: ${x}`);
+  store.dispatch(syncStateChange('Paused'));
 }
 function syncActive(localDB: string) {
   // eslint-disable-next-line no-console
   console.log(`${localDB} Active:`);
+  store.dispatch(syncStateChange('Active'));
 }
 function syncDenied(localDB: string, x: any) {
   // eslint-disable-next-line no-console
   console.log(`${localDB} Denied: ${x}`);
+  store.dispatch(syncStateChange('Denied'));
 }
 function syncComplete(localDB: string, x: any) {
   // eslint-disable-next-line no-console
   console.log(`${localDB} Complete: ${x}`);
+  store.dispatch(syncStateChange('Complete'));
 }
 function syncError(localDB: string, x: any) {
   // eslint-disable-next-line no-console
   console.log(`${localDB} Error: ${x}`);
+  store.dispatch(syncStateChange('Error'));
 }
 
 export function createPouchDB(

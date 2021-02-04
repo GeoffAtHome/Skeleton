@@ -1,30 +1,22 @@
 import { Reducer } from 'redux';
 
-import {
-  filterStates,
-  FILTER_CHANGE,
-  IFilterState,
-  TODO_FILTERS,
-} from '../actions/todostate';
+import { SYNC_STATE, ISyncState } from '../actions/syncState';
 
 import { RootAction, RootState } from '../store';
 
-const INITIAL_STATE: IFilterState = {
-  _currentFilterName: 'All',
-  // eslint-disable-next-line dot-notation
-  _currentFilter: TODO_FILTERS[0],
+const INITIAL_STATE: ISyncState = {
+  _lastSyncState: '',
 };
 
-const toDoFilterState: Reducer<IFilterState, RootAction> = (
+const syncState: Reducer<ISyncState, RootAction> = (
   state = INITIAL_STATE,
   action
 ) => {
   switch (action.type) {
-    case FILTER_CHANGE:
+    case SYNC_STATE:
       return {
         ...state,
-        _currentFilterName: action._filter,
-        _currentFilter: TODO_FILTERS[filterStates.indexOf(action._filter)],
+        _lastSyncState: action._state,
       };
 
     default:
@@ -32,7 +24,7 @@ const toDoFilterState: Reducer<IFilterState, RootAction> = (
   }
 };
 
-export default toDoFilterState;
+export default syncState;
 
 // Per Redux best practices, the shop data in our store is structured
 // for efficiency (small size and fast updates).
@@ -45,4 +37,4 @@ export default toDoFilterState;
 // We use a tiny library called `reselect` to create efficient
 // selectors. More info: https://github.com/reduxjs/reselect.
 
-export const toDoFilterSelector = (state: RootState) => state.toDoFilterState;
+export const syncStateSelector = (state: RootState) => state.syncState;

@@ -14,12 +14,12 @@ import { SharedStyles } from './shared-styles';
 
 // This element is connected to the Redux store.
 import { RootState, store } from '../store';
-// We are lazy loading its reducer.
-import toDoData, { toDoDataSelector } from '../reducers/tododata';
 
 import { IToDo, toDoCreate, ToDoDataList, toDoLoad } from '../actions/tododata';
 // We are lazy loading its reducer.
-import toDoFilter, { toDoFilterSelector } from '../reducers/todostate';
+import toDoData, { toDoDataSelector } from '../reducers/tododata';
+import toDoFilterState, { toDoFilterSelector } from '../reducers/todostate';
+import syncState, { syncStateSelector } from '../reducers/syncState';
 
 import './todo-item';
 import './todo-filter';
@@ -33,7 +33,13 @@ if (toDoDataSelector(store.getState()) === undefined) {
 
 if (toDoFilterSelector(store.getState()) === undefined) {
   store.addReducers({
-    toDoFilter,
+    toDoFilterState,
+  });
+}
+
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({
+    syncState,
   });
 }
 
@@ -44,6 +50,9 @@ export class TodoList extends connect(store)(LitElement) {
 
   @property({ type: Object })
   itemData: ToDoDataList = {};
+
+  @property({ type: String })
+  syncState: string = '';
 
   currentFilter = TODO_FILTERS[0];
 
@@ -79,6 +88,7 @@ export class TodoList extends connect(store)(LitElement) {
         ></todo-item>`;
       })}
       <todo-filter .itemsLeft="${this.itemsLeft()}"></todo-filter>
+      <div><h2>${this.syncState}</h2></div>
     `;
   }
 
@@ -112,10 +122,13 @@ export class TodoList extends connect(store)(LitElement) {
       this.itemData = { ...toDoDataState._toDoList };
     }
 
-    const toDoFilterState = toDoFilterSelector(state);
+    const filterState = toDoFilterSelector(state);
 
-    if (toDoFilterState !== undefined) {
-      this.currentFilter = toDoFilterState._currentFilter;
+    if (filterState !== undefined) {
+      this.currentFilter = filterState._currentFilter;
     }
+
+    const syncStateS = syncStateSelector(state);
+    this.syncState = syncStateS!._lastSyncState;
   }
 }

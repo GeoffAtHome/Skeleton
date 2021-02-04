@@ -23,6 +23,7 @@ import app, { AppState } from './reducers/app';
 import { AppAction } from './actions/app';
 import { ToDoAction, IToDoDataState } from './actions/tododata';
 import { FilterStateAction, IFilterState } from './actions/todostate';
+import { SyncStateAction, ISyncState } from './actions/syncState';
 
 declare global {
   interface Window {
@@ -36,10 +37,15 @@ declare global {
 export interface RootState {
   app?: AppState;
   toDoData?: IToDoDataState;
-  toDoFilter?: IFilterState;
+  toDoFilterState?: IFilterState;
+  syncState?: ISyncState;
 }
 
-export type RootAction = AppAction | ToDoAction | FilterStateAction;
+export type RootAction =
+  | AppAction
+  | ToDoAction
+  | FilterStateAction
+  | SyncStateAction;
 
 // Sets up a Chrome extension for time travel debugging.
 // See https://github.com/zalmoxisus/redux-devtools-extension for more information.
