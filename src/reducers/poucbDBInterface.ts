@@ -129,7 +129,7 @@ export async function deleteItemPouchDB(db: PouchDB.Database, id: string) {
   }
 }
 
-function syncChange(
+async function syncChange(
   changes: PouchDB.Replication.SyncResult<any>,
   name: string
 ) {
@@ -164,6 +164,7 @@ function syncChange(
     db.deletes(removes);
   }
   db.changed = true;
+  await registerChange(db.name);
 }
 
 function syncSyncChange(

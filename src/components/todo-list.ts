@@ -79,14 +79,16 @@ export class TodoList extends connect(store)(LitElement) {
         label="What to do?"
         @keydown="${this.keydown}"
       ></mwc-textfield>
-      ${Object.entries(this.itemData).map(([key, item]) => {
-        return html` <todo-item
-          class="page"
-          ?active=${this.currentFilter(item)}
-          .key="${key}"
-          .item="${item}"
-        ></todo-item>`;
-      })}
+      ${Object.entries(this.itemData)
+        .sort()
+        .map(([key, item]) => {
+          return html` <todo-item
+            class="page"
+            ?active=${this.currentFilter(item)}
+            .key="${key}"
+            .item="${item}"
+          ></todo-item>`;
+        })}
       <todo-filter .itemsLeft="${this.itemsLeft()}"></todo-filter>
       <div><h2>${this.syncState}</h2></div>
     `;
