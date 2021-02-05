@@ -1,11 +1,37 @@
 import { Reducer } from 'redux';
 
-import { SYNC_STATE, ISyncState } from '../actions/syncState';
+import {
+  SYNC_STATE,
+  ISyncState,
+  syncChanges,
+  syncDeletes,
+} from '../actions/syncState';
 
-import { RootAction, RootState } from '../store';
+import { RootAction, RootState, store } from '../store';
+import { createPouchDB, ReSyncPouchDB, SyncPouchDB } from './poucbDBInterface';
+
+function syncChangesDispatch(docs: any) {
+  store.dispatch(syncChanges(docs));
+  Object.keys(docs).forEach(db => {
+    ReSyncPouchDB(db);
+  });
+}
+
+function syncDeletedDispatch(docs: any) {
+  store.dispatch(syncDeletes(docs));
+}
+
+// Setup database
+const rootURL = 'https://scoutpostadmin.soord.org.uk:6984/';
+const databaseName = 'syncchanges';
+export const syncChangesDB = createPouchDB(databaseName);
+const remoteDB = createPouchDB(rootURL + databaseName);
+
+SyncPouchDB(syncChangesDB, remoteDB, syncChangesDispatch, syncDeletedDispatch);
 
 const INITIAL_STATE: ISyncState = {
   _lastSyncState: '',
+  _docs: {},
 };
 
 const syncState: Reducer<ISyncState, RootAction> = (

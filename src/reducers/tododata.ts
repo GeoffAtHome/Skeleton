@@ -6,6 +6,7 @@ import {
   readItemPouchDB,
   updateItemPouchDB,
   loadPouchDB,
+  RegisterSyncPouchDB,
 } from './poucbDBInterface';
 
 import {
@@ -22,6 +23,8 @@ import {
   toDoLoaded,
   toDoChanges,
   toDoDeletes,
+  IToDo,
+  ToDoDataList,
 } from '../actions/tododata';
 
 import { RootAction, RootState, store } from '../store';
@@ -38,10 +41,12 @@ function toDoDeletedDispatch(docs: any) {
   store.dispatch(toDoDeletes(docs));
 }
 
+// Setup database
+const databaseName = 'todo';
 const rootURL = 'https://scoutpostadmin.soord.org.uk:6984/';
-// const rootURL = 'http://localhost:5984/';
-const todoDB: PouchDB.Database = createPouchDB(
-  'todo',
+
+const todoDB = RegisterSyncPouchDB(
+  databaseName,
   rootURL,
   toDoChangesDispatch,
   toDoDeletedDispatch
@@ -59,11 +64,18 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
     case LOADED_TODO:
       return { ...state, _toDoList: { ...action._data } };
 
-    case CREATE_TODO:
-      createItemPouchDB(todoDB, action._item);
+    case CREATE_TODO: {
+      const newList = { ...state._toDoList };
+      const id = Date.now().toString();
+      const newItem = action._item;
+      newItem._id = id;
+      newList[id] = newItem;
+      createItemPouchDB(todoDB, newItem);
       return {
         ...state,
+        _toDoList: { ...state._toDoList, ...newList },
       };
+    }
 
     case READ_TODO:
       readItemPouchDB(todoDB, action._id);
@@ -72,17 +84,26 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
         _id: action._id,
       };
 
-    case UPDATE_TODO:
+    case UPDATE_TODO: {
+      const newList = { ...state._toDoList };
+      newList[action._id] = action._item;
       updateItemPouchDB(todoDB, action._id, action._item);
       return {
         ...state,
+        _toDoList: { ...state._toDoList, ...newList },
       };
+    }
 
-    case DELETE_TODO:
+    case DELETE_TODO: {
+      const newList = { ...state._toDoList };
+      delete newList[action._id];
+
       deleteItemPouchDB(todoDB, action._id);
       return {
         ...state,
+        _toDoList: newList,
       };
+    }
 
     case CLEAR_COMPLETED_TODO:
       Object.entries(state._toDoList)

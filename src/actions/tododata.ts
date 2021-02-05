@@ -14,6 +14,7 @@ export interface IToDo {
   completed: boolean;
   editing: boolean;
   title: string;
+  _id?: string;
 }
 
 export interface ToDoDataList {
