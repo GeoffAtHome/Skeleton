@@ -1,6 +1,5 @@
 import { Reducer } from 'redux';
 import {
-  createPouchDB,
   createItemPouchDB,
   deleteItemPouchDB,
   readItemPouchDB,
@@ -23,8 +22,6 @@ import {
   toDoLoaded,
   toDoChanges,
   toDoDeletes,
-  IToDo,
-  ToDoDataList,
 } from '../actions/tododata';
 
 import { RootAction, RootState, store } from '../store';
