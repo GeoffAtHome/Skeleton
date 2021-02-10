@@ -199,9 +199,9 @@ function syncError(localDB: string, x: any) {
   store.dispatch(syncStateChange(`${localDB} Error: ${x}`));
 }
 
-export function createPouchDB(dbName: string): PouchDB.Database {
+export function createPouchDB(dbName: string, options: any): PouchDB.Database {
   // eslint-disable-next-line no-undef
-  return new PouchDB(dbName);
+  return new PouchDB(dbName, options);
 }
 
 function SyncOncePouchDB(
@@ -246,8 +246,11 @@ export function RegisterSyncPouchDB(
   changes: changeCallback,
   deletes: changeCallback
 ) {
-  const localDB = createPouchDB(name);
-  const remoteDB = createPouchDB(rootURL + name);
+  const localDB = createPouchDB(name, {});
+  const remoteDB = createPouchDB(rootURL + name, {
+    username: 'usergroup_4',
+    password: 'password_4',
+  });
 
   const db: databaseRegister = {
     name,

@@ -24,8 +24,11 @@ function syncDeletedDispatch(docs: any) {
 // Setup database
 const rootURL = 'https://scoutpostadmin.soord.org.uk:6984/';
 const databaseName = 'syncchanges';
-export const syncChangesDB = createPouchDB(databaseName);
-const remoteDB = createPouchDB(rootURL + databaseName);
+export const syncChangesDB = createPouchDB(databaseName, {});
+const remoteDB = createPouchDB(rootURL + databaseName, {
+  username: 'usergroup_4',
+  password: 'password_4',
+});
 
 SyncPouchDB(syncChangesDB, remoteDB, syncChangesDispatch, syncDeletedDispatch);
 
