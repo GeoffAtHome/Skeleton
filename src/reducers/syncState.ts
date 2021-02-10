@@ -6,6 +6,7 @@ import { RootAction, RootState } from '../store';
 
 const INITIAL_STATE: ISyncState = {
   _lastSyncState: '',
+  _docs: {},
 };
 
 const syncState: Reducer<ISyncState, RootAction> = (
