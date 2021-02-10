@@ -191,6 +191,9 @@ export class MyApp extends connect(store)(LitElement) {
               >Welcome</a
             >
             <a ?selected="${this._page === 'todo'}" href="/#todo">ToDo</a>
+            <a ?selected="${this._page === 'postBoxView'}" href="/#postBoxView"
+              >Post Box View</a
+            >
           </nav>
         </div>
         <!-- Header -->
@@ -219,6 +222,11 @@ export class MyApp extends connect(store)(LitElement) {
               >
               <todo-list class="page" ?active="${this._page === 'todo'}"
                 >Welcome</todo-list
+              >
+              <postbox-view
+                class="page"
+                ?active="${this._page === 'postBoxView'}"
+                >Welcome</postbox-view
               >
               <my-view404
                 class="page"

@@ -6,6 +6,7 @@ import {
   readItemPouchDB,
   updateItemPouchDB,
   loadPouchDB,
+  RegisterSyncPouchDB,
 } from './poucbDBInterface';
 
 import {
@@ -40,7 +41,7 @@ function toDoDeletedDispatch(docs: any) {
 
 const rootURL = 'https://scoutpostadmin.soord.org.uk:6984/';
 // const rootURL = 'http://localhost:5984/';
-const todoDB: PouchDB.Database = createPouchDB(
+const todoDB = RegisterSyncPouchDB(
   'todo',
   rootURL,
   toDoChangesDispatch,

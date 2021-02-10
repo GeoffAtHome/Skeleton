@@ -47,7 +47,7 @@ type ThunkResult = ThunkAction<void, RootState, undefined, AppAction>;
 const updatePage: ActionCreator<AppActionUpdatePage> = (page: string) => {
   return {
     type: UPDATE_PAGE,
-    page
+    page,
   };
 };
 
@@ -56,7 +56,7 @@ export const updateDrawerState: ActionCreator<AppActionUpdateDrawerState> = (
 ) => {
   return {
     type: UPDATE_DRAWER_STATE,
-    opened
+    opened,
   };
 };
 
@@ -70,6 +70,9 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
       break;
     case 'todo':
       import('../components/todo-list');
+      break;
+    case 'postBoxView':
+      import('../components/postbox-view');
       break;
     default:
       // eslint-disable-next-line no-param-reassign
@@ -101,7 +104,7 @@ let snackbarTimer: number;
 
 export const showSnackbar: ActionCreator<ThunkResult> = () => dispatch => {
   dispatch({
-    type: OPEN_SNACKBAR
+    type: OPEN_SNACKBAR,
   });
   window.clearTimeout(snackbarTimer);
   snackbarTimer = window.setTimeout(
@@ -116,7 +119,7 @@ export const notifyMessage: ActionCreator<ThunkResult> = (
   dispatch(showSnackbar());
   dispatch({
     type: NOTIFY_MESSAGE,
-    message
+    message,
   });
 };
 
@@ -132,6 +135,6 @@ export const updateOffline: ActionCreator<ThunkResult> = (offline: boolean) => (
 
   dispatch({
     type: NOTIFY_MESSAGE,
-    message
+    message,
   });
 };
