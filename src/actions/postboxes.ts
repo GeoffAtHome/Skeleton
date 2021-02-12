@@ -32,7 +32,7 @@ export interface IPostBox {
 export interface PostBoxData {
   _id: string;
   _rev?: string;
-  pos: google.maps.LatLng;
+  pos: google.maps.LatLng | null;
   description: IPostBox;
 }
 
@@ -44,7 +44,7 @@ export interface IPostBoxState {
   _newPostbox: PostBoxData;
   _index: number;
   _data: PostBoxList;
-  _mapCenter: google.maps.LatLng;
+  _mapCenter: google.maps.LatLng | null;
 }
 
 export interface PostBoxId extends Action<'POSTBOX_ID'> {}

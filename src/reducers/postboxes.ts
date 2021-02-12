@@ -50,10 +50,7 @@ const postboxDB = RegisterSyncPouchDB(
 );
 
 // eslint-disable-next-line no-undef
-const defaultPos = new google.maps.LatLng(
-  51.50502153288204,
-  -3.240311294225257
-);
+const defaultPos = null;
 
 const INITIAL_STATE: IPostBoxState = {
   _newPostbox: {
@@ -72,7 +69,7 @@ const INITIAL_STATE: IPostBoxState = {
   _mapCenter: defaultPos,
 };
 
-const postBox: Reducer<IPostBoxState, RootAction> = (
+const postBoxState: Reducer<IPostBoxState, RootAction> = (
   state = INITIAL_STATE,
   action
 ) => {
@@ -151,7 +148,7 @@ const postBox: Reducer<IPostBoxState, RootAction> = (
   }
 };
 
-export default postBox;
+export default postBoxState;
 
 // Per Redux best practices, the shop data in our store is structured
 // for efficiency (small size and fast updates).

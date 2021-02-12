@@ -14,7 +14,7 @@
     "sourceMap": true,
     "inlineSources": true,
     "rootDir": "./",
-    "types": ["googlemaps", "mocha"]
+    "types": ["googlemaps", "pouchdb", "mocha"]
   },
   "include": ["**/*.ts"]
 }

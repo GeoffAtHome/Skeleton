@@ -1,7 +1,6 @@
 // import PouchDB from 'pouchdb/dist/pouchdb.js';
 // import * as PouchDB from 'pouchdb';
-// import { store } from '../store';
-
+// eslint-disable-next-line import/extensions
 import { ActionCreator } from 'redux';
 import { store } from '../store';
 
@@ -83,6 +82,10 @@ export async function loadPouchDB(
 
 export async function createItemPouchDB(db: PouchDB.Database, item: any) {
   try {
+    if (!('_id' in item)) {
+      // eslint-disable-next-line no-param-reassign
+      item._id = Date.now().toString();
+    }
     await db.put(item);
     await registerChange(db.name);
   } catch (err) {
@@ -134,10 +137,10 @@ async function syncChange(
   name: string
 ) {
   const db = getRegisteredDatabase(name);
-  const changedDocs = changes.change.docs.filter(item => {
+  const changedDocs = changes.change.docs.filter((item: any) => {
     return !('_deleted' in item);
   });
-  const deletedDocs = changes.change.docs.filter(item => {
+  const deletedDocs = changes.change.docs.filter((item: any) => {
     return '_deleted' in item;
   });
   if (changedDocs.length) {
@@ -211,12 +214,12 @@ function SyncOncePouchDB(
   const options = { live: true, retry: true };
   const syncHandler: PouchDB.Replication.Sync<{}> = localDB
     .sync(remoteDB, options)
-    .on('change', info => syncChange(info, localDB.name)) // handle change
-    .on('paused', err => syncPausedCancel(localDB)) // replication paused (e.g. replication up to date, user went offline)
+    .on('change', (info: any) => syncChange(info, localDB.name)) // handle change
+    .on('paused', (err: any) => syncPausedCancel(localDB)) // replication paused (e.g. replication up to date, user went offline)
     .on('active', () => syncActive(localDB.name)) // replicate resumed (e.g. new changes replicating, user went back online)
-    .on('denied', err => syncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
-    .on('complete', info => syncComplete(localDB.name, info)) // handle complete
-    .on('error', err => syncError(localDB.name, err)); // handle error
+    .on('denied', (err: any) => syncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
+    .on('complete', (info: any) => syncComplete(localDB.name, info)) // handle complete
+    .on('error', (err: any) => syncError(localDB.name, err)); // handle error
 
   return syncHandler;
 }
@@ -225,7 +228,7 @@ export function LoadPouchDB(
   localDB: PouchDB.Database,
   remoteDB: PouchDB.Database
 ) {
-  localDB.replicate.from(remoteDB).on('complete', _info => {
+  localDB.replicate.from(remoteDB).on('complete', (_info: any) => {
     syncComplete(localDB.name, _info);
   });
 }
@@ -275,10 +278,10 @@ function syncSyncChange(
   changesCB: changeCallback,
   deletesCB: changeCallback
 ) {
-  const changedDocs = changes.change.docs.filter(item => {
+  const changedDocs = changes.change.docs.filter((item: any) => {
     return !('_deleted' in item);
   });
-  const deletedDocs = changes.change.docs.filter(item => {
+  const deletedDocs = changes.change.docs.filter((item: any) => {
     return '_deleted' in item;
   });
   if (changedDocs.length) {
@@ -321,15 +324,15 @@ export function SyncPouchDB(
   deletes: changeCallback
 ) {
   const options = { live: true, retry: true };
-  localDB.replicate.from(remoteDB).on('complete', _info => {
+  localDB.replicate.from(remoteDB).on('complete', (_info: any) => {
     syncSyncComplete(localDB.name, _info);
     localDB
       .sync(remoteDB, options)
-      .on('change', info => syncSyncChange(info, changes, deletes)) // handle change
-      .on('paused', err => syncSyncPaused(localDB.name, err)) // replication paused (e.g. replication up to date, user went offline)
+      .on('change', (info: any) => syncSyncChange(info, changes, deletes)) // handle change
+      .on('paused', (err: any) => syncSyncPaused(localDB.name, err)) // replication paused (e.g. replication up to date, user went offline)
       .on('active', () => syncSyncActive(localDB.name)) // replicate resumed (e.g. new changes replicating, user went back online)
-      .on('denied', err => syncSyncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
-      .on('complete', info => syncSyncComplete(localDB.name, info)) // handle complete
-      .on('error', err => syncSyncError(localDB.name, err)); // handle error
+      .on('denied', (err: any) => syncSyncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
+      .on('complete', (info: any) => syncSyncComplete(localDB.name, info)) // handle complete
+      .on('error', (err: any) => syncSyncError(localDB.name, err)); // handle error
   });
 }
