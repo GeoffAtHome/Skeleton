@@ -32,7 +32,7 @@ export interface IPostBox {
 export interface PostBoxData {
   _id: string;
   _rev?: string;
-  pos: google.maps.LatLng | null;
+  pos: google.maps.LatLngLiteral;
   description: IPostBox;
 }
 
@@ -44,7 +44,7 @@ export interface IPostBoxState {
   _newPostbox: PostBoxData;
   _index: number;
   _data: PostBoxList;
-  _mapCenter: google.maps.LatLng | null;
+  _mapCenter: google.maps.LatLngLiteral;
 }
 
 export interface PostBoxId extends Action<'POSTBOX_ID'> {}
@@ -68,7 +68,7 @@ export interface PostBoxEdit extends Action<'EDIT_POSTBOX'> {
 }
 export interface PostBoxCancelEdit extends Action<'CANCEL_EDIT_POSTBOX'> {}
 export interface PostBoxMoveMap extends Action<'MOVE_MAP'> {
-  _mapPos: google.maps.LatLng;
+  _mapPos: google.maps.LatLngLiteral;
 }
 export interface PostBoxChanges extends Action<'POSTBOX_CHANGES'> {
   _docs: PostBoxList;

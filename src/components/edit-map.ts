@@ -25,7 +25,13 @@ import {
 } from 'lit-element';
 import load from './maploader';
 
-import { MarkerData, MarkerDataItem, MarkersOnMap } from './Markers';
+import {
+  MarkerData,
+  MarkerDataItem,
+  markersAreDifferent,
+  MarkersOnMap,
+  markersPositionsAreDifferent,
+} from './Markers';
 import {
   getPath,
   getPathGooglePolygon,
@@ -52,7 +58,7 @@ export class EditMap extends LitElement {
       --popup-background-color: rgba(252, 252, 252, 0.5);
     }
 
-    #mapid {
+    #mapId {
       height: 100%;
     }
 
@@ -141,7 +147,7 @@ export class EditMap extends LitElement {
 
   render(): TemplateResult {
     return html`
-      <div id="mapid"></div>
+      <div id="mapId"></div>
       <span id="popup" ?data-active="${this.showPopup === 'show'}"
         >${this.popupText}</span
       >
@@ -218,7 +224,7 @@ export class EditMap extends LitElement {
   }
 
   initMap(): boolean {
-    const mid = this.renderRoot.querySelector('#mapid');
+    const mid = this.renderRoot.querySelector('#mapId');
     if (mid) {
       // eslint-disable-next-line no-undef
       map = new google.maps.Map(mid, this.options);
@@ -338,21 +344,14 @@ export class EditMap extends LitElement {
       if (marker === undefined) {
         // New marker to draw
         this.DrawMarker(item, key, editMarkers);
-      } else {
+      } else if (markersAreDifferent(marker.item, item)) {
+        // Remove the old marker and draw a new one
+        marker.marker.setMap(null);
+        this.DrawMarker(item, key, editMarkers);
+      } else if (markersPositionsAreDifferent(marker.item, item)) {
         // Has the marker position changed?
-        const oldPos = marker.getPosition();
-        if (
-          oldPos &&
-          item.position.lat === oldPos.lat &&
-          item.position.lng === oldPos.lng
-        ) {
-          // Remove the old marker and draw a new one
-          marker.setMap(null);
-          this.DrawMarker(item, key, editMarkers);
-        } else {
-          // Move marker to new position
-          marker.setPosition(item.position);
-        }
+        // Move marker to new position
+        marker.marker.setPosition(item.position);
       }
     }
 
@@ -361,7 +360,7 @@ export class EditMap extends LitElement {
     // eslint-disable-next-line no-restricted-syntax
     for (const key in this.markersOnMap) {
       if (!keys.includes(key)) {
-        this.markersOnMap[key].setMap(null);
+        this.markersOnMap[key].marker.setMap(null);
         delete this.markersOnMap[key];
       }
     }
@@ -386,7 +385,7 @@ export class EditMap extends LitElement {
       title: `${key} ${item.title}`,
       draggable: editMarkers,
     });
-    this.markersOnMap[key] = marker;
+    this.markersOnMap[key] = { marker, item };
 
     marker.addListener('click', () => {
       this.clickedMarker(key, marker);

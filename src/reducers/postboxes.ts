@@ -52,7 +52,7 @@ const postboxDB = RegisterSyncPouchDB(
 );
 
 // eslint-disable-next-line no-undef
-const defaultPos = null;
+const defaultPos = { lat: 51.50502153288204, lng: -3.240311294225257 };
 
 const INITIAL_STATE: IPostBoxState = {
   _newPostbox: {

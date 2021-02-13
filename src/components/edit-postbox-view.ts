@@ -28,15 +28,15 @@ import './edit-map';
 
 // These are the actions needed by this element.
 import {
+  postBoxDataLoad,
+  PostBoxList,
   PostBoxData,
   postBoxUpdate,
-  PostBoxList,
-  postBoxDataLoad,
 } from '../actions/postboxes';
 
 // We are lazy loading its reducer.
 import postBoxState, { postboxSelector } from '../reducers/postboxes';
-import { MarkerData, MarkerDataItem } from './Markers';
+import { MarkerData } from './Markers';
 
 if (postboxSelector(store.getState()) === undefined) {
   store.addReducers({

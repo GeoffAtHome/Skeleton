@@ -43,12 +43,12 @@ if (postboxSelector(store.getState()) === undefined) {
   });
 }
 
-let postBoxData: PostBoxList;
+let postBoxData: PostBoxList = {};
 
 @customElement('postbox-view')
 export class PostboxView extends connect(store)(LitElement) {
-  @query('#mapid')
-  private mapid: any;
+  @query('#map')
+  private map: any;
 
   @property({ type: Boolean, reflect: true })
   private drawOpened: boolean = false;
@@ -101,6 +101,8 @@ export class PostboxView extends connect(store)(LitElement) {
         };
       }
     }
+    if (this.map)
+      this.map.setAttribute('markerData', JSON.stringify(this.markerData));
   }
 
   protected firstUpdated(_changedProperties: any) {
