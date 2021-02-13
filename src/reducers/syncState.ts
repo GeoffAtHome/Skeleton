@@ -26,8 +26,8 @@ const rootURL = 'https://scoutpostadmin.soord.org.uk:6984/';
 const databaseName = 'syncchanges';
 export const syncChangesDB = createPouchDB(databaseName, {});
 const remoteDB = createPouchDB(rootURL + databaseName, {
-  username: 'usergroup_4',
-  password: 'password_4',
+  username: 'scoutadmin',
+  password: 'admin_password',
 });
 
 SyncPouchDB(syncChangesDB, remoteDB, syncChangesDispatch, syncDeletedDispatch);

@@ -19,8 +19,8 @@ export const DELETE_POSTBOX = 'DELETE_POSTBOX';
 export const EDIT_POSTBOX = 'EDIT_POSTBOX';
 export const CANCEL_EDIT_POSTBOX = 'CANCEL_EDIT_POSTBOX';
 export const MOVE_MAP = 'MOVE_MAP';
-export const POSTBOX_CHANGES_TODO = 'POSTBOX_CHANGES_TODO';
-export const POSTBOX_DELETES_TODO = 'POSTBOX_DELETES_TODO';
+export const POSTBOX_CHANGES = 'POSTBOX_CHANGES';
+export const POSTBOX_DELETES = 'POSTBOX_DELETES';
 
 export interface IPostBox {
   name: string;
@@ -57,6 +57,7 @@ export interface PostBoxAdd extends Action<'ADD_POSTBOX'> {
   _newPostbox: PostBoxData;
 }
 export interface PostBoxUpdate extends Action<'UPDATE_POSTBOX'> {
+  _key: string;
   _newPostbox: PostBoxData;
 }
 export interface PostBoxDelete extends Action<'DELETE_POSTBOX'> {
@@ -69,12 +70,11 @@ export interface PostBoxCancelEdit extends Action<'CANCEL_EDIT_POSTBOX'> {}
 export interface PostBoxMoveMap extends Action<'MOVE_MAP'> {
   _mapPos: google.maps.LatLng;
 }
-
-export interface PostBoxChanges extends Action<'POSTBOX_CHANGES_TODO'> {
+export interface PostBoxChanges extends Action<'POSTBOX_CHANGES'> {
   _docs: PostBoxList;
 }
 
-export interface PostBoxDeletes extends Action<'POSTBOX_DELETES_TODO'> {
+export interface PostBoxDeletes extends Action<'POSTBOX_DELETES'> {
   _docs: PostBoxList;
 }
 
@@ -87,7 +87,9 @@ export type PostBoxAction =
   | PostBoxDataLoad
   | PostBoxDataLoaded
   | PostBoxCancelEdit
-  | PostBoxMoveMap;
+  | PostBoxMoveMap
+  | PostBoxChanges
+  | PostBoxDeletes;
 
 export const postBoxState: ActionCreator<PostBoxId> = (_newPostbox, _index) => {
   return {
@@ -117,9 +119,13 @@ export const postBoxAdd: ActionCreator<PostBoxAdd> = _newPostbox => {
   };
 };
 
-export const postBoxUpdate: ActionCreator<PostBoxUpdate> = _newPostbox => {
+export const postBoxUpdate: ActionCreator<PostBoxUpdate> = (
+  _key,
+  _newPostbox
+) => {
   return {
     type: UPDATE_POSTBOX,
+    _key,
     _newPostbox,
   };
 };
@@ -153,14 +159,14 @@ export const postBoxMoveMap: ActionCreator<PostBoxMoveMap> = _mapPos => {
 
 export const postBoxChanges: ActionCreator<PostBoxChanges> = _docs => {
   return {
-    type: POSTBOX_CHANGES_TODO,
+    type: POSTBOX_CHANGES,
     _docs,
   };
 };
 
 export const postBoxDeletes: ActionCreator<PostBoxDeletes> = _docs => {
   return {
-    type: POSTBOX_DELETES_TODO,
+    type: POSTBOX_DELETES,
     _docs,
   };
 };

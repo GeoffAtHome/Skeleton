@@ -72,7 +72,10 @@ export async function loadPouchDB(
     const results: DataList = {};
     for (const _item of data.rows) {
       const item: any = _item.doc;
-      results[item._id] = item;
+      delete item._id;
+      delete item._rev;
+
+      results[_item.id] = item;
     }
     store.dispatch(action(results));
   } catch (err) {
@@ -251,8 +254,8 @@ export function RegisterSyncPouchDB(
 ) {
   const localDB = createPouchDB(name, {});
   const remoteDB = createPouchDB(rootURL + name, {
-    username: 'usergroup_4',
-    password: 'password_4',
+    username: 'scoutadmin',
+    password: 'admin_password',
   });
 
   const db: databaseRegister = {

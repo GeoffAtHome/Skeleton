@@ -23,6 +23,8 @@ import {
   postBoxDeletes,
   POSTBOX_DATA_LOAD,
   postBoxDataLoaded,
+  POSTBOX_CHANGES,
+  POSTBOX_DELETES,
 } from '../actions/postboxes';
 import { RootAction, RootState, store } from '../store';
 import { rootURL, postboxURL } from './dbconst';
@@ -118,7 +120,7 @@ const postBoxState: Reducer<IPostBoxState, RootAction> = (
     }
 
     case UPDATE_POSTBOX:
-      updateItemPouchDB(postboxDB, action._newPostbox._id, action._newPostbox);
+      updateItemPouchDB(postboxDB, action._key, action._newPostbox);
 
       return {
         ...state,
@@ -143,22 +145,27 @@ const postBoxState: Reducer<IPostBoxState, RootAction> = (
         _mapCenter: action._mapPos,
       };
 
+    case POSTBOX_CHANGES:
+      return {
+        ...state,
+        _data: { ...state._data, ...action._docs },
+      };
+
+    case POSTBOX_DELETES: {
+      const newList = { ...state._data };
+      Object.keys(action._docs).forEach(key => {
+        delete newList[key];
+      });
+      return {
+        ...state,
+        _data: newList,
+      };
+    }
+
     default:
       return state;
   }
 };
 
 export default postBoxState;
-
-// Per Redux best practices, the shop data in our store is structured
-// for efficiency (small size and fast updates).
-//
-// The _selectors_ below transform store data into specific forms that
-// are tailored for presentation. Putting this logic here keeps the
-// layers of our app loosely coupled and easier to maintain, since
-// views don't need to know about the store's internal data structures.
-//
-// We use a tiny library called `reselect` to create efficient
-// selectors. More info: https://github.com/reduxjs/reselect.
-
 export const postboxSelector = (state: RootState) => state.postBoxState;

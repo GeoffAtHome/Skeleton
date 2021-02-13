@@ -25,7 +25,7 @@ import {
 } from 'lit-element';
 import load from './maploader';
 
-import { MarkerData } from './Markers';
+import { MarkerData, MarkerDataItem, MarkersOnMap } from './Markers';
 import {
   getPath,
   getPathGooglePolygon,
@@ -133,6 +133,12 @@ export class EditMap extends LitElement {
   @internalProperty()
   private polygonsOnMap: PolygonsOnMap = {};
 
+  /**
+   * The markers that have been drawn on the map so that these can be modified.
+   */
+  @internalProperty()
+  private markersOnMap: MarkersOnMap = {};
+
   render(): TemplateResult {
     return html`
       <div id="mapid"></div>
@@ -159,6 +165,14 @@ export class EditMap extends LitElement {
       }
       if (changedProperties.has('editPolygon')) {
         this.setPolygonEditMode(this.editPolygon);
+      }
+
+      if (
+        changedProperties.has('markerData') ||
+        changedProperties.has('editMarkers')
+      ) {
+        if (this.markerData)
+          this.DrawMarkers(this.markerData, this.editMarkers);
       }
     }
   }
@@ -320,31 +334,66 @@ export class EditMap extends LitElement {
 
   private DrawMarkers(markerData: MarkerData, editMarkers: boolean) {
     for (const [key, item] of Object.entries(markerData)) {
-      // eslint-disable-next-line no-undef
-      const marker = new google.maps.Marker({
-        icon: {
-          url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-            item.shape
-          )}`,
-          // eslint-disable-next-line no-undef
-          size: new google.maps.Size(32, 32),
-          // eslint-disable-next-line no-undef
-          scaledSize: new google.maps.Size(32, 32),
-          // eslint-disable-next-line no-undef
-          anchor: new google.maps.Point(16, 16),
-        },
-        position: item.position,
-        map,
-        title: `${key} ${item.title}`,
-        draggable: editMarkers,
-      });
-      marker.addListener('click', () => {
-        this.clickedMarker(key, marker);
-      });
-      marker.addListener('dragend', () => {
-        this.moveMarker(key, marker);
-      });
+      const marker = this.markersOnMap[key];
+      if (marker === undefined) {
+        // New marker to draw
+        this.DrawMarker(item, key, editMarkers);
+      } else {
+        // Has the marker position changed?
+        const oldPos = marker.getPosition();
+        if (
+          oldPos &&
+          item.position.lat === oldPos.lat &&
+          item.position.lng === oldPos.lng
+        ) {
+          // Remove the old marker and draw a new one
+          marker.setMap(null);
+          this.DrawMarker(item, key, editMarkers);
+        } else {
+          // Move marker to new position
+          marker.setPosition(item.position);
+        }
+      }
     }
+
+    // Finally remove any markers that are no longer required
+    const keys = Object.keys(markerData);
+    // eslint-disable-next-line no-restricted-syntax
+    for (const key in this.markersOnMap) {
+      if (!keys.includes(key)) {
+        this.markersOnMap[key].setMap(null);
+        delete this.markersOnMap[key];
+      }
+    }
+  }
+
+  private DrawMarker(item: MarkerDataItem, key: string, editMarkers: boolean) {
+    // eslint-disable-next-line no-undef
+    const marker = new google.maps.Marker({
+      icon: {
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+          item.shape
+        )}`,
+        // eslint-disable-next-line no-undef
+        size: new google.maps.Size(32, 32),
+        // eslint-disable-next-line no-undef
+        scaledSize: new google.maps.Size(32, 32),
+        // eslint-disable-next-line no-undef
+        anchor: new google.maps.Point(16, 16),
+      },
+      position: item.position,
+      map,
+      title: `${key} ${item.title}`,
+      draggable: editMarkers,
+    });
+    this.markersOnMap[key] = marker;
+
+    marker.addListener('click', () => {
+      this.clickedMarker(key, marker);
+    });
+    marker.addListener('dragend', () => {
+      this.moveMarker(key, marker);
+    });
   }
 
   clickedMarker(key: string, marker: google.maps.Marker): void {

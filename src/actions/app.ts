@@ -74,6 +74,10 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
     case 'postBoxView':
       import('../components/postbox-view');
       break;
+
+    case 'editPostBoxView':
+      import('../components/edit-postbox-view');
+      break;
     default:
       // eslint-disable-next-line no-param-reassign
       page = 'view404';

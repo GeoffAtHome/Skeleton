@@ -194,6 +194,11 @@ export class MyApp extends connect(store)(LitElement) {
             <a ?selected="${this._page === 'postBoxView'}" href="/#postBoxView"
               >Post Box View</a
             >
+            <a
+              ?selected="${this._page === 'editPostBoxView'}"
+              href="/#editPostBoxView"
+              >Edit Post Box View</a
+            >
           </nav>
         </div>
         <!-- Header -->
@@ -217,17 +222,22 @@ export class MyApp extends connect(store)(LitElement) {
           </mwc-top-app-bar>
           <div>
             <main id="track" role="main">
-              <welcome-page class="page" ?active="${this._page === 'welcome'}"
-                >Welcome</welcome-page
-              >
-              <todo-list class="page" ?active="${this._page === 'todo'}"
-                >Welcome</todo-list
-              >
+              <welcome-page
+                class="page"
+                ?active="${this._page === 'welcome'}"
+              ></welcome-page>
+              <todo-list
+                class="page"
+                ?active="${this._page === 'todo'}"
+              ></todo-list>
               <postbox-view
                 class="page"
                 ?active="${this._page === 'postBoxView'}"
-                >Welcome</postbox-view
-              >
+              ></postbox-view>
+              <edit-postbox-view
+                class="page"
+                ?active="${this._page === 'editPostBoxView'}"
+              ></edit-postbox-view>
               <my-view404
                 class="page"
                 ?active="${this._page === 'view404'}"

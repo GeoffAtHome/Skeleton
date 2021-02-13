@@ -43,7 +43,7 @@ if (postboxSelector(store.getState()) === undefined) {
   });
 }
 
-let posBoxData: PostBoxList;
+let postBoxData: PostBoxList;
 
 @customElement('postbox-view')
 export class PostboxView extends connect(store)(LitElement) {
@@ -104,24 +104,22 @@ export class PostboxView extends connect(store)(LitElement) {
   }
 
   protected firstUpdated(_changedProperties: any) {
-    // Create the map
-    // store.dispatch(postBoxDataLoad());
     store.dispatch(postBoxDataLoad());
-    this.drawLabels(posBoxData);
+    this.drawLabels(postBoxData);
   }
 
   stateChanged(state: RootState) {
     if (state.app!.page === 'postBoxView') {
       const postboxState = postboxSelector(state);
-      posBoxData = postboxState!._data;
-      this.drawLabels(posBoxData);
+      postBoxData = postboxState!._data;
+      this.drawLabels(postBoxData);
     }
   }
 }
 
 function _MarkerClick(el: any) {
   const markerPos = el.target.getLatLng();
-  for (const [_key, item] of Object.entries(posBoxData)) {
+  for (const [_key, item] of Object.entries(postBoxData)) {
     if (
       item.pos &&
       item.pos.lat === markerPos.lat &&
