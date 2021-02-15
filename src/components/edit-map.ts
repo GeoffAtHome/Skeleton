@@ -42,7 +42,6 @@ import {
   PolygonsOnMap,
 } from './polygons';
 
-let map: google.maps.Map;
 /**
  * Interface onto the Google Maps API
  *
@@ -128,6 +127,13 @@ export class EditMap extends LitElement {
   private LastEditPC = '';
 
   /**
+   * google.maps.Map: handle to map
+   */
+
+  @internalProperty()
+  private map!: google.maps.Map;
+
+  /**
    * popupText: HTML to display
    */
   @internalProperty()
@@ -161,10 +167,10 @@ export class EditMap extends LitElement {
 
   updated(changedProperties: PropertyValues): void {
     // this.shadowRoot!.getElementById('b')?.focus();
-    if (map !== undefined) {
+    if (this.map !== undefined) {
       if (changedProperties.has('options')) {
-        if (this.options.zoom) map.setZoom(this.options.zoom);
-        if (this.options.center) map.setCenter(this.options.center);
+        if (this.options.zoom) this.map.setZoom(this.options.zoom);
+        if (this.options.center) this.map.setCenter(this.options.center);
       }
       if (changedProperties.has('polygonData')) {
         if (this.polygonData) this.DrawPolygons(this.polygonData);
@@ -227,13 +233,13 @@ export class EditMap extends LitElement {
     const mid = this.renderRoot.querySelector('#mapId');
     if (mid) {
       // eslint-disable-next-line no-undef
-      map = new google.maps.Map(mid, this.options);
+      this.map = new google.maps.Map(mid, this.options);
 
-      map.addListener('dragend', () => {
-        this.moveMap(map);
+      this.map.addListener('dragend', () => {
+        this.moveMap(this.map);
       });
-      map.addListener('zoom_changed', () => {
-        this.zoomMap(map);
+      this.map.addListener('zoom_changed', () => {
+        this.zoomMap(this.map);
       });
     }
 
@@ -330,7 +336,7 @@ export class EditMap extends LitElement {
     newPolygon.addListener('mouseout', () => {
       this.mouseoutPolygon();
     });
-    newPolygon.setMap(map);
+    newPolygon.setMap(this.map);
     if (this.editPolygon.pc === pc) {
       this.setPolygonEditMode(this.editPolygon);
     } else {
@@ -343,11 +349,11 @@ export class EditMap extends LitElement {
       const marker = this.markersOnMap[key];
       if (marker === undefined) {
         // New marker to draw
-        this.DrawMarker(item, key, editMarkers);
+        this.DrawMarker(this.map, item, key, editMarkers);
       } else if (markersAreDifferent(marker.item, item)) {
         // Remove the old marker and draw a new one
         marker.marker.setMap(null);
-        this.DrawMarker(item, key, editMarkers);
+        this.DrawMarker(this.map, item, key, editMarkers);
       } else if (markersPositionsAreDifferent(marker.item, item)) {
         // Has the marker position changed?
         // Move marker to new position
@@ -366,7 +372,12 @@ export class EditMap extends LitElement {
     }
   }
 
-  private DrawMarker(item: MarkerDataItem, key: string, editMarkers: boolean) {
+  private DrawMarker(
+    map: google.maps.Map,
+    item: MarkerDataItem,
+    key: string,
+    editMarkers: boolean
+  ) {
     // eslint-disable-next-line no-undef
     const marker = new google.maps.Marker({
       icon: {
