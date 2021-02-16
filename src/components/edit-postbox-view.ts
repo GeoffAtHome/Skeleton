@@ -61,12 +61,8 @@ function _moveMarker(el: any) {
   const { detail } = el;
   const { key } = detail;
   const postBox: PostBoxData = postBoxData[key];
-  if (postBox !== undefined) {
-    postBox.pos = { ...detail.pos };
-    store.dispatch(postBoxUpdate(key, postBox));
-  } else {
-    console.error('Postbox missing');
-  }
+  postBox.pos = { ...detail.pos };
+  store.dispatch(postBoxUpdate(key, postBox));
 }
 
 function _MarkerClick(el: any) {

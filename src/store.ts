@@ -25,6 +25,7 @@ import { ToDoAction, IToDoDataState } from './actions/tododata';
 import { FilterStateAction, IFilterState } from './actions/todostate';
 import { SyncStateAction, ISyncState } from './actions/syncState';
 import { PostBoxAction, IPostBoxState } from './actions/postboxes';
+import { GroupDataAction, GroupDataState } from './actions/groupdata';
 
 declare global {
   interface Window {
@@ -41,6 +42,7 @@ export interface RootState {
   toDoFilterState?: IFilterState;
   syncState?: ISyncState;
   postBoxState?: IPostBoxState;
+  groupdata?: GroupDataState;
 }
 
 export type RootAction =
@@ -48,6 +50,7 @@ export type RootAction =
   | ToDoAction
   | FilterStateAction
   | SyncStateAction
+  | GroupDataAction
   | PostBoxAction;
 
 // Sets up a Chrome extension for time travel debugging.

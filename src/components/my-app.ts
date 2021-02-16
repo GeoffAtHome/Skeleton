@@ -192,12 +192,15 @@ export class MyApp extends connect(store)(LitElement) {
             >
             <a ?selected="${this._page === 'todo'}" href="/#todo">ToDo</a>
             <a ?selected="${this._page === 'postBoxView'}" href="/#postBoxView"
-              >Post Box View</a
+              >Where to purchase stamps and post</a
             >
             <a
               ?selected="${this._page === 'editPostBoxView'}"
               href="/#editPostBoxView"
-              >Edit Post Box View</a
+              >Edit purchase stamps and post</a
+            >
+            <a ?selected="${this._page === 'groupAdmin'}" href="/#groupAdmin"
+              >Group admin</a
             >
           </nav>
         </div>
@@ -238,6 +241,10 @@ export class MyApp extends connect(store)(LitElement) {
                 class="page"
                 ?active="${this._page === 'editPostBoxView'}"
               ></edit-postbox-view>
+              <group-admin
+                class="page"
+                ?active="${this._page === 'groupAdmin'}"
+              ></group-admin>
               <my-view404
                 class="page"
                 ?active="${this._page === 'view404'}"
