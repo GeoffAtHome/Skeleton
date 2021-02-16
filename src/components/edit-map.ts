@@ -393,7 +393,7 @@ export class EditMap extends LitElement {
       },
       position: item.position,
       map,
-      title: `${key} ${item.title}`,
+      title: `${item.title}`,
       draggable: editMarkers,
     });
     this.markersOnMap[key] = { marker, item };

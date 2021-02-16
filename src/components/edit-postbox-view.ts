@@ -15,6 +15,7 @@ import {
   query,
   LitElement,
   property,
+  internalProperty,
 } from 'lit-element';
 
 // These are the shared styles needed by this element.
@@ -24,7 +25,12 @@ import { SharedStyles } from './shared-styles';
 // This element is connected to the Redux store.
 import { store, RootState } from '../store';
 
+import '@material/mwc-dialog';
+import '@material/mwc-textfield';
+import '@material/mwc-button';
+
 import './edit-map';
+import { labelIcon } from './my-icons';
 
 // These are the actions needed by this element.
 import {
@@ -32,6 +38,10 @@ import {
   PostBoxList,
   PostBoxData,
   postBoxUpdate,
+  postBoxAdd,
+  postBoxCancelEdit,
+  postBoxDelete,
+  postBoxEdit,
 } from '../actions/postboxes';
 
 // We are lazy loading its reducer.
@@ -45,14 +55,23 @@ if (postboxSelector(store.getState()) === undefined) {
 }
 
 let postBoxData: PostBoxList = {};
+let newPostBoxItem: PostBoxData;
 
 function _moveMarker(el: any) {
   const { detail } = el;
   const { key } = detail;
-  const postbox: PostBoxData = postBoxData[key];
-  postbox.pos = { ...detail.pos };
+  const postBox: PostBoxData = postBoxData[key];
+  if (postBox !== undefined) {
+    postBox.pos = { ...detail.pos };
+    store.dispatch(postBoxUpdate(key, postBox));
+  } else {
+    console.error('Postbox missing');
+  }
+}
 
-  store.dispatch(postBoxUpdate(key, postbox));
+function _MarkerClick(el: any) {
+  const markerClicked = el.detail.key;
+  store.dispatch(postBoxEdit(markerClicked));
 }
 
 @customElement('edit-postbox-view')
@@ -60,17 +79,53 @@ export class EditPostboxView extends connect(store)(LitElement) {
   @query('#map')
   private map: any;
 
-  @property({ type: Boolean, reflect: true })
-  private drawOpened: boolean = false;
+  @query('#editPostbox')
+  private dialog: any;
 
-  @property({ type: Object })
-  private mapOptions = {
+  @query('#name')
+  private editName: any;
+
+  @query('#addUpdate')
+  private addUpdate: any;
+
+  @query('#address')
+  private editAddress: any;
+
+  @query('#opening')
+  private editOpening: any;
+
+  @query('#notes')
+  private editNotes: any;
+
+  @query('#lng')
+  private editLng: any;
+
+  @query('#lat')
+  private editLat: any;
+
+  @internalProperty()
+  private _mapOptions = {
     center: { lat: 51.50502153288204, lng: -3.240311294225257 },
     zoom: 10,
   };
 
-  @property({ type: Object })
-  private markerData: MarkerData = {};
+  @internalProperty()
+  private _markerData: MarkerData = {};
+
+  @internalProperty()
+  private addPostbox: boolean = false;
+
+  @internalProperty()
+  private newPostbox: boolean = false;
+
+  @internalProperty()
+  private mapPos: google.maps.LatLngLiteral = {
+    lat: 51.50502153288204,
+    lng: -3.240311294225257,
+  };
+
+  @internalProperty()
+  private editPostBox: string = '';
 
   static get styles() {
     return [
@@ -78,14 +133,22 @@ export class EditPostboxView extends connect(store)(LitElement) {
 
       css`
         :host {
-          display: block;
-          width: 100%;
+          display: flex;
+          align-items: flex-start;
           height: 100%;
         }
 
         #map {
           width: 100%;
-          height: 500px;
+          height: 80vh;
+        }
+
+        #label {
+          position: fixed;
+          fill: white;
+          bottom: 15px;
+          right: 15px;
+          z-index: 1;
         }
       `,
     ];
@@ -93,19 +156,85 @@ export class EditPostboxView extends connect(store)(LitElement) {
 
   protected render() {
     return html`
+      <mwc-dialog id="editPostbox" heading="Postbox" scrimClickAction="">
+        <div>
+          <div>
+            <mwc-textfield
+              type="text"
+              id="name"
+              label="Name"
+              required
+              autocomplete
+              validationMessage="Name required"
+            ></mwc-textfield>
+          </div>
+          <div>
+            <mwc-textfield
+              type="text"
+              id="address"
+              label="Address"
+              autocomplete
+              validationMessage="Address required"
+              required
+            ></mwc-textfield>
+          </div>
+          <div>
+            <mwc-textfield
+              type="text"
+              id="opening"
+              label="Opening times"
+              autocomplete
+              validationMessage="Opening times required"
+              required
+            ></mwc-textfield>
+          </div>
+          <div>
+            <mwc-textfield type="text" id="notes" label="Notes"></mwc-textfield>
+          </div>
+          <div>
+            <p>To change label position drag the label on the map</p>
+          </div>
+          <div>
+            <mwc-textfield disabled id="lng" label="Longitude"></mwc-textfield>
+          </div>
+          <div>
+            <mwc-textfield disabled id="lat" label="Latitude"></mwc-textfield>
+          </div>
+          ${this.addPostbox !== true
+            ? html` <div>
+                <mwc-button dialogAction="delete" @click="${this.deleteLabel}"
+                  >delete</mwc-button
+                >
+              </div>`
+            : html``}
+        </div>
+        <mwc-button
+          id="addUpdate"
+          slot="secondaryAction"
+          @click="${this.updateLabel}"
+          >Update</mwc-button
+        >
+        <mwc-button slot="primaryAction" @click="${this.cancelLabel}"
+          >Close</mwc-button
+        >
+      </mwc-dialog>
+      <mwc-button id="label" raised @click="${this.addLabel}"
+        >${labelIcon}</mwc-button
+      >
       <edit-map
         editMarkers
         id="map"
-        .options=${this.mapOptions}
-        .markerData=${this.markerData}
+        .options=${this._mapOptions}
+        .markerData=${this._markerData}
       ></edit-map>
     `;
   }
 
   drawLabels(thePostBoxData: PostBoxList) {
+    const markerData: MarkerData = {};
     for (const [_key, item] of Object.entries(thePostBoxData)) {
       if (item.pos) {
-        this.markerData[_key] = {
+        markerData[_key] = {
           position: item.pos,
           title: item.description.name,
           shape:
@@ -113,14 +242,14 @@ export class EditPostboxView extends connect(store)(LitElement) {
         };
       }
     }
-    if (this.map)
-      this.map.setAttribute('markerData', JSON.stringify(this.markerData));
+    this._markerData = markerData;
   }
 
   protected firstUpdated(_changedProperties: any) {
     store.dispatch(postBoxDataLoad());
-    // this.map.addEventListener('clickedMarker', this.clickedMarker);
+    this.map.addEventListener('moveMap', this._moveMap);
     this.map.addEventListener('moveMarker', _moveMarker);
+    this.map.addEventListener('clickedMarker', _MarkerClick);
   }
 
   stateChanged(state: RootState) {
@@ -128,8 +257,84 @@ export class EditPostboxView extends connect(store)(LitElement) {
       const postboxState = postboxSelector(state);
       postBoxData = { ...postboxState!._data };
       this.drawLabels(postBoxData);
+
+      if (postboxState!._postBoxKey !== '') {
+        this.editPostBox = postboxState!._postBoxKey;
+        newPostBoxItem = postBoxData[this.editPostBox];
+        this.addPostbox = false;
+        this.addUpdate.textContent = 'Update';
+        this.showEditLabelDialog('Edit Postbox', newPostBoxItem);
+      }
     }
   }
+
+  private showEditLabelDialog(title: string, postbox: PostBoxData) {
+    this.dialog.setAttribute('heading', title);
+    this.editName.value = postbox.description.name;
+    this.editAddress.value = postbox.description.address;
+    this.editOpening.value = postbox.description.openingTimes;
+    this.editNotes.value = postbox.description.notes;
+    this.editLng.value = postbox.pos.lng;
+    this.editLat.value = postbox.pos.lat;
+    this.dialog.show();
+  }
+
+  private addLabel(_el: Event) {
+    const { mapPos } = this;
+    const blankLabel = {
+      pos: mapPos,
+      description: {
+        name: '',
+        address: '',
+        openingTimes: '',
+        notes: '',
+      },
+    };
+
+    newPostBoxItem = blankLabel;
+    this.addPostbox = true;
+    this.newPostbox = true;
+    this.addUpdate.textContent = 'Add';
+    this.showEditLabelDialog('Add Postbox', newPostBoxItem);
+  }
+
+  private closeDialog() {
+    this.dialog.close();
+  }
+
+  private updateLabel() {
+    if (
+      this.editName.checkValidity() &&
+      this.editAddress.checkValidity() &&
+      this.editOpening.checkValidity()
+    ) {
+      newPostBoxItem.description.name = this.editName.value;
+      newPostBoxItem.description.address = this.editAddress.value;
+      newPostBoxItem.description.openingTimes = this.editOpening.value;
+      newPostBoxItem.description.notes = this.editNotes.value;
+      this.closeDialog();
+
+      if (this.newPostbox) {
+        store.dispatch(postBoxAdd(Date.now().toString(), newPostBoxItem));
+      } else {
+        store.dispatch(postBoxUpdate(this.editPostBox, newPostBoxItem));
+      }
+    }
+  }
+
+  private cancelLabel() {
+    this.closeDialog();
+    store.dispatch(postBoxCancelEdit());
+  }
+
+  private deleteLabel() {
+    this.closeDialog();
+    store.dispatch(postBoxDelete(this.editPostBox, newPostBoxItem));
+  }
+
+  private _moveMap = (e: any) => {
+    this.mapPos = e.detail.position;
+  };
 }
 
 /*

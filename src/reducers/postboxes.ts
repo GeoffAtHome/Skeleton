@@ -57,8 +57,6 @@ const defaultPos = { lat: 51.50502153288204, lng: -3.240311294225257 };
 const INITIAL_STATE: IPostBoxState = {
   _newPostbox: {
     pos: defaultPos,
-    _id: '',
-    _rev: '',
     description: {
       name: '',
       notes: '',
@@ -66,7 +64,7 @@ const INITIAL_STATE: IPostBoxState = {
       openingTimes: '',
     },
   },
-  _index: 0,
+  _postBoxKey: '',
   _data: {},
   _mapCenter: defaultPos,
 };
@@ -96,26 +94,24 @@ const postBoxState: Reducer<IPostBoxState, RootAction> = (
     case EDIT_POSTBOX:
       return {
         ...state,
-        _index: 1,
-        _newPostbox: action._newPostbox,
+        _postBoxKey: action._postBoxKey,
       };
 
     case CANCEL_EDIT_POSTBOX:
       return {
         ...state,
-        _index: 0,
+        _postBoxKey: '',
       };
 
     case ADD_POSTBOX: {
+      const newList = { ...state._data };
       const postBoxItem = action._newPostbox;
-      const id = Date.now().toString();
-      delete postBoxItem._rev;
-      postBoxItem._id = id;
+      newList[action._key] = postBoxItem;
       createItemPouchDB(postboxDB, postBoxItem);
       return {
         ...state,
-        _index: 0,
-        _data: { ...state._data, ...{ id: postBoxItem } },
+        _postBoxKey: '',
+        _data: { ...newList },
       };
     }
 
@@ -124,17 +120,17 @@ const postBoxState: Reducer<IPostBoxState, RootAction> = (
 
       return {
         ...state,
-        _index: 0,
+        _postBoxKey: '',
       };
 
     case DELETE_POSTBOX: {
       const newList = { ...state._data };
-      delete newList[action._newPostbox._id];
-      deleteItemPouchDB(postboxDB, action._newPostbox._id);
+      delete newList[action._key];
+      deleteItemPouchDB(postboxDB, action._key);
 
       return {
         ...state,
-        _index: 0,
+        _postBoxKey: '',
         _data: newList,
       };
     }

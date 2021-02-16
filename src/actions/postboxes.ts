@@ -30,8 +30,6 @@ export interface IPostBox {
 }
 
 export interface PostBoxData {
-  _id: string;
-  _rev?: string;
   pos: google.maps.LatLngLiteral;
   description: IPostBox;
 }
@@ -41,9 +39,9 @@ export interface PostBoxList {
 }
 
 export interface IPostBoxState {
-  _newPostbox: PostBoxData;
-  _index: number;
   _data: PostBoxList;
+  _newPostbox: PostBoxData;
+  _postBoxKey: string;
   _mapCenter: google.maps.LatLngLiteral;
 }
 
@@ -54,6 +52,7 @@ export interface PostBoxDataLoaded extends Action<'POSTBOX_DATA_LOADED'> {
   _data: PostBoxList;
 }
 export interface PostBoxAdd extends Action<'ADD_POSTBOX'> {
+  _key: string;
   _newPostbox: PostBoxData;
 }
 export interface PostBoxUpdate extends Action<'UPDATE_POSTBOX'> {
@@ -61,10 +60,11 @@ export interface PostBoxUpdate extends Action<'UPDATE_POSTBOX'> {
   _newPostbox: PostBoxData;
 }
 export interface PostBoxDelete extends Action<'DELETE_POSTBOX'> {
+  _key: string;
   _newPostbox: PostBoxData;
 }
 export interface PostBoxEdit extends Action<'EDIT_POSTBOX'> {
-  _newPostbox: PostBoxData;
+  _postBoxKey: string;
 }
 export interface PostBoxCancelEdit extends Action<'CANCEL_EDIT_POSTBOX'> {}
 export interface PostBoxMoveMap extends Action<'MOVE_MAP'> {
@@ -112,9 +112,10 @@ export const postBoxDataLoaded: ActionCreator<PostBoxDataLoaded> = _data => {
   };
 };
 
-export const postBoxAdd: ActionCreator<PostBoxAdd> = _newPostbox => {
+export const postBoxAdd: ActionCreator<PostBoxAdd> = (_key, _newPostbox) => {
   return {
     type: ADD_POSTBOX,
+    _key,
     _newPostbox,
   };
 };
@@ -130,17 +131,21 @@ export const postBoxUpdate: ActionCreator<PostBoxUpdate> = (
   };
 };
 
-export const postBoxDelete: ActionCreator<PostBoxDelete> = _newPostbox => {
+export const postBoxDelete: ActionCreator<PostBoxDelete> = (
+  _key,
+  _newPostbox
+) => {
   return {
     type: DELETE_POSTBOX,
+    _key,
     _newPostbox,
   };
 };
 
-export const postBoxEdit: ActionCreator<PostBoxEdit> = _newPostbox => {
+export const postBoxEdit: ActionCreator<PostBoxEdit> = _postBoxKey => {
   return {
     type: EDIT_POSTBOX,
-    _newPostbox,
+    _postBoxKey,
   };
 };
 

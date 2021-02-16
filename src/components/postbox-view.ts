@@ -15,7 +15,13 @@ import {
   query,
   LitElement,
   property,
+  internalProperty,
 } from 'lit-element';
+
+import '@material/mwc-dialog';
+import '@material/mwc-textfield';
+import '@material/mwc-button';
+import '@material/mwc-select';
 
 // These are the shared styles needed by this element.
 import { connect } from 'pwa-helpers/connect-mixin';
@@ -28,6 +34,7 @@ import './edit-map';
 
 // These are the actions needed by this element.
 import {
+  postBoxCancelEdit,
   postBoxDataLoad,
   postBoxEdit,
   PostBoxList,
@@ -43,6 +50,11 @@ if (postboxSelector(store.getState()) === undefined) {
   });
 }
 
+function _MarkerClick(el: any) {
+  const markerClicked = el.detail.key;
+  store.dispatch(postBoxEdit(markerClicked));
+}
+
 let postBoxData: PostBoxList = {};
 
 @customElement('postbox-view')
@@ -50,31 +62,43 @@ export class PostboxView extends connect(store)(LitElement) {
   @query('#map')
   private map: any;
 
-  @property({ type: Boolean, reflect: true })
-  private drawOpened: boolean = false;
+  @query('#editPostbox')
+  private dialog: any;
 
-  @property({ type: Object })
-  private mapOptions = {
+  @internalProperty()
+  private _mapOptions = {
     center: { lat: 51.50502153288204, lng: -3.240311294225257 },
     zoom: 10,
   };
 
-  @property({ type: Object })
-  private markerData: MarkerData = {};
+  @internalProperty()
+  private _markerData: MarkerData = {};
+
+  @internalProperty()
+  private _name = '';
+
+  @internalProperty()
+  private _address = '';
+
+  @internalProperty()
+  private _openingTimes = '';
+
+  @internalProperty()
+  private _notes = '';
 
   static get styles() {
     return [
       SharedStyles,
       css`
         :host {
-          display: block;
-          width: 100%;
+          display: flex;
+          align-items: flex-start;
           height: 100%;
         }
 
         #map {
           width: 100%;
-          height: 500px;
+          height: 80vh;
         }
       `,
     ];
@@ -82,10 +106,35 @@ export class PostboxView extends connect(store)(LitElement) {
 
   protected render() {
     return html`
+      <mwc-dialog
+        id="editPostbox"
+        heading="Postbox"
+        @click="${this.cancelLabel}"
+      >
+        <div>
+          <div>
+            <h3>Name:</h3>
+            ${this._name}
+          </div>
+          <div>
+            <h3>Address:</h3>
+            ${this._address}
+          </div>
+          <div>
+            <h3>Opening times:</h3>
+            ${this._openingTimes}
+          </div>
+          <div>
+            <h3>Notes:</h3>
+            ${this._notes}
+          </div>
+        </div>
+        <mwc-button slot="primaryAction" dialogAction="close">Close</mwc-button>
+      </mwc-dialog>
       <edit-map
         id="map"
-        .options=${this.mapOptions}
-        .markerData=${this.markerData}
+        .options=${this._mapOptions}
+        .markerData=${this._markerData}
       ></edit-map>
     `;
   }
@@ -93,7 +142,7 @@ export class PostboxView extends connect(store)(LitElement) {
   drawLabels(thePostBoxData: PostBoxList) {
     for (const [_key, item] of Object.entries(thePostBoxData)) {
       if (item.pos) {
-        this.markerData[_key] = {
+        this._markerData[_key] = {
           position: item.pos,
           title: item.description.name,
           shape:
@@ -102,12 +151,12 @@ export class PostboxView extends connect(store)(LitElement) {
       }
     }
     if (this.map)
-      this.map.setAttribute('markerData', JSON.stringify(this.markerData));
+      this.map.setAttribute('markerData', JSON.stringify(this._markerData));
   }
 
   protected firstUpdated(_changedProperties: any) {
     store.dispatch(postBoxDataLoad());
-    this.drawLabels(postBoxData);
+    this.map.addEventListener('clickedMarker', _MarkerClick);
   }
 
   stateChanged(state: RootState) {
@@ -115,21 +164,24 @@ export class PostboxView extends connect(store)(LitElement) {
       const postboxState = postboxSelector(state);
       postBoxData = postboxState!._data;
       this.drawLabels(postBoxData);
+      if (postboxState!._postBoxKey !== '') {
+        this.displayPostBox(postboxState!._postBoxKey);
+      }
     }
   }
-}
 
-function _MarkerClick(el: any) {
-  const markerPos = el.target.getLatLng();
-  for (const [_key, item] of Object.entries(postBoxData)) {
-    if (
-      item.pos &&
-      item.pos.lat === markerPos.lat &&
-      item.pos.lng === markerPos.lng
-    ) {
-      store.dispatch(postBoxEdit(item));
-      break;
-    }
+  private cancelLabel() {
+    this.dialog.close();
+    store.dispatch(postBoxCancelEdit());
+  }
+
+  private displayPostBox(postBoxKey: string) {
+    const postBox = postBoxData[postBoxKey];
+    this._name = postBox.description.name;
+    this._address = postBox.description.address;
+    this._openingTimes = postBox.description.openingTimes;
+    this._notes = postBox.description.notes;
+    this.dialog.show();
   }
 }
 
