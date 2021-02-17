@@ -47,10 +47,17 @@ function getTitle(page: string) {
   switch (page.toLowerCase()) {
     default:
     case 'welcome':
-      title = 'Scout Badge Requirements';
+      title = 'Ticket to Ride cards';
       break;
     case 'todo':
       title = 'ToDo List';
+      break;
+    case 'pack':
+      title = 'Complete deck';
+      break;
+
+    case 'pallet':
+      title = 'Pallet';
       break;
   }
   return title;
@@ -187,10 +194,12 @@ export class MyApp extends connect(store)(LitElement) {
         >
         <div>
           <nav class="toolbar-list">
-            <a ?selected="${this._page === 'welcome'}" href="/welcome"
+            <a ?selected="${this._page === 'welcome'}" href="/#welcome"
               >Welcome</a
             >
-            <a ?selected="${this._page === 'todo'}" href="/todo">ToDo</a>
+            <a ?selected="${this._page === 'todo'}" href="/#todo">ToDo</a>
+            <a ?selected="${this._page === 'pack'}" href="/#pack">Pack</a>
+            <a ?selected="${this._page === 'pallet'}" href="/#pallet">Pallet</a>
           </nav>
         </div>
         <!-- Header -->
@@ -217,9 +226,18 @@ export class MyApp extends connect(store)(LitElement) {
               <welcome-page class="page" ?active="${this._page === 'welcome'}"
                 >Welcome</welcome-page
               >
-              <todo-list class="page" ?active="${this._page === 'todo'}"
-                >Welcome</todo-list
-              >
+              <todo-list
+                class="page"
+                ?active="${this._page === 'todo'}"
+              ></todo-list>
+              <game-card
+                class="page"
+                ?active="${this._page === 'pack'}"
+              ></game-card>
+              <pallet-card
+                class="page"
+                ?active="${this._page === 'pallet'}"
+              ></pallet-card>
               <my-view404
                 class="page"
                 ?active="${this._page === 'view404'}"
@@ -248,7 +266,7 @@ export class MyApp extends connect(store)(LitElement) {
 
   protected firstUpdated() {
     installRouter(location =>
-      store.dispatch(navigate(decodeURIComponent(location.pathname)))
+      store.dispatch(navigate(decodeURIComponent(location.href)))
     );
     installOfflineWatcher(offline => store.dispatch(updateOffline(offline)));
     installMediaQueryWatcher(`(min-width: 460px)`, () =>

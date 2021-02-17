@@ -71,6 +71,12 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
     case 'todo':
       import('../components/todo-list');
       break;
+    case 'pack':
+      import('../components/game-card');
+      break;
+    case 'pallet':
+      import('../components/pallet-card');
+      break;
     default:
       // eslint-disable-next-line no-param-reassign
       page = 'view404';
@@ -84,7 +90,8 @@ export const navigate: ActionCreator<ThunkResult> = (
   path: string
 ) => dispatch => {
   // Extract the page name from path.
-  const page = path === '/' ? 'welcome' : path.slice(1);
+  const parts = path.split('#');
+  const page = parts.length === 1 ? 'welcome' : parts[1];
 
   // Any other info you might want to extract from the path (like page type),
   // you can do here
