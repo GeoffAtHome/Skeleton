@@ -23,7 +23,13 @@ import syncState, { syncStateSelector } from '../reducers/syncState';
 
 import './todo-item';
 import './todo-filter';
+import './supa-base';
+
 import { TODO_FILTERS } from '../actions/todostate';
+
+const supabaseUrl = 'https://dcqztgqppnybtviaajcw.supabase.co';
+const supabaseKey =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTYxNDI4MTQyMywiZXhwIjoxOTI5ODU3NDIzfQ.3w4Jfw4j58niBtqZOqx24Pyx6E3y3UGkq5ojuSEjhjo';
 
 if (toDoDataSelector(store.getState()) === undefined) {
   store.addReducers({
@@ -67,12 +73,13 @@ export class TodoList extends connect(store)(LitElement) {
     ];
   }
 
-  firstUpdated() {
-    store.dispatch(toDoLoad());
-  }
-
   protected render() {
     return html`
+      <supa-base
+        .supabaseKey=${supabaseKey}
+        .supabaseUrl=${supabaseUrl}
+        @SupaBaseReady=${this.loadData}
+      ></supa-base>
       <h2>ToDo List</h2>
       <mwc-textfield
         id="itemText"
@@ -115,6 +122,11 @@ export class TodoList extends connect(store)(LitElement) {
     }).length;
 
     return items;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private loadData() {
+    store.dispatch(toDoLoad());
   }
 
   stateChanged(state: RootState) {

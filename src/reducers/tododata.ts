@@ -1,4 +1,5 @@
 import { Reducer } from 'redux';
+import { SupabaseQueryBuilder } from '@supabase/supabase-js/dist/main/lib/SupabaseQueryBuilder';
 import {
   createItemPouchDB,
   deleteItemPouchDB,
@@ -6,6 +7,7 @@ import {
   updateItemPouchDB,
   loadPouchDB,
   RegisterSyncPouchDB,
+  databaseRegister,
 } from './poucbDBInterface';
 
 import {
@@ -39,15 +41,10 @@ function toDoDeletedDispatch(docs: any) {
 }
 
 // Setup database
-const databaseName = 'todo';
+const databaseName = 'ToDoList';
 const rootURL = 'https://scoutpostadmin.soord.org.uk:6984/';
 
-const todoDB = RegisterSyncPouchDB(
-  databaseName,
-  rootURL,
-  toDoChangesDispatch,
-  toDoDeletedDispatch
-);
+let todoDB: databaseRegister;
 
 const toDoData: Reducer<IToDoDataState, RootAction> = (
   state = INITIAL_STATE,
@@ -55,6 +52,12 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
 ) => {
   switch (action.type) {
     case LOAD_TODO:
+      todoDB = RegisterSyncPouchDB(
+        databaseName,
+        toDoChangesDispatch,
+        toDoDeletedDispatch
+      );
+
       loadPouchDB(todoDB, toDoLoaded);
       return { ...state };
 
@@ -65,9 +68,8 @@ const toDoData: Reducer<IToDoDataState, RootAction> = (
       const newList = { ...state._toDoList };
       const id = Date.now().toString();
       const newItem = action._item;
-      newItem._id = id;
       newList[id] = newItem;
-      createItemPouchDB(todoDB, newItem);
+      createItemPouchDB(todoDB, id, newItem);
       return {
         ...state,
         _toDoList: { ...state._toDoList, ...newList },

@@ -51,6 +51,7 @@
     "@polymer/polymer": "^3.4.1",
     "@pwabuilder/pwainstall": "^1.6.7",
     "@pwabuilder/pwaupdate": "^0.2.0",
+    "@supabase/supabase-js": "^1.6.0",
     "@types/events": "^3.0.0",
     "@webcomponents/webcomponentsjs": "^2.5.0",
     "events": "^3.2.0",

@@ -3,13 +3,17 @@
 // import { store } from '../store';
 
 import { ActionCreator } from 'redux';
+import {
+  RealtimeSubscription,
+  SupabaseClient,
+  SupabaseRealtimePayload,
+} from '@supabase/supabase-js';
+import { SupabaseQueryBuilder } from '@supabase/supabase-js/dist/main/lib/SupabaseQueryBuilder';
 import { store } from '../store';
+import { getSpDB } from '../components/supa-base';
 
 // We are lazy loading its reducer.
-import syncState, {
-  syncChangesDB,
-  syncStateSelector,
-} from '../reducers/syncState';
+import syncState, { syncStateSelector } from '../reducers/syncState';
 import { syncStateChange } from '../actions/syncState';
 
 if (syncStateSelector(store.getState()) === undefined) {
@@ -18,16 +22,10 @@ if (syncStateSelector(store.getState()) === undefined) {
   });
 }
 
-interface databaseRegister {
+export interface databaseRegister {
   name: string;
-  localDB: PouchDB.Database;
-  remoteDB: PouchDB.Database;
-  changes: changeCallback;
-  deletes: changeCallback;
-  state: boolean;
-  active: boolean;
-  changed: boolean;
-  syncHandler?: PouchDB.Replication.Sync<{}>;
+  remoteDB: SupabaseClient;
+  subscription: RealtimeSubscription;
 }
 
 const registeredDatabases: Array<databaseRegister> = [];
@@ -49,52 +47,45 @@ export interface DataList {
 
 type changeCallback = (change: any) => void;
 
-async function registerChange(name: string) {
-  try {
-    const item: any = await syncChangesDB.get(name);
-    item.value += 1;
-    await syncChangesDB.put(item);
-  } catch (err) {
-    pouchDBError(err);
-    try {
-      await syncChangesDB.put({ _id: name, value: 0 });
-    } catch (innerErr) {
-      pouchDBError(innerErr);
-    }
-  }
-}
-
 export async function loadPouchDB(
-  db: PouchDB.Database,
+  db: databaseRegister,
   action: ActionCreator<any>
 ) {
   try {
-    const data = await db.allDocs({ include_docs: true });
+    const { data, error } = await db.remoteDB.from(db.name).select('*');
     const results: DataList = {};
-    for (const _item of data.rows) {
-      const item: any = _item.doc;
-      results[item._id] = item;
+    if (data !== null) {
+      for (const _item of data) {
+        const { id } = _item;
+        delete _item.id;
+        results[id] = _item;
+      }
     }
     store.dispatch(action(results));
+  } catch (error) {
+    pouchDBError(error);
+  }
+}
+
+export async function createItemPouchDB(
+  db: databaseRegister,
+  id: string,
+  item: any
+) {
+  try {
+    const { data, error } = await db.remoteDB
+      .from(db.name)
+      .insert([{ ...item, ...{ id } }]);
   } catch (err) {
     pouchDBError(err);
   }
 }
 
-export async function createItemPouchDB(db: PouchDB.Database, item: any) {
+export async function readItemPouchDB(db: databaseRegister, id: any) {
+  const item: IDataList = {};
   try {
-    await db.put(item);
-    await registerChange(db.name);
-  } catch (err) {
-    pouchDBError(err);
-  }
-}
-
-export async function readItemPouchDB(db: PouchDB.Database, id: any) {
-  let item = {};
-  try {
-    item = await db.get(id);
-    return item;
+    const { data, error } = await db.remoteDB.from(db.name).select(id);
+    if (data !== null) item[id] = data;
   } catch (err) {
     pouchDBError(err);
   }
@@ -102,234 +93,74 @@ export async function readItemPouchDB(db: PouchDB.Database, id: any) {
 }
 
 export async function updateItemPouchDB(
-  db: PouchDB.Database,
+  db: databaseRegister,
   id: string,
   item: any
 ) {
   try {
-    const newItem = item;
-    // Get revision
-    const revItem = await db.get(id);
-    newItem._rev = revItem._rev;
-    newItem._id = id;
-    await db.put(newItem);
-    await registerChange(db.name);
+    const { data, error } = await db.remoteDB
+      .from(db.name)
+      .update({ ...item, ...{ id } })
+      .match({ id });
   } catch (err) {
     pouchDBError(err);
   }
 }
 
-export async function deleteItemPouchDB(db: PouchDB.Database, id: string) {
+export async function deleteItemPouchDB(db: databaseRegister, id: string) {
   try {
-    const revItem = await db.get(id);
-    await db.remove(revItem._id, revItem._rev);
-    await registerChange(db.name);
+    const { data, error } = await db.remoteDB
+      .from(db.name)
+      .delete()
+      .match({ id });
   } catch (err) {
     pouchDBError(err);
   }
 }
 
-async function syncChange(
-  changes: PouchDB.Replication.SyncResult<any>,
-  name: string
+interface IDataList {
+  [index: string]: any;
+}
+
+function doChanges(
+  payload: SupabaseRealtimePayload<any>,
+  changes: changeCallback
 ) {
-  const db = getRegisteredDatabase(name);
-  const changedDocs = changes.change.docs.filter(item => {
-    return !('_deleted' in item);
-  });
-  const deletedDocs = changes.change.docs.filter(item => {
-    return '_deleted' in item;
-  });
-  if (changedDocs.length) {
-    const updates: DataList = {};
-    for (const item of changedDocs) {
-      const key = item._id;
-      delete item._id;
-      delete item._rev;
+  const _item = payload.eventType === 'DELETE' ? payload.old : payload.new;
+  const _id: string = _item.id;
+  const item: IDataList = {};
+  delete _item.id;
+  item[_id] = _item;
 
-      updates[key] = item;
-    }
-    db.changes(updates);
-  }
-
-  if (deletedDocs.length) {
-    const removes: DataList = {};
-    for (const item of deletedDocs) {
-      const key = item._id;
-      delete item._id;
-      delete item._rev;
-
-      removes[key] = item;
-    }
-    db.deletes(removes);
-  }
-  db.changed = true;
-  await registerChange(db.name);
-}
-
-/// -------------------------------------------------------------------------
-export function CancelSyncPouchDB(name: string) {
-  const db = getRegisteredDatabase(name);
-  if (db.state && db.active && db.changed) {
-    db.state = false;
-    db.active = false;
-    db.changed = false;
-    db.syncHandler!.cancel();
-  }
-}
-
-function syncPausedCancel(localDB: PouchDB.Database) {
-  store.dispatch(syncStateChange(`${localDB.name} sync complete`));
-  CancelSyncPouchDB(localDB.name);
-}
-
-function syncActive(localDB: string) {
-  store.dispatch(syncStateChange(`${localDB} reconnected`));
-  const db = getRegisteredDatabase(localDB);
-  db.active = true;
-}
-function syncDenied(localDB: string, x: any) {
-  store.dispatch(syncStateChange(`${localDB} denied`));
-}
-function syncComplete(localDB: string, x: any) {
-  store.dispatch(syncStateChange(`${localDB} sync complete`));
-}
-
-function syncError(localDB: string, x: any) {
-  store.dispatch(syncStateChange(`${localDB} Error: ${x}`));
-}
-
-export function createPouchDB(dbName: string, options: any): PouchDB.Database {
-  // eslint-disable-next-line no-undef
-  return new PouchDB(dbName, options);
-}
-
-function SyncOncePouchDB(
-  localDB: PouchDB.Database,
-  remoteDB: PouchDB.Database
-) {
-  const options = { live: true, retry: true };
-  const syncHandler: PouchDB.Replication.Sync<{}> = localDB
-    .sync(remoteDB, options)
-    .on('change', info => syncChange(info, localDB.name)) // handle change
-    .on('paused', err => syncPausedCancel(localDB)) // replication paused (e.g. replication up to date, user went offline)
-    .on('active', () => syncActive(localDB.name)) // replicate resumed (e.g. new changes replicating, user went back online)
-    .on('denied', err => syncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
-    .on('complete', info => syncComplete(localDB.name, info)) // handle complete
-    .on('error', err => syncError(localDB.name, err)); // handle error
-
-  return syncHandler;
-}
-
-export function LoadPouchDB(
-  localDB: PouchDB.Database,
-  remoteDB: PouchDB.Database
-) {
-  localDB.replicate.from(remoteDB).on('complete', _info => {
-    syncComplete(localDB.name, _info);
-  });
-}
-
-export function ReSyncPouchDB(name: string) {
-  const db = getRegisteredDatabase(name);
-  if (!db.state) {
-    db.syncHandler = SyncOncePouchDB(db.localDB, db.remoteDB);
-    db.state = true;
-    db.changed = false;
-    db.active = false;
-  }
+  changes(item);
 }
 
 export function RegisterSyncPouchDB(
   name: string,
-  rootURL: string,
   changes: changeCallback,
   deletes: changeCallback
 ) {
-  const localDB = createPouchDB(name, {});
-  const remoteDB = createPouchDB(rootURL + name, {
-    username: 'usergroup_4',
-    password: 'password_4',
-  });
-
+  const remoteDB = getSpDB();
+  const subscription = remoteDB
+    .from(name)
+    .on('INSERT', async (payload: SupabaseRealtimePayload<any>) => {
+      console.log('INSERT');
+      doChanges(payload, changes);
+    })
+    .on('UPDATE', async (payload: SupabaseRealtimePayload<any>) => {
+      console.log('UPDATE');
+      doChanges(payload, changes);
+    })
+    .on('DELETE', async (payload: SupabaseRealtimePayload<any>) => {
+      console.log('DELETE');
+      doChanges(payload, deletes);
+    })
+    .subscribe();
   const db: databaseRegister = {
     name,
-    localDB,
     remoteDB,
-    changes,
-    deletes,
-    state: false,
-    active: false,
-    changed: false,
+    subscription,
   };
-
   registeredDatabases.push(db);
-  LoadPouchDB(localDB, remoteDB);
-  ReSyncPouchDB(name);
-
-  return localDB;
-}
-
-function syncSyncChange(
-  changes: PouchDB.Replication.SyncResult<any>,
-  changesCB: changeCallback,
-  deletesCB: changeCallback
-) {
-  const changedDocs = changes.change.docs.filter(item => {
-    return !('_deleted' in item);
-  });
-  const deletedDocs = changes.change.docs.filter(item => {
-    return '_deleted' in item;
-  });
-  if (changedDocs.length) {
-    const updates: DataList = {};
-    for (const item of changes.change.docs) {
-      const key = item._id;
-      delete item._id;
-      delete item._rev;
-
-      updates[key] = item;
-    }
-    changesCB(updates);
-  }
-
-  if (deletedDocs.length) {
-    const removes: DataList = {};
-    for (const item of changes.change.docs) {
-      const key = item._id;
-      delete item._id;
-      delete item._rev;
-
-      removes[key] = item;
-    }
-    deletesCB(removes);
-  }
-}
-
-function syncSyncPaused(localDB: string, x: any) {}
-
-function syncSyncActive(localDB: string) {}
-function syncSyncDenied(localDB: string, x: any) {}
-function syncSyncComplete(localDB: string, x: any) {}
-
-function syncSyncError(localDB: string, x: any) {}
-
-export function SyncPouchDB(
-  localDB: PouchDB.Database,
-  remoteDB: PouchDB.Database,
-  changes: changeCallback,
-  deletes: changeCallback
-) {
-  const options = { live: true, retry: true };
-  localDB.replicate.from(remoteDB).on('complete', _info => {
-    syncSyncComplete(localDB.name, _info);
-    localDB
-      .sync(remoteDB, options)
-      .on('change', info => syncSyncChange(info, changes, deletes)) // handle change
-      .on('paused', err => syncSyncPaused(localDB.name, err)) // replication paused (e.g. replication up to date, user went offline)
-      .on('active', () => syncSyncActive(localDB.name)) // replicate resumed (e.g. new changes replicating, user went back online)
-      .on('denied', err => syncSyncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
-      .on('complete', info => syncSyncComplete(localDB.name, info)) // handle complete
-      .on('error', err => syncSyncError(localDB.name, err)); // handle error
-  });
+  return db;
 }
