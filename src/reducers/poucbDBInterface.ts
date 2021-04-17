@@ -3,6 +3,7 @@
 // eslint-disable-next-line import/extensions
 import { ActionCreator } from 'redux';
 import { store } from '../store';
+import 'pouchdb-authentication/dist/pouchdb.authentication';
 
 // We are lazy loading its reducer.
 import syncState, {
@@ -30,6 +31,22 @@ interface databaseRegister {
 }
 
 const registeredDatabases: Array<databaseRegister> = [];
+
+const url = 'https://scoutpostadmin.soord.org.uk:6984/_users';
+// const url = 'http://localhost:5984/_users';
+// eslint-disable-next-line no-undef
+const usersDB: any = new PouchDB(url);
+
+async function login() {
+  try {
+    await usersDB.logIn('usergroup_4', 'password_4');
+    console.log('User logged in OK');
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+login();
 
 function getRegisteredDatabase(name: string) {
   const db = registeredDatabases.find(e => e.name === name);

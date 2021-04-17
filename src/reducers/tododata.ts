@@ -26,6 +26,7 @@ import {
 } from '../actions/tododata';
 
 import { RootAction, RootState, store } from '../store';
+import { rootURL } from './dbconst';
 
 const INITIAL_STATE: IToDoDataState = {
   _toDoList: {},
@@ -39,8 +40,6 @@ function toDoDeletedDispatch(docs: any) {
   store.dispatch(toDoDeletes(docs));
 }
 
-const rootURL = 'https://scoutpostadmin.soord.org.uk:6984/';
-// const rootURL = 'http://localhost:5984/';
 const todoDB = RegisterSyncPouchDB(
   'todo',
   rootURL,

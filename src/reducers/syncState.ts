@@ -8,6 +8,7 @@ import {
 } from '../actions/syncState';
 
 import { RootAction, RootState, store } from '../store';
+import { rootURL } from './dbconst';
 import { createPouchDB, ReSyncPouchDB, SyncPouchDB } from './poucbDBInterface';
 
 function syncChangesDispatch(docs: any) {
@@ -22,7 +23,6 @@ function syncDeletedDispatch(docs: any) {
 }
 
 // Setup database
-const rootURL = 'https://scoutpostadmin.soord.org.uk:6984/';
 const databaseName = 'syncchanges';
 export const syncChangesDB = createPouchDB(databaseName, {});
 const remoteDB = createPouchDB(rootURL + databaseName, {
