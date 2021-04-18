@@ -267,10 +267,7 @@ export function RegisterSyncPouchDB(
   deletes: changeCallback
 ) {
   const localDB = createPouchDB(name, {});
-  const remoteDB = createPouchDB(rootURL + name, {
-    username: 'scoutadmin',
-    password: 'admin_password',
-  });
+  const remoteDB = createPouchDB(rootURL + name, {});
 
   const db: databaseRegister = {
     name,

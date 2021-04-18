@@ -34,13 +34,17 @@ import '@material/mwc-drawer';
 import '@material/mwc-button';
 import '@pwabuilder/pwainstall';
 import '@pwabuilder/pwaupdate';
-import { menuIcon, arrowBackIcon } from './my-icons';
+import { menuIcon, arrowBackIcon, logOutIcon } from './my-icons';
 import './snack-bar';
-import { logUserIn } from './user-login';
+import { logUserIn, logUserOut } from './user-login';
 import { userDataSelector } from '../reducers/users';
 
 function _BackButtonClicked() {
   window.history.back();
+}
+
+function _logOutButtonClicked() {
+  logUserOut();
 }
 
 function getTitle(page: string) {
@@ -207,7 +211,7 @@ export class MyApp extends connect(store)(LitElement) {
             <a ?selected="${this._page === 'welcome'}" href="/#welcome"
               >Welcome</a
             >
-            ${this._member === true
+            ${this._loggedIn === true
               ? html`
                   <a ?selected="${this._page === 'todo'}" href="/#todo">ToDo</a>
                   <a
@@ -242,6 +246,13 @@ export class MyApp extends connect(store)(LitElement) {
             >
             <mwc-button
               class="btn"
+              title="Logout"
+              slot="actionItems"
+              @click="${_logOutButtonClicked}"
+              >${logOutIcon}</mwc-button
+            >
+            <mwc-button
+              class="btn"
               title="Back"
               slot="actionItems"
               @click="${_BackButtonClicked}"
@@ -259,7 +270,7 @@ export class MyApp extends connect(store)(LitElement) {
                 ?active="${this._page === 'userLogin'}"
                 .loggedIn="${this._loggedIn}"
               ></user-login>
-              ${this._member === true
+              ${this._loggedIn === true
                 ? html`
                     <todo-list
                       class="page"

@@ -93,7 +93,10 @@ export interface GroupDataId extends Action<'GROUP_ID'> {
   _index: string;
 }
 
-export interface GroupDataLoad extends Action<'GROUP_DATA_LOAD'> {}
+export interface GroupDataLoad extends Action<'GROUP_DATA_LOAD'> {
+  _admin: boolean;
+  _groupId: string;
+}
 export interface GroupDataLoaded extends Action<'GROUP_DATA_LOADED'> {
   _data: GroupData;
 }
@@ -194,9 +197,14 @@ export const groupDataState: ActionCreator<GroupDataId> = (
   };
 };
 
-export const groupDataLoad: ActionCreator<GroupDataLoad> = () => {
+export const groupDataLoad: ActionCreator<GroupDataLoad> = (
+  _admin,
+  _groupId
+) => {
   return {
     type: GROUP_DATA_LOAD,
+    _admin,
+    _groupId,
   };
 };
 export const groupDataLoaded: ActionCreator<GroupDataLoaded> = _data => {

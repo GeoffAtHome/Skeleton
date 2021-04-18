@@ -54,12 +54,7 @@ function groupDataDeletedDispatch(docs: any) {
   store.dispatch(groupDataDeletes(docs));
 }
 
-const groupDataDB = RegisterSyncPouchDB(
-  groupDataURL,
-  rootURL,
-  groupDataChangesDispatch,
-  groupDataDeletedDispatch
-);
+let groupDataDB: PouchDB.Database;
 
 const INITIAL_STATE: GroupDataState = {
   _newGroup: {
@@ -75,7 +70,7 @@ const INITIAL_STATE: GroupDataState = {
   _sortboxData: {},
 };
 
-const groupdata: Reducer<GroupDataState, RootAction> = (
+const groupData: Reducer<GroupDataState, RootAction> = (
   state = INITIAL_STATE,
   action
 ) => {
@@ -86,6 +81,21 @@ const groupdata: Reducer<GroupDataState, RootAction> = (
       };
 
     case GROUP_DATA_LOAD:
+      if (action._admin) {
+        groupDataDB = RegisterSyncPouchDB(
+          groupDataURL,
+          rootURL,
+          groupDataChangesDispatch,
+          groupDataDeletedDispatch
+        );
+      } else {
+        groupDataDB = RegisterSyncPouchDB(
+          `rounddb_${action._groupId}`,
+          rootURL,
+          groupDataChangesDispatch,
+          groupDataDeletedDispatch
+        );
+      }
       loadPouchDB(groupDataDB, groupDataLoaded);
       return {
         ...state,
@@ -249,7 +259,7 @@ const groupdata: Reducer<GroupDataState, RootAction> = (
   }
 };
 
-export default groupdata;
+export default groupData;
 
 // Per Redux best practices, the shop data in our store is structured
 // for efficiency (small size and fast updates).

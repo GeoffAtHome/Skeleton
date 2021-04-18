@@ -8,7 +8,15 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-import { html, property, query, customElement, css } from 'lit-element';
+import {
+  html,
+  property,
+  query,
+  customElement,
+  css,
+  PropertyValues,
+  internalProperty,
+} from 'lit-element';
 
 // These are the elements needed by this element.
 import { connect } from 'pwa-helpers/connect-mixin';
@@ -37,16 +45,17 @@ import {
 } from '../actions/groupdata';
 
 // We are lazy loading its reducer.
-import groupdata, { groupdataSelector } from '../reducers/groupdata';
+import groupData, { groupdataSelector } from '../reducers/groupdata';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 
 import { labelIcon } from './my-icons';
 import { notifyMessage } from '../actions/app';
+import { userDataSelector } from '../reducers/users';
 
 if (groupdataSelector(store.getState()) === undefined) {
-  store.addReducers({ groupdata });
+  store.addReducers({ groupData });
 }
 
 @customElement('group-admin')
@@ -60,6 +69,9 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
   @property({ type: String })
   private groupId: string = '';
 
+  @property({ type: Boolean })
+  private admin = false;
+
   @property({ type: Object })
   private newGroup: GroupDataItem = {
     _id: '',
@@ -68,9 +80,6 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
     contactDetails: '',
     colour: '',
   };
-
-  @property({ type: Object })
-  private groupData: GroupData = {};
 
   @query('#id')
   private editID: any;
@@ -92,6 +101,9 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
 
   @property({ type: String })
   private _id = '';
+
+  @internalProperty()
+  private groupData: GroupData = {};
 
   static get styles() {
     return [
@@ -255,14 +267,23 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
     `;
   }
 
-  protected firstUpdated(_changedProperties: any) {
-    store.dispatch(groupDataLoad());
-  }
-
   stateChanged(state: RootState) {
     if (state.app!.page === 'groupAdmin') {
       const groupDataState = groupdataSelector(state);
       this.groupData = { ...groupDataState!._groupData };
+
+      const usersState = userDataSelector(state);
+      if (usersState) {
+        if (
+          this.admin !== usersState._newUser.claims.administrator ||
+          this.groupId !== usersState._newUser.claims.group
+        ) {
+          this.admin = usersState._newUser.claims.administrator;
+          this.groupId = usersState._newUser.claims.group;
+          if (!(this.admin === false && this.groupId === ''))
+            store.dispatch(groupDataLoad(this.admin, this.groupId));
+        }
+      }
     }
   }
 

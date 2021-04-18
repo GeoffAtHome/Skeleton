@@ -76,7 +76,7 @@ export async function logUserIn() {
             return x.startsWith('usergroup_');
           }
         );
-        [, group] = role[0].split(' ');
+        [, group] = role[0].split('_');
       }
 
       const thisUser: UsersItem = {
@@ -118,6 +118,19 @@ export async function logUserIn() {
   }
 }
 
+export async function logUserOut() {
+  await usersDB.logOut();
+  const thisUser: UsersItem = {
+    displayName: 'Login',
+    email: 'Login',
+    photoURL: '',
+    claims: { administrator: false, member: false, group: '' },
+  };
+  store.dispatch(userDataSelectUser(thisUser));
+  const newLocation = `/#userLogin`;
+  window.history.pushState({}, '', newLocation);
+  store.dispatch(navigate(decodeURIComponent(newLocation)));
+}
 @customElement('user-login')
 export class UserLogin extends connect(store)(PageViewElement) {
   @query('#loginDialog')
