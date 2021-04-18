@@ -262,4 +262,4 @@ export default groupdata;
 // We use a tiny library called `reselect` to create efficient
 // selectors. More info: https://github.com/reduxjs/reselect.
 
-export const groupdataSelector = (state: RootState) => state.groupdata;
+export const groupdataSelector = (state: RootState) => state.groupData;

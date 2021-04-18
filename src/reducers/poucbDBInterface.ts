@@ -33,7 +33,6 @@ interface databaseRegister {
 const registeredDatabases: Array<databaseRegister> = [];
 
 const url = 'https://scoutpostadmin.soord.org.uk:6984/_users';
-// const url = 'http://localhost:5984/_users';
 // eslint-disable-next-line no-undef
 const usersDB: any = new PouchDB(url);
 
@@ -45,8 +44,6 @@ async function login() {
     console.log(err);
   }
 }
-
-login();
 
 function getRegisteredDatabase(name: string) {
   const db = registeredDatabases.find(e => e.name === name);

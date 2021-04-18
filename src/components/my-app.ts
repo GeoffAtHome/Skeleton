@@ -36,6 +36,8 @@ import '@pwabuilder/pwainstall';
 import '@pwabuilder/pwaupdate';
 import { menuIcon, arrowBackIcon } from './my-icons';
 import './snack-bar';
+import { logUserIn } from './user-login';
+import { userDataSelector } from '../reducers/users';
 
 function _BackButtonClicked() {
   window.history.back();
@@ -74,6 +76,21 @@ export class MyApp extends connect(store)(LitElement) {
 
   @property({ type: Boolean })
   private _offline = false;
+
+  @property({ type: Boolean })
+  private _admin: boolean = false;
+
+  @property({ type: Boolean })
+  private _member: boolean = false;
+
+  @property({ type: Boolean })
+  private _loggedIn: boolean = false;
+
+  @property({ type: String })
+  private _groupId: string = '';
+
+  @property({ type: String })
+  private _displayName: string = '';
 
   private startX: number = 0;
 
@@ -190,18 +207,26 @@ export class MyApp extends connect(store)(LitElement) {
             <a ?selected="${this._page === 'welcome'}" href="/#welcome"
               >Welcome</a
             >
-            <a ?selected="${this._page === 'todo'}" href="/#todo">ToDo</a>
-            <a ?selected="${this._page === 'postBoxView'}" href="/#postBoxView"
-              >Where to purchase stamps and post</a
-            >
-            <a
-              ?selected="${this._page === 'editPostBoxView'}"
-              href="/#editPostBoxView"
-              >Edit purchase stamps and post</a
-            >
-            <a ?selected="${this._page === 'groupAdmin'}" href="/#groupAdmin"
-              >Group admin</a
-            >
+            ${this._member === true
+              ? html`
+                  <a ?selected="${this._page === 'todo'}" href="/#todo">ToDo</a>
+                  <a
+                    ?selected="${this._page === 'postBoxView'}"
+                    href="/#postBoxView"
+                    >Where to purchase stamps and post</a
+                  >
+                  <a
+                    ?selected="${this._page === 'editPostBoxView'}"
+                    href="/#editPostBoxView"
+                    >Edit purchase stamps and post</a
+                  >
+                  <a
+                    ?selected="${this._page === 'groupAdmin'}"
+                    href="/#groupAdmin"
+                    >Group admin</a
+                  >
+                `
+              : html``}
           </nav>
         </div>
         <!-- Header -->
@@ -229,22 +254,31 @@ export class MyApp extends connect(store)(LitElement) {
                 class="page"
                 ?active="${this._page === 'welcome'}"
               ></welcome-page>
-              <todo-list
+              <user-login
                 class="page"
-                ?active="${this._page === 'todo'}"
-              ></todo-list>
-              <postbox-view
-                class="page"
-                ?active="${this._page === 'postBoxView'}"
-              ></postbox-view>
-              <edit-postbox-view
-                class="page"
-                ?active="${this._page === 'editPostBoxView'}"
-              ></edit-postbox-view>
-              <group-admin
-                class="page"
-                ?active="${this._page === 'groupAdmin'}"
-              ></group-admin>
+                ?active="${this._page === 'userLogin'}"
+                .loggedIn="${this._loggedIn}"
+              ></user-login>
+              ${this._member === true
+                ? html`
+                    <todo-list
+                      class="page"
+                      ?active="${this._page === 'todo'}"
+                    ></todo-list>
+                    <postbox-view
+                      class="page"
+                      ?active="${this._page === 'postBoxView'}"
+                    ></postbox-view>
+                    <edit-postbox-view
+                      class="page"
+                      ?active="${this._page === 'editPostBoxView'}"
+                    ></edit-postbox-view>
+                    <group-admin
+                      class="page"
+                      ?active="${this._page === 'groupAdmin'}"
+                    ></group-admin>
+                  `
+                : html``}
               <my-view404
                 class="page"
                 ?active="${this._page === 'view404'}"
@@ -279,7 +313,7 @@ export class MyApp extends connect(store)(LitElement) {
     installMediaQueryWatcher(`(min-width: 460px)`, () =>
       store.dispatch(updateDrawerState(false))
     );
-
+    logUserIn();
     this.track.addEventListener('touchstart', this.handleStart, false);
     this.track.addEventListener('touchend', this.handleEnd, false);
   }
@@ -294,6 +328,17 @@ export class MyApp extends connect(store)(LitElement) {
     this._snackbarOpened = state.app!.snackbarOpened;
     this._drawerOpened = state.app!.drawerOpened;
     this.appTitle = getTitle(this._page);
+
+    const usersState = userDataSelector(state);
+    if (usersState) {
+      this._admin = usersState._newUser.claims.administrator;
+      this._member = usersState._newUser.claims.member;
+      this._groupId = usersState._newUser.claims.group;
+      this._displayName = usersState._newUser.displayName
+        ? usersState._newUser.displayName
+        : '';
+      this._loggedIn = this._admin || this._member;
+    }
   }
 
   handleStart(e: TouchEvent) {

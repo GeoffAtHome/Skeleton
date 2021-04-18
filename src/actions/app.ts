@@ -83,6 +83,10 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
       import('../components/group-admin');
       break;
 
+    case 'userLogin':
+      import('../components/user-login');
+      break;
+
     default:
       // eslint-disable-next-line no-param-reassign
       page = 'view404';

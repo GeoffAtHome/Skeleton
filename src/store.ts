@@ -26,6 +26,7 @@ import { FilterStateAction, IFilterState } from './actions/todostate';
 import { SyncStateAction, ISyncState } from './actions/syncState';
 import { PostBoxAction, IPostBoxState } from './actions/postboxes';
 import { GroupDataAction, GroupDataState } from './actions/groupdata';
+import { UsersAction, UsersState } from './actions/users';
 
 declare global {
   interface Window {
@@ -42,7 +43,8 @@ export interface RootState {
   toDoFilterState?: IFilterState;
   syncState?: ISyncState;
   postBoxState?: IPostBoxState;
-  groupdata?: GroupDataState;
+  groupData?: GroupDataState;
+  userData?: UsersState;
 }
 
 export type RootAction =
@@ -51,7 +53,8 @@ export type RootAction =
   | FilterStateAction
   | SyncStateAction
   | GroupDataAction
-  | PostBoxAction;
+  | PostBoxAction
+  | UsersAction;
 
 // Sets up a Chrome extension for time travel debugging.
 // See https://github.com/zalmoxisus/redux-devtools-extension for more information.
