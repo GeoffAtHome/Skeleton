@@ -133,6 +133,9 @@ export async function logUserOut() {
 }
 @customElement('user-login')
 export class UserLogin extends connect(store)(PageViewElement) {
+  @query('#loginForm')
+  private loginForm: any;
+
   @query('#loginDialog')
   private loginDialog: any;
 
@@ -142,7 +145,7 @@ export class UserLogin extends connect(store)(PageViewElement) {
   @query('#logoutDialog')
   private logoutDialog: any;
 
-  @query('#current-password')
+  @query('#password')
   private password: any;
 
   @query('#toggle-password')
@@ -179,10 +182,6 @@ export class UserLogin extends connect(store)(PageViewElement) {
     return [
       SharedStyles,
       css`
-        :host {
-          display: block;
-        }
-
         input {
           border: 1px solid #ccc;
           font-size: 22px; /* fallback */
@@ -251,24 +250,27 @@ export class UserLogin extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
-      <mwc-dialog id="loginDialog" heading="Sign in">
+      <mwc-dialog id="loginDialog" heading="Sign in" scrimClickAction='open'>
+      <form id="loginForm" action="#" method="post">
         <section>
           <label for="username">Username</label>
           <input
+            placeholder="Enter username"
             id="username"
             name="username"
             type="text"
+            @keydown="${this.keydown}"
             autocomplete="username"
             required
+            autofocus
           />
-        </section>
-
-        <section>
           <label for="current-password">Password</label>
           <input
-            id="current-password"
-            name="current-password"
+            placeholder="Enter password"
+            id="password"
+            name="password"
             type="password"
+            @keydown="${this.keydown}"
             autocomplete="current-password"
             minlength="8"
             required
@@ -290,6 +292,7 @@ export class UserLogin extends connect(store)(PageViewElement) {
         <button id="sign-in" type="submit" @click="${this.loginButton}">
           Sign in
         </button>
+        </form>
       </mwc-dialog>
       <mwc-dialog
         id="logoutDialog"
@@ -363,7 +366,11 @@ export class UserLogin extends connect(store)(PageViewElement) {
     `;
   }
 
-  updated(_changedProps: PropertyValues) {
+protected firstUpdated(_changedProperties: any) {
+    this.loginForm.addEventListener('submit', this.loginButton);
+}
+
+updated(_changedProps: PropertyValues) {
     if (this.loggedIn) {
       if (this.loginDialog !== null && this.loginDialog.open) {
         this.loginDialog.close();
@@ -399,8 +406,12 @@ export class UserLogin extends connect(store)(PageViewElement) {
       );
     }
   }
+  private keydown(e: KeyboardEvent) {
+    if (e.code === 'Enter') this.loginButton()
+  }
 
-  private async loginButton(_el: any) {
+
+  private async loginButton() {
     this.username = this.emailAddress.value.toString().trimStart().trimEnd();
     this.passwordPassword = this.password.value
       .toString()
