@@ -87,6 +87,10 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
       import('../components/user-login');
       break;
 
+    case 'rounds':
+      import('../components/round-boxes');
+      break;
+      
     default:
       // eslint-disable-next-line no-param-reassign
       page = 'view404';

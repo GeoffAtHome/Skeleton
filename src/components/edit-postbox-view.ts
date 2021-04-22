@@ -47,6 +47,7 @@ import {
 // We are lazy loading its reducer.
 import postBoxState, { postboxSelector } from '../reducers/postboxes';
 import { MarkerData } from './Markers';
+import { PageViewElement } from './page-view-element';
 
 if (postboxSelector(store.getState()) === undefined) {
   store.addReducers({
@@ -71,7 +72,7 @@ function _MarkerClick(el: any) {
 }
 
 @customElement('edit-postbox-view')
-export class EditPostboxView extends connect(store)(LitElement) {
+export class EditPostboxView extends connect(store)(PageViewElement) {
   @query('#map')
   private map: any;
 
@@ -249,7 +250,7 @@ export class EditPostboxView extends connect(store)(LitElement) {
   }
 
   stateChanged(state: RootState) {
-    if (state.app!.page === 'editPostBoxView') {
+    if(this.active) {
       const postboxState = postboxSelector(state);
       postBoxData = { ...postboxState!._data };
       this.drawLabels(postBoxData);

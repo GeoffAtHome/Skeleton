@@ -26,6 +26,8 @@ import { FilterStateAction, IFilterState } from './actions/todostate';
 import { SyncStateAction, ISyncState } from './actions/syncState';
 import { PostBoxAction, IPostBoxState } from './actions/postboxes';
 import { GroupDataAction, GroupDataState } from './actions/groupdata';
+import { PublicStreetAction, PublicStreetState } from './actions/publicstreet.js';
+import { StreetMapAction, IStreetMapState } from './actions/streetmap.js';
 import { UsersAction, UsersState } from './actions/users';
 
 declare global {
@@ -44,6 +46,8 @@ export interface RootState {
   syncState?: ISyncState;
   postBoxState?: IPostBoxState;
   groupData?: GroupDataState;
+  publicStreetMap?: PublicStreetState;
+  streetmap?: IStreetMapState;
   userData?: UsersState;
 }
 
@@ -54,6 +58,8 @@ export type RootAction =
   | SyncStateAction
   | GroupDataAction
   | PostBoxAction
+  | PublicStreetAction
+  | StreetMapAction
   | UsersAction;
 
 // Sets up a Chrome extension for time travel debugging.

@@ -268,7 +268,7 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
   }
 
   stateChanged(state: RootState) {
-    if (state.app!.page === 'groupAdmin') {
+    if(this.active) {
       const groupDataState = groupdataSelector(state);
       this.groupData = { ...groupDataState!._groupData };
 
