@@ -36,6 +36,7 @@ import userData, { userDataSelector } from '../reducers/users';
 
 import { UsersItem, userDataSelectUser } from '../actions/users';
 import { navigate, notifyMessage } from '../actions/app';
+import { rootURL } from '../reducers/dbconst';
 // We are lazy loading its reducer.
 if (userDataSelector(store.getState()) === undefined) {
   store.addReducers({
@@ -43,9 +44,9 @@ if (userDataSelector(store.getState()) === undefined) {
   });
 }
 
-const url = 'https://scoutpostadmin.soord.org.uk:6984/_users';
-const MEMBER_ROLE = 'scoutpostmember';
-const ADMIN_ROLE = 'scoutpostadministrator';
+const url = `${rootURL}_users`;
+const MEMBER_ROLE = 'scoutPostMember';
+const ADMIN_ROLE = 'scoutPostAdministrator';
 
 // eslint-disable-next-line no-undef
 const usersDB: any = new PouchDB(url);
@@ -250,48 +251,47 @@ export class UserLogin extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
-      <mwc-dialog id="loginDialog" heading="Sign in" scrimClickAction='open'>
-      <form id="loginForm" action="#" method="post">
-        <section>
-          <label for="username">Username</label>
-          <input
-            placeholder="Enter username"
-            id="username"
-            name="username"
-            type="text"
-            @keydown="${this.keydown}"
-            autocomplete="username"
-            required
-            autofocus
-          />
-          <label for="current-password">Password</label>
-          <input
-            placeholder="Enter password"
-            id="password"
-            name="password"
-            type="password"
-            @keydown="${this.keydown}"
-            autocomplete="current-password"
-            minlength="8"
-            required
-          />
-          <button
-            id="toggle-password"
-            aria-label="Show password as plain text. Warning: this will display your password on the screen."
-            @click="${this.togglePassword}"
-          >
-            Show password
+      <mwc-dialog id="loginDialog" heading="Sign in" scrimClickAction="open">
+        <form id="loginForm" action="#" method="dialog">
+          <section>
+            <label for="username">Username</label>
+            <input
+              placeholder="Enter username"
+              id="username"
+              name="username"
+              type="text"
+              @keydown="${this.keydown}"
+              autocomplete="username"
+              required
+            />
+            <label for="current-password">Password</label>
+            <input
+              placeholder="Enter password"
+              id="password"
+              name="password"
+              type="password"
+              @keydown="${this.keydown}"
+              autocomplete="current-password"
+              minlength="8"
+              required
+            />
+            <button
+              id="toggle-password"
+              aria-label="Show password as plain text. Warning: this will display your password on the screen."
+              @click="${this.togglePassword}"
+            >
+              Show password
+            </button>
+          </section>
+          ${this.errorCode !== ''
+            ? html` <div>
+                <h3>Error code: ${this.errorCode}</h3>
+                <h3>Error message: ${this.errorMessage}</h3>
+              </div>`
+            : html``}
+          <button id="sign-in" type="submit" @click="${this.loginButton}">
+            Sign in
           </button>
-        </section>
-        ${this.errorCode !== ''
-          ? html` <div>
-              <h3>Error code: ${this.errorCode}</h3>
-              <h3>Error message: ${this.errorMessage}</h3>
-            </div>`
-          : html``}
-        <button id="sign-in" type="submit" @click="${this.loginButton}">
-          Sign in
-        </button>
         </form>
       </mwc-dialog>
       <mwc-dialog
@@ -366,11 +366,11 @@ export class UserLogin extends connect(store)(PageViewElement) {
     `;
   }
 
-protected firstUpdated(_changedProperties: any) {
+  protected firstUpdated(_changedProperties: any) {
     this.loginForm.addEventListener('submit', this.loginButton);
-}
+  }
 
-updated(_changedProps: PropertyValues) {
+  updated(_changedProps: PropertyValues) {
     if (this.loggedIn) {
       if (this.loginDialog !== null && this.loginDialog.open) {
         this.loginDialog.close();
@@ -406,10 +406,10 @@ updated(_changedProps: PropertyValues) {
       );
     }
   }
-  private keydown(e: KeyboardEvent) {
-    if (e.code === 'Enter') this.loginButton()
-  }
 
+  private keydown(e: KeyboardEvent) {
+    if (e.code === 'Enter') this.loginButton();
+  }
 
   private async loginButton() {
     this.username = this.emailAddress.value.toString().trimStart().trimEnd();

@@ -17,17 +17,6 @@ import {
   UPDATE_GROUP,
   DELETE_GROUP,
   SELECT_GROUP,
-  ASSIGNED_DATA_LOADED,
-  ASSIGNED_DATA_UPDATE_GROUP,
-  ASSIGNED_DATA_GROUP_UPDATED,
-  ROUND_DATA_UPDATE_ROUND,
-  ADD_SORTBOX,
-  UPDATE_SORTBOX,
-  DELETE_SORTBOX,
-  SORTBOX_DATA_LOADED,
-  SELECT_SORTBOX,
-  SORTBOX_DATA_UPDATE_SORTBOX,
-  ROUND_DATA_ROUND_UPDATED,
   groupDataChanges,
   groupDataDeletes,
   GROUP_DATA_LOAD,
@@ -36,7 +25,7 @@ import {
   GROUP_DATA_DELETES,
 } from '../actions/groupdata';
 import { RootAction, RootState, store } from '../store';
-import { rootURL, groupDataURL } from './dbconst';
+import { rootURL, groupDataURL, groupsURL } from './dbconst';
 
 import {
   createItemPouchDB,
@@ -66,8 +55,6 @@ const INITIAL_STATE: GroupDataState = {
   },
   _index: '',
   _groupData: {},
-  _assignedData: {},
-  _sortboxData: {},
 };
 
 const groupData: Reducer<GroupDataState, RootAction> = (
@@ -90,7 +77,7 @@ const groupData: Reducer<GroupDataState, RootAction> = (
         );
       } else {
         groupDataDB = RegisterSyncPouchDB(
-          `rounddb_${action._groupId}`,
+          `${groupsURL}${action._groupId}`,
           rootURL,
           groupDataChangesDispatch,
           groupDataDeletedDispatch
@@ -105,58 +92,6 @@ const groupData: Reducer<GroupDataState, RootAction> = (
       return {
         ...state,
         _groupData: action._data,
-      };
-
-    case SORTBOX_DATA_LOADED:
-      return {
-        ...state,
-        _sortboxData: action._data,
-      };
-
-    case ASSIGNED_DATA_LOADED:
-      return {
-        ...state,
-        _assignedData: action._data,
-      };
-
-    case ASSIGNED_DATA_UPDATE_GROUP:
-      updateItemPouchDB(groupDataDB, action._id, action._groupKey);
-      return {
-        ...state,
-      };
-
-    case ASSIGNED_DATA_GROUP_UPDATED: {
-      const x = state._assignedData[action._id];
-      x.key = action._groupKey;
-      const data = state._assignedData;
-      data[action._id] = x;
-      return {
-        ...state,
-        _assignedData: data,
-      };
-    }
-
-    case ROUND_DATA_UPDATE_ROUND:
-      updateItemPouchDB(groupDataDB, action._id, action._groupKey);
-      return {
-        ...state,
-      };
-
-    case ROUND_DATA_ROUND_UPDATED: {
-      const x = state._assignedData[action._id];
-      x.key = action._groupKey;
-      const data = state._assignedData;
-      data[action._id] = x;
-      return {
-        ...state,
-        _assignedData: data,
-      };
-    }
-
-    case SORTBOX_DATA_UPDATE_SORTBOX:
-      updateItemPouchDB(groupDataDB, action._id, action._sortKey);
-      return {
-        ...state,
       };
 
     case ADD_GROUP: {
@@ -196,47 +131,6 @@ const groupData: Reducer<GroupDataState, RootAction> = (
         _newGroup: action._newGroup,
       };
 
-    case SELECT_SORTBOX:
-      return {
-        ...state,
-        _newSortbox: action._newSortbox,
-      };
-
-    case ADD_SORTBOX: {
-      const newList = { ...state._sortboxData };
-      createItemPouchDB(groupDataDB, action._newSortbox);
-      newList[action._newSortbox._id] = action._newSortbox;
-      return {
-        ...state,
-        _sortboxData: newList,
-      };
-    }
-
-    case UPDATE_SORTBOX: {
-      const newList = { ...state._sortboxData };
-      newList[action._newSortbox._id] = action._newSortbox;
-      updateItemPouchDB(
-        groupDataDB,
-        action._newSortbox._id,
-        action._newSortbox
-      );
-      return {
-        ...state,
-        _groupData: newList,
-      };
-    }
-
-    case DELETE_SORTBOX: {
-      const newList = { ...state._sortboxData };
-      delete newList[action._newSortbox._id];
-      deleteItemPouchDB(groupDataDB, action._newSortbox._id);
-
-      return {
-        ...state,
-        _groupData: newList,
-      };
-    }
-
     case GROUP_DATA_CHANGES:
       return {
         ...state,
@@ -272,4 +166,4 @@ export default groupData;
 // We use a tiny library called `reselect` to create efficient
 // selectors. More info: https://github.com/reduxjs/reselect.
 
-export const groupdataSelector = (state: RootState) => state.groupData;
+export const groupDataSelector = (state: RootState) => state.groupData;

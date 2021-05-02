@@ -32,19 +32,6 @@ interface databaseRegister {
 
 const registeredDatabases: Array<databaseRegister> = [];
 
-const url = 'https://scoutpostadmin.soord.org.uk:6984/_users';
-// eslint-disable-next-line no-undef
-const usersDB: any = new PouchDB(url);
-
-async function login() {
-  try {
-    await usersDB.logIn('usergroup_4', 'password_4');
-    console.log('User logged in OK');
-  } catch (err) {
-    console.log(err);
-  }
-}
-
 function getRegisteredDatabase(name: string) {
   const db = registeredDatabases.find(e => e.name === name);
   if (db) return db;
@@ -266,25 +253,30 @@ export function RegisterSyncPouchDB(
   changes: changeCallback,
   deletes: changeCallback
 ) {
-  const localDB = createPouchDB(name, {});
-  const remoteDB = createPouchDB(rootURL + name, {});
+  try {
+    const db = getRegisteredDatabase(name);
+    return db.localDB;
+  } catch (err) {
+    const localDB = createPouchDB(name, {});
+    const remoteDB = createPouchDB(rootURL + name, {});
 
-  const db: databaseRegister = {
-    name,
-    localDB,
-    remoteDB,
-    changes,
-    deletes,
-    state: false,
-    active: false,
-    changed: false,
-  };
+    const db: databaseRegister = {
+      name,
+      localDB,
+      remoteDB,
+      changes,
+      deletes,
+      state: false,
+      active: false,
+      changed: false,
+    };
 
-  registeredDatabases.push(db);
-  LoadPouchDB(localDB, remoteDB);
-  ReSyncPouchDB(name);
+    registeredDatabases.push(db);
+    LoadPouchDB(localDB, remoteDB);
+    ReSyncPouchDB(name);
 
-  return localDB;
+    return localDB;
+  }
 }
 
 function syncSyncChange(

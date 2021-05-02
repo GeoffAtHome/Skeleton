@@ -9,32 +9,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Reducer } from 'redux';
-import { PUBLICSTREET_ID, PublicStreetState, PUBLICSTREET_SELECTED_VIEW, AllowedViews } from '../actions/publicstreet.js';
-import { RootAction, RootState } from '../store.js';
+import {
+  PUBLICSTREET_ID,
+  PublicStreetState,
+  PUBLICSTREET_SELECTED_VIEW,
+  AllowedViews,
+} from '../actions/publicstreet';
+import { RootAction, RootState } from '../store';
 
 const INITIAL_STATE: PublicStreetState = {
-    streetname: '',
-    index: '',
-    selectedView: AllowedViews.Both
+  streetName: '',
+  index: '',
+  selectedView: AllowedViews.Both,
 };
 
-const publicStreetMap: Reducer<PublicStreetState, RootAction> = (state = INITIAL_STATE, action) => {
-    switch (action.type) {
-        case PUBLICSTREET_ID:
-            return {
-                ...state,
-                _index: action._index,
-                streetname: action._name
-            };
+const publicStreetMap: Reducer<PublicStreetState, RootAction> = (
+  state = INITIAL_STATE,
+  action
+) => {
+  switch (action.type) {
+    case PUBLICSTREET_ID:
+      return {
+        ...state,
+        _index: action._index,
+        streetName: action._name,
+      };
 
-        case PUBLICSTREET_SELECTED_VIEW:
-            return {
-                ...state,
-                selectedView: action._selectedView
-            }
-        default:
-            return state;
-    }
+    case PUBLICSTREET_SELECTED_VIEW:
+      return {
+        ...state,
+        selectedView: action._selectedView,
+      };
+    default:
+      return state;
+  }
 };
 
 export default publicStreetMap;
@@ -50,4 +58,5 @@ export default publicStreetMap;
 // We use a tiny library called `reselect` to create efficient
 // selectors. More info: https://github.com/reduxjs/reselect.
 
-export const publicStreetMapSelector = (state: RootState) => state.publicStreetMap;
+export const publicStreetMapSelector = (state: RootState) =>
+  state.publicStreetMap;

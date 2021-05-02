@@ -45,7 +45,7 @@ import {
 } from '../actions/groupdata';
 
 // We are lazy loading its reducer.
-import groupData, { groupdataSelector } from '../reducers/groupdata';
+import groupData, { groupDataSelector } from '../reducers/groupdata';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
@@ -54,7 +54,7 @@ import { labelIcon } from './my-icons';
 import { notifyMessage } from '../actions/app';
 import { userDataSelector } from '../reducers/users';
 
-if (groupdataSelector(store.getState()) === undefined) {
+if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({ groupData });
 }
 
@@ -268,8 +268,8 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
   }
 
   stateChanged(state: RootState) {
-    if(this.active) {
-      const groupDataState = groupdataSelector(state);
+    if (state.app?.page === 'groupAdmin') {
+      const groupDataState = groupDataSelector(state);
       this.groupData = { ...groupDataState!._groupData };
 
       const usersState = userDataSelector(state);

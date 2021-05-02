@@ -23,11 +23,16 @@ import app, { AppState } from './reducers/app';
 import { AppAction } from './actions/app';
 import { ToDoAction, IToDoDataState } from './actions/tododata';
 import { FilterStateAction, IFilterState } from './actions/todostate';
+import { StreetInfoAction, StreetInfoState } from './actions/streetInfo';
 import { SyncStateAction, ISyncState } from './actions/syncState';
 import { PostBoxAction, IPostBoxState } from './actions/postboxes';
 import { GroupDataAction, GroupDataState } from './actions/groupdata';
-import { PublicStreetAction, PublicStreetState } from './actions/publicstreet.js';
-import { StreetMapAction, IStreetMapState } from './actions/streetmap.js';
+import { RoundDataAction, RoundDataState } from './actions/roundsdata';
+import { SortboxAction, SortboxState } from './actions/sortboxes';
+import { SortDataAction, SortDataState } from './actions/sortData';
+import { AssignedDataAction, AssignedDataState } from './actions/assigneddata';
+import { PublicStreetAction, PublicStreetState } from './actions/publicstreet';
+import { StreetMapAction, IStreetMapState } from './actions/streetmap';
 import { UsersAction, UsersState } from './actions/users';
 
 declare global {
@@ -46,9 +51,14 @@ export interface RootState {
   syncState?: ISyncState;
   postBoxState?: IPostBoxState;
   groupData?: GroupDataState;
+  roundData?: RoundDataState;
+  sortboxList?: SortboxState;
+  sortData?: SortDataState;
+  assignedData?: AssignedDataState;
   publicStreetMap?: PublicStreetState;
   streetmap?: IStreetMapState;
   userData?: UsersState;
+  streetInfoData?: StreetInfoState;
 }
 
 export type RootAction =
@@ -57,9 +67,14 @@ export type RootAction =
   | FilterStateAction
   | SyncStateAction
   | GroupDataAction
+  | RoundDataAction
+  | SortboxAction
+  | SortDataAction
+  | AssignedDataAction
   | PostBoxAction
   | PublicStreetAction
   | StreetMapAction
+  | StreetInfoAction
   | UsersAction;
 
 // Sets up a Chrome extension for time travel debugging.

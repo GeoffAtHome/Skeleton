@@ -10,7 +10,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import { Action, ActionCreator } from 'redux';
 
-export const POSTBOX_ID = 'POSTBOX_ID';
 export const POSTBOX_DATA_LOAD = 'POSTBOX_DATA_LOAD';
 export const POSTBOX_DATA_LOADED = 'POSTBOX_DATA_LOADED';
 export const ADD_POSTBOX = 'ADD_POSTBOX';
@@ -45,7 +44,6 @@ export interface IPostBoxState {
   _mapCenter: google.maps.LatLngLiteral;
 }
 
-export interface PostBoxId extends Action<'POSTBOX_ID'> {}
 export interface PostBoxDataLoad extends Action<'POSTBOX_DATA_LOAD'> {}
 
 export interface PostBoxDataLoaded extends Action<'POSTBOX_DATA_LOADED'> {
@@ -79,7 +77,6 @@ export interface PostBoxDeletes extends Action<'POSTBOX_DELETES'> {
 }
 
 export type PostBoxAction =
-  | PostBoxId
   | PostBoxAdd
   | PostBoxDelete
   | PostBoxEdit
@@ -90,14 +87,6 @@ export type PostBoxAction =
   | PostBoxMoveMap
   | PostBoxChanges
   | PostBoxDeletes;
-
-export const postBoxState: ActionCreator<PostBoxId> = (_newPostbox, _index) => {
-  return {
-    type: POSTBOX_ID,
-    _newPostbox,
-    _index,
-  };
-};
 
 export const postBoxDataLoad: ActionCreator<PostBoxDataLoad> = () => {
   return {

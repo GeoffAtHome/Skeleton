@@ -10,7 +10,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import { Reducer } from 'redux';
 import {
-  POSTBOX_ID,
   ADD_POSTBOX,
   DELETE_POSTBOX,
   EDIT_POSTBOX,
@@ -74,11 +73,6 @@ const postBoxState: Reducer<IPostBoxState, RootAction> = (
   action
 ) => {
   switch (action.type) {
-    case POSTBOX_ID:
-      return {
-        ...state,
-      };
-
     case POSTBOX_DATA_LOAD:
       loadPouchDB(postboxDB, postBoxDataLoaded);
       return {

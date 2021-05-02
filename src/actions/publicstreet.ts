@@ -14,45 +14,58 @@ export const PUBLICSTREET_ID = 'PUBLICSTREET_ID';
 export const PUBLIC_STREET_DATA_LOADED = 'PUBLIC_STREET_DATA_LOADED';
 export const PUBLICSTREET_SELECTED_VIEW = 'PUBLICSTREET_SELECTED_VIEW';
 
-
 export interface PublicStreet {
-    name: string,
-    wname?: string,
+  name: string;
+  wName?: string;
 }
 
 export interface PublicStreetItem {
-    name: string,
+  name: string;
 }
 
 export interface PublicStreetData {
-    [pc: string]: PublicStreet
+  [pc: string]: PublicStreet;
 }
 
-export enum AllowedViews { English, Welsh, Both }
+export enum AllowedViews {
+  English,
+  Welsh,
+  Both,
+}
 
 export interface PublicStreetState {
-    streetname: string,
-    index: string,
-    selectedView: AllowedViews
+  streetName: string;
+  index: string;
+  selectedView: AllowedViews;
 }
 
-
-export interface PublicStreetPublicStreetID extends Action<'PUBLICSTREET_ID'> { _index: string, _name: string };
-export interface PublicStreetSelectedView extends Action<'PUBLICSTREET_SELECTED_VIEW'> { _selectedView: AllowedViews };
-
-export type PublicStreetAction = PublicStreetPublicStreetID | PublicStreetSelectedView
-
-export const publicStreetState: ActionCreator<PublicStreetPublicStreetID> = (_index, _name) => {
-    return ({
-        type: PUBLICSTREET_ID,
-        _index,
-        _name
-    });
+export interface PublicStreetPublicStreetID extends Action<'PUBLICSTREET_ID'> {
+  _index: string;
+  _name: string;
+}
+export interface PublicStreetSelectedView
+  extends Action<'PUBLICSTREET_SELECTED_VIEW'> {
+  _selectedView: AllowedViews;
 }
 
-export const publicStreetSelectedView: ActionCreator<PublicStreetSelectedView> = (_selectedView) => {
-    return ({
-        type: PUBLICSTREET_SELECTED_VIEW,
-        _selectedView
-    });
-}
+export type PublicStreetAction =
+  | PublicStreetPublicStreetID
+  | PublicStreetSelectedView;
+
+export const publicStreetState: ActionCreator<PublicStreetPublicStreetID> = (
+  _index,
+  _name
+) => {
+  return {
+    type: PUBLICSTREET_ID,
+    _index,
+    _name,
+  };
+};
+
+export const publicStreetSelectedView: ActionCreator<PublicStreetSelectedView> = _selectedView => {
+  return {
+    type: PUBLICSTREET_SELECTED_VIEW,
+    _selectedView,
+  };
+};

@@ -227,12 +227,13 @@ export class MyApp extends connect(store)(LitElement) {
                   <a
                     ?selected="${this._page === 'groupAdmin'}"
                     href="/#groupAdmin"
-                    >
-                    ${this._admin ? html`Group admin` : html`Round admin`}
-                    </a
                   >
-                  <a ?selected="${this._page === 'rounds'}" href="/#rounds">Rounds</a>
-                  `
+                    ${this._admin ? html`Group admin` : html`Round admin`}
+                  </a>
+                  <a ?selected="${this._page === 'rounds'}" href="/#rounds"
+                    >Rounds</a
+                  >
+                `
               : html``}
           </nav>
         </div>
@@ -291,8 +292,10 @@ export class MyApp extends connect(store)(LitElement) {
                       class="page"
                       ?active="${this._page === 'groupAdmin'}"
                     ></group-admin>
-                    <round-boxes class="page" ?active="${this._page === 'rounds'}"></round-boxes>          
-      
+                    <round-boxes
+                      class="page"
+                      ?active="${this._page === 'rounds'}"
+                    ></round-boxes>
                   `
                 : html``}
               <my-view404
