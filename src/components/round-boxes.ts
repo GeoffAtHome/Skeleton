@@ -384,16 +384,6 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
     return uniquePostcodes.sort(compareStreet).join(', ');
   }
 
-  updated(changedProps: PropertyValues) {
-    if (
-      changedProps.has('data') ||
-      changedProps.has('assignedData') ||
-      changedProps.has('streetInfoData')
-    ) {
-      this.mergeTheData(this.assignedData, this.streetInfoData);
-    }
-  }
-
   stateChanged(state: RootState) {
     if (this.drawOpened !== state.app!.drawerOpened) {
       this.drawOpened = state.app!.drawerOpened;
@@ -441,14 +431,22 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
       const sortDataState = sortDataSelector(state);
       this.sortData = sortDataState!._sortData;
 
-      const assignedMergedData = MergeAssignedData(
-        this.groupId,
-        cRoundData,
-        this.assignedData,
-        this.sortData
-      );
+      if (
+        Object.keys(this.streetInfoData).length !== 0 &&
+        Object.keys(this.roundData).length !== 0 &&
+        Object.keys(this.assignedData).length !== 0 &&
+        Object.keys(cRoundData).length !== 0 &&
+        Object.keys(this.sortData).length !== 0
+      ) {
+        const assignedMergedData = MergeAssignedData(
+          this.groupId,
+          cRoundData,
+          this.assignedData,
+          this.sortData
+        );
 
-      this.mergeTheData(assignedMergedData, this.streetInfoData);
+        this.mergeTheData(assignedMergedData, this.streetInfoData);
+      }
     }
   }
 
@@ -511,28 +509,24 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
     gridData: GridData[]
   ) {
     if (Object.keys(this.roundData).length !== 0) {
-      const index = item.key === undefined || item.key === '-1' ? 0 : item.key;
+      const index = item.key === undefined ? 0 : item.key;
 
-      try {
-        const thisItem: GridData = {
-          round: item.key,
-          colour: this.roundData[index]!.colour,
-          name,
-          pc,
-          sb: item.sortbox,
-        };
+      const thisItem: GridData = {
+        round: item.key,
+        colour: this.roundData[index]!.colour,
+        name,
+        pc,
+        sb: item.sortbox,
+      };
 
-        if (streetInfo !== undefined) {
-          thisItem.firstHouse = streetInfo.firstHouse.toString();
-          thisItem.lastHouse = streetInfo.lastHouse.toString();
-          thisItem.notes = streetInfo.notes;
-          thisItem.streetOrder = streetInfo.streetOrder;
-          thisItem.numberOfProperties = streetInfo.numberOfProperties;
-        }
-        gridData.push(thisItem);
-      } catch (err) {
-        console.log(err);
+      if (streetInfo !== undefined) {
+        thisItem.firstHouse = streetInfo.firstHouse.toString();
+        thisItem.lastHouse = streetInfo.lastHouse.toString();
+        thisItem.notes = streetInfo.notes;
+        thisItem.streetOrder = streetInfo.streetOrder;
+        thisItem.numberOfProperties = streetInfo.numberOfProperties;
       }
+      gridData.push(thisItem);
     }
   }
 }

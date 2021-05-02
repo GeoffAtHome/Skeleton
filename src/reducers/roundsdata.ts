@@ -57,7 +57,7 @@ const roundData: Reducer<RoundDataState, RootAction> = (
   switch (action.type) {
     case ROUND_DATA_LOAD:
       roundDataDB = RegisterSyncPouchDB(
-        `${roundsURL}{${action._groupId}`,
+        `${roundsURL}${action._groupId}`,
         rootURL,
         roundDataChangesDispatch,
         roundDataDeletedDispatch

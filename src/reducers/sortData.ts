@@ -24,7 +24,7 @@ import {
   SORTDATA_LOAD,
 } from '../actions/sortData';
 import { RootAction, RootState, store } from '../store';
-import { rootURL, sortBoxesURL } from './dbconst';
+import { rootURL, sortDataURL } from './dbconst';
 
 import {
   createItemPouchDB,
@@ -55,7 +55,7 @@ const sortDataList: Reducer<SortDataState, RootAction> = (
   switch (action.type) {
     case SORTDATA_LOAD:
       sortDataDB = RegisterSyncPouchDB(
-        `${sortBoxesURL}${action._groupId}`,
+        `${sortDataURL}${action._groupId}`,
         rootURL,
         sortDataChangesDispatch,
         sortDataDeletedDispatch
