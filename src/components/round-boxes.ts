@@ -101,9 +101,9 @@ if (roundDataSelector(store.getState()) === undefined) {
 
 function MergeAssignedData(
   groupId: string,
-  roundsData: AssignedData,
+  lRoundsData: AssignedData,
   lAssignedData: AssignedData,
-  sortData: AssignedData
+  lSortData: AssignedData
 ) {
   const results: AssignedData = {};
   for (const [pc, assigned] of Object.entries(lAssignedData)) {
@@ -111,13 +111,13 @@ function MergeAssignedData(
       // Do we have a round for this street?
       let round = '0'; // Round 0 is unassigned
       let sortbox = '0'; // Sortbox 0 is unassigned
-      if (roundsData[pc] !== undefined) {
-        round = roundsData[pc].key;
+      if (lRoundsData[pc] !== undefined) {
+        round = lRoundsData[pc].key;
       }
 
       // Do we have a sortbox for this street?
-      if (sortData[pc] !== undefined) {
-        sortbox = sortData[pc].key;
+      if (lSortData[pc] !== undefined) {
+        sortbox = lSortData[pc].key;
       }
 
       results[pc] = {
@@ -436,14 +436,14 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
       this.assignedData = assignedDataState!._assignedData;
 
       const roundDataState = roundDataSelector(state);
-      const roundData = roundDataState!._roundData;
+      const cRoundData = roundDataState!._roundData;
 
       const sortDataState = sortDataSelector(state);
       this.sortData = sortDataState!._sortData;
 
       const assignedMergedData = MergeAssignedData(
         this.groupId,
-        roundData,
+        cRoundData,
         this.assignedData,
         this.sortData
       );
