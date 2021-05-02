@@ -230,6 +230,12 @@ export class MyApp extends connect(store)(LitElement) {
                   >
                     ${this._admin ? html`Group admin` : html`Round admin`}
                   </a>
+                  <a
+                    ?selected="${this._page === 'assignstreets'}"
+                    href="/#assignstreets"
+                    >Assign rounds</a
+                  >
+
                   <a ?selected="${this._page === 'rounds'}" href="/#rounds"
                     >Rounds</a
                   >
@@ -296,6 +302,10 @@ export class MyApp extends connect(store)(LitElement) {
                       class="page"
                       ?active="${this._page === 'rounds'}"
                     ></round-boxes>
+                    <assign-streets
+                      class="page"
+                      ?active="${this._page === 'assignstreets'}"
+                    ></assign-streets>
                   `
                 : html``}
               <my-view404

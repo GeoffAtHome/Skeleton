@@ -27,12 +27,14 @@ import { StreetInfoAction, StreetInfoState } from './actions/streetInfo';
 import { SyncStateAction, ISyncState } from './actions/syncState';
 import { PostBoxAction, IPostBoxState } from './actions/postboxes';
 import { GroupDataAction, GroupDataState } from './actions/groupdata';
+import { PolygonDataAction, PolygonDataState } from './actions/polygondata';
 import { RoundDataAction, RoundDataState } from './actions/roundsdata';
 import { SortboxAction, SortboxState } from './actions/sortboxes';
 import { SortDataAction, SortDataState } from './actions/sortData';
 import { AssignedDataAction, AssignedDataState } from './actions/assigneddata';
 import { PublicStreetAction, PublicStreetState } from './actions/publicstreet';
 import { StreetMapAction, IStreetMapState } from './actions/streetmap';
+import { LabelDataAction, LabelDataState } from './actions/labeldata';
 import { UsersAction, UsersState } from './actions/users';
 
 declare global {
@@ -51,12 +53,14 @@ export interface RootState {
   syncState?: ISyncState;
   postBoxState?: IPostBoxState;
   groupData?: GroupDataState;
+  polygonData?: PolygonDataState;
   roundData?: RoundDataState;
   sortboxList?: SortboxState;
   sortData?: SortDataState;
   assignedData?: AssignedDataState;
   publicStreetMap?: PublicStreetState;
   streetmap?: IStreetMapState;
+  labelData?: LabelDataState;
   userData?: UsersState;
   streetInfoData?: StreetInfoState;
 }
@@ -67,6 +71,7 @@ export type RootAction =
   | FilterStateAction
   | SyncStateAction
   | GroupDataAction
+  | PolygonDataAction
   | RoundDataAction
   | SortboxAction
   | SortDataAction
@@ -75,6 +80,7 @@ export type RootAction =
   | PublicStreetAction
   | StreetMapAction
   | StreetInfoAction
+  | LabelDataAction
   | UsersAction;
 
 // Sets up a Chrome extension for time travel debugging.
