@@ -36,17 +36,33 @@ import {
   groupDataSelectGroup,
   GroupData,
   GroupFilter,
+  groupDataLoad,
 } from '../actions/groupdata';
-import { PolygonData } from '../actions/polygondata';
+import { PolygonData, polygonDataLoad } from '../actions/polygondata';
 
 import { pathEditIcon } from './my-icons';
 
 // We are lazy loading its reducer.
 import groupdata, { groupDataSelector } from '../reducers/groupdata';
+import { streetMapSelector } from '../reducers/streetmap';
+import polygonData, { polygonDataSelector } from '../reducers/polygondata';
+import assignedData, { assignedDataSelector } from '../reducers/assignedData';
+import userData, { userDataSelector } from '../reducers/users';
+import { streetInfoLoad } from '../actions/streetInfo';
+
 if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({
     groupdata,
   });
+}
+if(polygonDataSelector(store.getState()) === undefined) {
+  store.addReducers({polygonData,});
+}
+if(assignedDataSelector(store.getState()) === undefined) {
+  store.addReducers({assignedData,});
+}
+if(userDataSelector(store.getState()) === undefined) {
+  store.addReducers({userData,});
 }
 
 // These are the elements needed by this element.
@@ -61,13 +77,10 @@ import '@material/mwc-button';
 import './assign-streets-view';
 import { PublicStreet } from '../actions/publicstreet';
 import { StreetInfoData } from '../actions/streetmap';
-import { streetMapSelector } from '../reducers/streetmap';
-import { polygonDataSelector } from '../reducers/polygondata';
-import { Polygon } from 'geojson';
-import { AssignedData } from '../actions/assignedData';
-import { assignedDataSelector } from '../reducers/assignedData';
+import { AssignedData, assignedDataLoad } from '../actions/assignedData';
+import { Polygon } from './polygons';
 
-let assignedData: AssignedData = {};
+let LAssignedData: AssignedData = {};
 
 @customElement('assign-streets')
 export class AssignStreets extends connect(store)(PageViewElement) {
@@ -109,6 +122,9 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
   @property({ type: Boolean })
   private admin: boolean | undefined = undefined;
+
+  @property({ type: String })
+  private groupId = ''
 
   @property({ type: Object })
   private selectedGroup: GroupDataItem = {
@@ -238,7 +254,7 @@ export class AssignStreets extends connect(store)(PageViewElement) {
         .polygon="${this.polygon}"
         .groupFilter="${this.groupFilter}"
         .streetInfoData="${this.streetInfoData}"
-        .assignedData="${assignedData}"
+        .assignedData="${LAssignedData}"
         .polygonData="${this.polygonData}"
         .data="${this.data}"
         .selectedGroup="${this.selectedGroup}"
@@ -247,9 +263,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   }
 
   protected firstUpdated(_changedProperties: any) {
-    this.checkedAll.checked = true;
-    this.filterAll(true);
-    this.showFilter();
   }
 
   updated(changedProps: PropertyValues) {
@@ -265,6 +278,11 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       }
       this.selectGroupDialog.setAttribute('heading', title);
       this.selectGroup.setAttribute('label', select);
+    }
+    if(changedProps.has('groupData')) {
+      this.checkedAll.checked = true;
+      this.filterAll(true);
+      this.showFilter();
     }
   }
 
@@ -283,18 +301,38 @@ export class AssignStreets extends connect(store)(PageViewElement) {
     }
 
     if (state.app!.page === 'assignstreets') {
+        const usersState = userDataSelector(state);
+        if (usersState) {
+          if (
+            this.admin !== usersState._newUser.claims.administrator ||
+            this.groupId !== usersState._newUser.claims.group
+          ) {
+            this.admin = usersState._newUser.claims.administrator;
+            this.groupId = usersState._newUser.claims.group;
+            if (!(this.admin === false && this.groupId === '')) {
+              store.dispatch(groupDataLoad(this.admin, this.groupId));
+            }
+            // Load the data required for this page
+            store.dispatch(polygonDataLoad());
+            store.dispatch(assignedDataLoad());
+            store.dispatch(streetInfoLoad());
+          }
+        }
+  
       const groupDataState = groupDataSelector(state);
-      this.selectedGroup = groupDataState!._newGroup;
-      this.groupData = groupDataState!._groupData;
+      if(groupDataState) {
+        this.selectedGroup = groupDataState!._newGroup;
+        this.groupData = groupDataState!._groupData;
+      }
 
       const assignedDataState = assignedDataSelector(state);
-      assignedData = assignedDataState!._assignedData;
+      LAssignedData = assignedDataState!._assignedData;
 
       const polygonDataState = polygonDataSelector(state);
-      this.polygonData = polygonDataState!._polygonData;
+      if (polygonDataState) this.polygonData = polygonDataState!._polygonData;
 
       const streetMapState = streetMapSelector(state);
-      this.streetInfoData = streetMapState!._streetInfo;
+      if(streetMapState) this.streetInfoData = streetMapState!._streetInfo;
     }
   }
 

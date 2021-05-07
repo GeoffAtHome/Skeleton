@@ -17,8 +17,13 @@ import {
   POLYGON_UPDATED,
   POLYGON_DATA_GET_POLYGON,
   POLYGON_DATA_CHANGED_POLYGON,
+  polygonChanges,
+  polygonDeletes,
+  POLYGON_DATA_LOAD,
+  polygonDataLoaded,
 } from '../actions/polygondata';
-import { updateItemPouchDB } from './poucbDBInterface';
+import { loadPouchDB, RegisterSyncPouchDB, updateItemPouchDB } from './poucbDBInterface';
+import { polygonURL, rootURL } from './dbconst';
 
 function polygonChangesDispatch(docs: any) {
   store.dispatch(polygonChanges(docs));
@@ -47,6 +52,19 @@ const polygonData: Reducer<PolygonDataState, RootAction> = (
   action
 ) => {
   switch (action.type) {
+
+    case POLYGON_DATA_LOAD:
+        PolygonDB = RegisterSyncPouchDB(
+          polygonURL,
+          rootURL,
+          polygonChangesDispatch,
+          polygonDeletedDispatch
+        );
+      loadPouchDB(PolygonDB, polygonDataLoaded);
+      return {
+        ...state,
+      };
+
     case POLYGON_DATA_LOADED:
       return {
         ...state,

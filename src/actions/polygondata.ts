@@ -11,6 +11,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 import { Action, ActionCreator } from 'redux';
 import { Polygon } from '../components/polygons';
 
+export const POLYGON_DATA_LOAD = 'POLYGON_DATA_LOAD';
 export const POLYGON_DATA_LOADED = 'POLYGON_DATA_LOADED';
 export const UPDATE_POLYGON = 'UPDATE_POLYGON';
 export const POLYGON_UPDATED = 'POLYGON_UPDATED';
@@ -43,6 +44,10 @@ export interface PolygonDataState {
   _polygon: Polygon;
 }
 
+export interface PolygonDataLoad extends Action<'POLYGON_DATA_LOAD'> {
+  _admin: boolean;
+  _groupId: string;
+}
 export interface PolygonDataLoaded extends Action<'POLYGON_DATA_LOADED'> {
   _data: PolygonData;
 }
@@ -73,6 +78,7 @@ export interface PolygonDeletes extends Action<'POLYGON_DELETES'> {
 }
 
 export type PolygonDataAction =
+  | PolygonDataLoad
   | PolygonDataLoaded
   | PolygonDataUpdatePolygon
   | PolygonDataPolygonUpdated
@@ -81,7 +87,18 @@ export type PolygonDataAction =
   | PolygonChanges
   | PolygonDeletes;
 
-export const polygonDataLoaded: ActionCreator<PolygonDataLoaded> = _data => {
+  export const polygonDataLoad: ActionCreator<PolygonDataLoad> = (
+    _admin,
+    _groupId
+  ) => {
+    return {
+      type: POLYGON_DATA_LOAD,
+      _admin,
+      _groupId,
+    };
+  };
+  
+  export const polygonDataLoaded: ActionCreator<PolygonDataLoaded> = _data => {
   return {
     type: POLYGON_DATA_LOADED,
     _data,

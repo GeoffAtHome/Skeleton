@@ -10,7 +10,7 @@ export interface Polygon {
 }
 
 export interface PolygonDataItem {
-    paths: Polygon;
+    polygon: Polygon;
     options: google.maps.PolygonOptions;
 }
 

@@ -284,7 +284,7 @@ export class EditMap extends LitElement {
       } else {
         // Has the polygon changed?
         const oldPath = getPathGooglePolygon(layer);
-        if (pathsAreDifferent(oldPath, item.paths)) {
+        if (pathsAreDifferent(oldPath, item.polygon)) {
           // Paths are different - so remove the old polygon
           layer.setMap(null);
           // then draw the new
@@ -318,8 +318,16 @@ export class EditMap extends LitElement {
   }
 
   private DrawPolygon(pc: string, polygon: PolygonDataItem) {
-    const { options } = polygon;
-    options.paths = getPath(polygon.paths);
+    const options = polygon.options !== undefined ? polygon.options : {
+      "strokeColor": "#FF0000",
+      "strokeOpacity": 0.8,
+      "strokeWeight": 2,
+      "fillColor": "#FF0000",
+      "fillOpacity": 0.35,
+      "editable": true
+    };
+    console.log(pc)
+    options.paths = getPath(polygon.polygon);
     // eslint-disable-next-line no-undef
     const newPolygon = new google.maps.Polygon(options);
     this.polygonsOnMap[pc] = newPolygon;

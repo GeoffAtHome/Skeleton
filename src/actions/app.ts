@@ -68,10 +68,16 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
         // navigating to view1 after my-view1 is loaded.
       });
       break;
-    case 'todo':
+
+      case 'todo':
       import('../components/todo-list');
       break;
-    case 'postBoxView':
+
+      case 'assignstreets':
+      import('../components/assign-streets');
+      break;
+
+      case 'postBoxView':
       import('../components/postbox-view');
       break;
 
