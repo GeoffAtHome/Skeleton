@@ -9,7 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Action, ActionCreator } from 'redux';
-import { Polygon } from '../components/polygons';
+import { MapPolygon } from '../components/polygons';
 
 export const POLYGON_DATA_LOAD = 'POLYGON_DATA_LOAD';
 export const POLYGON_DATA_LOADED = 'POLYGON_DATA_LOADED';
@@ -22,14 +22,14 @@ export const POLYGON_DELETES = 'POLYGON_DELETES';
 
 export interface PolygonDataItem {
   pos: [number, number];
-  polygon: Polygon;
+  polygon: MapPolygon;
 }
 
 export interface CDBPolygonDataItem {
   _id: string;
   _rev: string;
   pos: [number, number];
-  polygon: Polygon;
+  polygon: MapPolygon;
 }
 
 export interface PolygonData {
@@ -41,7 +41,7 @@ export interface PolygonDataState {
   _changedIndex: string;
   _pos: [number, number];
   _polygonData: PolygonData;
-  _polygon: Polygon;
+  _polygon: MapPolygon;
 }
 
 export interface PolygonDataLoad extends Action<'POLYGON_DATA_LOAD'> {
@@ -52,12 +52,12 @@ export interface PolygonDataLoaded extends Action<'POLYGON_DATA_LOADED'> {
   _data: PolygonData;
 }
 export interface PolygonDataUpdatePolygon extends Action<'UPDATE_POLYGON'> {
-  _polygon: Polygon;
+  _polygon: MapPolygon;
 }
 export interface PolygonDataPolygonUpdated extends Action<'POLYGON_UPDATED'> {
   _pc: string;
   _pos: [number, number];
-  _polygon: Polygon;
+  _polygon: MapPolygon;
 }
 export interface PolygonDataGetPolygon
   extends Action<'POLYGON_DATA_GET_POLYGON'> {
@@ -67,7 +67,7 @@ export interface PolygonDataChangedPolygon
   extends Action<'POLYGON_DATA_CHANGED_POLYGON'> {
   _pc: string;
   _pos: [number, number];
-  _polygon: Polygon;
+  _polygon: MapPolygon;
 }
 
 export interface PolygonChanges extends Action<'POLYGON_CHANGES'> {
@@ -87,18 +87,18 @@ export type PolygonDataAction =
   | PolygonChanges
   | PolygonDeletes;
 
-  export const polygonDataLoad: ActionCreator<PolygonDataLoad> = (
+export const polygonDataLoad: ActionCreator<PolygonDataLoad> = (
+  _admin,
+  _groupId
+) => {
+  return {
+    type: POLYGON_DATA_LOAD,
     _admin,
-    _groupId
-  ) => {
-    return {
-      type: POLYGON_DATA_LOAD,
-      _admin,
-      _groupId,
-    };
+    _groupId,
   };
-  
-  export const polygonDataLoaded: ActionCreator<PolygonDataLoaded> = _data => {
+};
+
+export const polygonDataLoaded: ActionCreator<PolygonDataLoaded> = _data => {
   return {
     type: POLYGON_DATA_LOADED,
     _data,

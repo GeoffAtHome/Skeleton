@@ -17,45 +17,40 @@ import {
   property,
   PropertyValues,
   internalProperty,
-} from "lit-element";
-import "@material/mwc-select";
-import "@material/mwc-list/mwc-list-item";
-import "./snack-bar";
+} from 'lit-element';
+import '@material/mwc-select';
+import '@material/mwc-list/mwc-list-item';
+import './snack-bar';
 
 // These are the shared styles needed by this element.
-import { SharedStyles } from "./shared-styles";
-import { connect } from "pwa-helpers/connect-mixin";
+import { connect } from 'pwa-helpers/connect-mixin';
+import { SharedStyles } from './shared-styles';
 
 // This element is connected to the Redux store.
-import { store, RootState } from "../store";
+import { store, RootState } from '../store';
 
 // These are the actions needed by this element.
-import {
-  GroupDataItem,
-  GroupData,
-  GroupFilter,
-} from "../actions/groupdata";
-import { PolygonData, PolygonDataItem } from "../actions/polygondata";
-import { PublicStreetData } from "../actions/publicstreet";
-import { StreetInfoData } from "../actions/streetmap";
-import { notifyMessage } from "../actions/app";
-import { AssignedData, assignedDataUpdateGroup } from "../actions/assignedData";
-import { roundDataUpdateRound } from "../actions/roundsdata";
+import { GroupDataItem, GroupData, GroupFilter } from '../actions/groupdata';
+import { PolygonData, PolygonDataItem } from '../actions/polygondata';
+import { PublicStreetData } from '../actions/publicstreet';
+import { StreetInfoData } from '../actions/streetmap';
+import { notifyMessage } from '../actions/app';
+import { AssignedData, assignedDataUpdateGroup } from '../actions/assignedData';
+import { roundDataUpdateRound } from '../actions/roundsdata';
 import './edit-map';
-import { Polygon } from "./polygons";
-
+import { MapPolygon } from './polygons';
 
 let selectedGroup: GroupDataItem;
 
-let admin: boolean = false;
+const admin: boolean = false;
 
-@customElement("assign-streets-view")
+@customElement('assign-streets-view')
 export class AssignStreetsView extends connect(store)(LitElement) {
-  @query("#mapid")
+  @query('#mapid')
   private mapid: any;
 
   @property({ type: Boolean, reflect: true })
-  private drawopened: boolean = false;
+  private drawOpened: boolean = false;
 
   @property({ type: Object })
   private data: PublicStreetData = {};
@@ -67,13 +62,16 @@ export class AssignStreetsView extends connect(store)(LitElement) {
   private groupData: GroupData = {};
 
   @property({ type: String })
-  private changedIndex: string = "";
+  private changedIndex: string = '';
 
   @property({ type: Object })
-  private polygon: Polygon = { type: "Polygon", coordinates: [] };
+  private polygon: MapPolygon = { type: 'Polygon', coordinates: [] };
 
   @property({ type: Object })
   private polygonData: PolygonData = {};
+
+  @property({ type: Object })
+  private mergedPolygonData: PolygonData = {};
 
   @property({ type: Object })
   private assignedData: AssignedData = {};
@@ -86,11 +84,11 @@ export class AssignStreetsView extends connect(store)(LitElement) {
 
   @property({ type: Object })
   private selectedGroup: GroupDataItem = {
-    _id: "",
-    name: "",
-    notes: "",
-    contactDetails: "",
-    colour: "",
+    _id: '',
+    name: '',
+    notes: '',
+    contactDetails: '',
+    colour: '',
   };
 
   @internalProperty()
@@ -112,54 +110,22 @@ export class AssignStreetsView extends connect(store)(LitElement) {
   }
 
   protected render() {
-    return html`   <edit-map
-    editMarkers
-    id="map"
-    .polygonData=${this.polygonData}
-    .options=${this._mapOptions}
-  ></edit-map>
-`;
+    return html`
+      <edit-map
+        editMarkers
+        id="map"
+        .polygonData=${this.polygonData}
+        .options=${this._mapOptions}
+      ></edit-map>
+    `;
   }
 
   protected firstUpdated(_changedProperties: any) {
     // Create the map
   }
-
-  updated(changedProps: PropertyValues) {
-    if (changedProps.has("selectedGroup")) {
-      selectedGroup = this.selectedGroup;
-    }
-
-    if (
-      changedProps.has("groupData") ||
-      changedProps.has("groupFilter") ||
-      changedProps.has("assignedData") ||
-      changedProps.has("polygonData") ||
-      changedProps.has("changedIndex") ||
-      changedProps.has("polygon")
-    ) {
-      if (this.changedIndex !== "") {
-        this.polygonData[this.changedIndex].polygon = this.polygon;
-      }
-      drawStreets(
-        this.changedIndex,
-        this.groupData,
-        this.groupFilter,
-        this.assignedData,
-        this.polygonData,
-        this.streetInfoData,
-        this.data
-      );
-    }
-
-    admin = this.admin;
-  }
-
-  stateChanged(state: RootState) {}
 }
 
-function getPolygonLayer(pc: string) {
-}
+function getPolygonLayer(pc: string) {}
 
 function drawStreets(
   changedIndex: string,
@@ -169,29 +135,19 @@ function drawStreets(
   polygonData: PolygonData,
   streetInfoData: StreetInfoData,
   data: PublicStreetData
-) {
-    }
+) {}
 
-function removeLayer() {
-}
+function removeLayer() {}
 
 function lookupPublicStreet(postcode: string, data: PublicStreetData) {
   return data[postcode].name;
 }
 
 function lookupStreetInfo(pc: string, streetInfoData: StreetInfoData) {
-  let info = "";
+  let info = '';
   const streetInfo = streetInfoData[pc];
   if (streetInfo !== undefined) {
-    info =
-      "<br><b>First house: </b>" +
-      streetInfo.firstHouse +
-      "<br><b>Last house: </b>" +
-      streetInfo.lastHouse +
-      "<br><b>Number of properties: </b>" +
-      streetInfo.numberOfProperties +
-      "<br><b>Street order: </b>" +
-      streetInfo.streetOrder;
+    info = `<br><b>First house: </b>${streetInfo.firstHouse}<br><b>Last house: </b>${streetInfo.lastHouse}<br><b>Number of properties: </b>${streetInfo.numberOfProperties}<br><b>Street order: </b>${streetInfo.streetOrder}`;
   }
 
   return info;
@@ -206,22 +162,20 @@ function DrawNewPolygon(
   data: PublicStreetData
 ) {
   const groupDataItem = groupData[groupKey];
-  const label =
-    "<b>" +
-    groupDataItem.name +
-    ":</b> " +
-    lookupPublicStreet(pc, data) +
-    lookupStreetInfo(pc, streetInfoData);
+  const label = `<b>${groupDataItem.name}:</b> ${lookupPublicStreet(
+    pc,
+    data
+  )}${lookupStreetInfo(pc, streetInfoData)}`;
 }
 
 function _layerClick(el: any) {
-  if (selectedGroup._id !== "") {
-    const target = el.target;
+  if (selectedGroup._id !== '') {
+    const { target } = el;
     target.setStyle({ color: selectedGroup.colour });
 
     // Change the tooltip
-    const parts = target.getTooltip().getContent().split(":");
-    target.setTooltipContent(selectedGroup.name + ": " + parts[1]);
+    const parts = target.getTooltip().getContent().split(':');
+    target.setTooltipContent(`${selectedGroup.name}: ${parts[1]}`);
 
     // Update group and street
     const layer = target.getLayers()[0];
@@ -232,6 +186,6 @@ function _layerClick(el: any) {
       store.dispatch(roundDataUpdateRound(key, selectedGroup._id));
     }
   } else {
-    store.dispatch(notifyMessage("Select round to assign"));
+    store.dispatch(notifyMessage('Select round to assign'));
   }
 }

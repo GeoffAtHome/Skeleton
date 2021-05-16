@@ -36,9 +36,9 @@ import {
   getPath,
   getPathGooglePolygon,
   pathsAreDifferent,
-  Polygon,
-  PolygonData,
-  PolygonDataItem,
+  MapPolygon,
+  EditMapData,
+  EditMapDataItem,
   PolygonsOnMap,
 } from './polygons';
 
@@ -97,7 +97,7 @@ export class EditMap extends LitElement {
    * Each polygon has a key, path and options
    */
   @property({ type: Object })
-  public polygonData: PolygonData | undefined;
+  public polygonData: EditMapData | undefined;
 
   /**
    * The markers to draw.
@@ -216,7 +216,7 @@ export class EditMap extends LitElement {
   fireModifiedPolygon(pc: string): void {
     const polygon = this.polygonsOnMap[pc];
     if (polygon !== undefined) {
-      const event = new CustomEvent<{ pc: string; path: Polygon }>(
+      const event = new CustomEvent<{ pc: string; path: MapPolygon }>(
         'modifiedPolygon',
         {
           detail: {
@@ -275,7 +275,7 @@ export class EditMap extends LitElement {
     this.dispatchEvent(event);
   }
 
-  private DrawPolygons(polygonData: PolygonData) {
+  private DrawPolygons(polygonData: EditMapData) {
     for (const [pc, item] of Object.entries(polygonData)) {
       const layer = this.polygonsOnMap[pc];
       if (layer === undefined) {
@@ -284,7 +284,7 @@ export class EditMap extends LitElement {
       } else {
         // Has the polygon changed?
         const oldPath = getPathGooglePolygon(layer);
-        if (pathsAreDifferent(oldPath, item.polygon)) {
+        if (pathsAreDifferent(oldPath, item.paths)) {
           // Paths are different - so remove the old polygon
           layer.setMap(null);
           // then draw the new
@@ -317,17 +317,9 @@ export class EditMap extends LitElement {
     return false;
   }
 
-  private DrawPolygon(pc: string, polygon: PolygonDataItem) {
-    const options = polygon.options !== undefined ? polygon.options : {
-      "strokeColor": "#FF0000",
-      "strokeOpacity": 0.8,
-      "strokeWeight": 2,
-      "fillColor": "#FF0000",
-      "fillOpacity": 0.35,
-      "editable": true
-    };
-    console.log(pc)
-    options.paths = getPath(polygon.polygon);
+  private DrawPolygon(pc: string, polygon: EditMapDataItem) {
+    const { options } = polygon;
+    options.paths = getPath(polygon.paths);
     // eslint-disable-next-line no-undef
     const newPolygon = new google.maps.Polygon(options);
     this.polygonsOnMap[pc] = newPolygon;

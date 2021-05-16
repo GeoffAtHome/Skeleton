@@ -15,6 +15,7 @@ import {
   query,
   property,
   PropertyValues,
+  internalProperty,
 } from 'lit-element';
 
 // These are the shared styles needed by this element.
@@ -55,14 +56,14 @@ if (groupDataSelector(store.getState()) === undefined) {
     groupdata,
   });
 }
-if(polygonDataSelector(store.getState()) === undefined) {
-  store.addReducers({polygonData,});
+if (polygonDataSelector(store.getState()) === undefined) {
+  store.addReducers({ polygonData });
 }
-if(assignedDataSelector(store.getState()) === undefined) {
-  store.addReducers({assignedData,});
+if (assignedDataSelector(store.getState()) === undefined) {
+  store.addReducers({ assignedData });
 }
-if(userDataSelector(store.getState()) === undefined) {
-  store.addReducers({userData,});
+if (userDataSelector(store.getState()) === undefined) {
+  store.addReducers({ userData });
 }
 
 // These are the elements needed by this element.
@@ -73,12 +74,16 @@ import '@material/mwc-formfield';
 import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
 import '@material/mwc-button';
-
-import './assign-streets-view';
+import './edit-map';
 import { PublicStreet } from '../actions/publicstreet';
 import { StreetInfoData } from '../actions/streetmap';
 import { AssignedData, assignedDataLoad } from '../actions/assignedData';
-import { Polygon } from './polygons';
+import {
+  EditMapData,
+  getPath,
+  getPathGooglePolygon,
+  MapPolygon,
+} from './polygons';
 
 let LAssignedData: AssignedData = {};
 
@@ -103,7 +108,7 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   private changedIndex: string = '';
 
   @property({ type: Object })
-  private polygon: Polygon = { type: 'Polygon', coordinates: [] };
+  private polygon: MapPolygon = { type: 'Polygon', coordinates: [] };
 
   @property({ type: Object })
   private groupData: GroupData = {};
@@ -118,13 +123,16 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   private oldGroupFilter: GroupFilter = {};
 
   @property({ type: Object })
+  private editMapData: EditMapData = {};
+
+  @property({ type: Object })
   private polygonData: PolygonData = {};
 
   @property({ type: Boolean })
   private admin: boolean | undefined = undefined;
 
   @property({ type: String })
-  private groupId = ''
+  private groupId = '';
 
   @property({ type: Object })
   private selectedGroup: GroupDataItem = {
@@ -133,6 +141,12 @@ export class AssignStreets extends connect(store)(PageViewElement) {
     notes: '',
     contactDetails: '',
     colour: '',
+  };
+
+  @internalProperty()
+  private _mapOptions = {
+    center: { lat: 51.50502153288204, lng: -3.240311294225257 },
+    zoom: 10,
   };
 
   static get styles() {
@@ -247,23 +261,16 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       <mwc-button id="filter" raised @click="${this.showFilter}"
         >${pathEditIcon}</mwc-button
       >
-      <assign-streets-view
-        .groupData="${this.groupData}"
-        .admin="${this.admin}"
-        .changedIndex="${this.changedIndex}"
-        .polygon="${this.polygon}"
-        .groupFilter="${this.groupFilter}"
-        .streetInfoData="${this.streetInfoData}"
-        .assignedData="${LAssignedData}"
-        .polygonData="${this.polygonData}"
-        .data="${this.data}"
-        .selectedGroup="${this.selectedGroup}"
-      ></assign-streets-view>
+      <edit-map
+        editMarkers
+        id="map"
+        .polygonData=${this.editMapData}
+        .options=${this._mapOptions}
+      ></edit-map>
     `;
   }
 
-  protected firstUpdated(_changedProperties: any) {
-  }
+  protected firstUpdated(_changedProperties: any) {}
 
   updated(changedProps: PropertyValues) {
     if (changedProps.has('admin')) {
@@ -279,10 +286,20 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       this.selectGroupDialog.setAttribute('heading', title);
       this.selectGroup.setAttribute('label', select);
     }
-    if(changedProps.has('groupData')) {
+    if (changedProps.has('groupData')) {
       this.checkedAll.checked = true;
       this.filterAll(true);
       this.showFilter();
+    }
+    if (changedProps.has('groupFilter')) {
+      this.editMapData = MergePolygonData(
+        this.polygonData,
+        LAssignedData,
+        this.groupFilter,
+        this.groupData,
+        this.streetInfoData,
+        this.data
+      );
     }
   }
 
@@ -301,26 +318,26 @@ export class AssignStreets extends connect(store)(PageViewElement) {
     }
 
     if (state.app!.page === 'assignstreets') {
-        const usersState = userDataSelector(state);
-        if (usersState) {
-          if (
-            this.admin !== usersState._newUser.claims.administrator ||
-            this.groupId !== usersState._newUser.claims.group
-          ) {
-            this.admin = usersState._newUser.claims.administrator;
-            this.groupId = usersState._newUser.claims.group;
-            if (!(this.admin === false && this.groupId === '')) {
-              store.dispatch(groupDataLoad(this.admin, this.groupId));
-            }
-            // Load the data required for this page
-            store.dispatch(polygonDataLoad());
-            store.dispatch(assignedDataLoad());
-            store.dispatch(streetInfoLoad());
+      const usersState = userDataSelector(state);
+      if (usersState) {
+        if (
+          this.admin !== usersState._newUser.claims.administrator ||
+          this.groupId !== usersState._newUser.claims.group
+        ) {
+          this.admin = usersState._newUser.claims.administrator;
+          this.groupId = usersState._newUser.claims.group;
+          if (!(this.admin === false && this.groupId === '')) {
+            store.dispatch(groupDataLoad(this.admin, this.groupId));
           }
+          // Load the data required for this page
+          store.dispatch(polygonDataLoad());
+          store.dispatch(assignedDataLoad());
+          store.dispatch(streetInfoLoad());
         }
-  
+      }
+
       const groupDataState = groupDataSelector(state);
-      if(groupDataState) {
+      if (groupDataState) {
         this.selectedGroup = groupDataState!._newGroup;
         this.groupData = groupDataState!._groupData;
       }
@@ -329,10 +346,20 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       LAssignedData = assignedDataState!._assignedData;
 
       const polygonDataState = polygonDataSelector(state);
-      if (polygonDataState) this.polygonData = polygonDataState!._polygonData;
+      if (polygonDataState) {
+        (this.polygonData = polygonDataState!._polygonData),
+          (this.editMapData = MergePolygonData(
+            this.polygonData,
+            LAssignedData,
+            this.groupFilter,
+            this.groupData,
+            this.streetInfoData,
+            this.data
+          ));
+      }
 
       const streetMapState = streetMapSelector(state);
-      if(streetMapState) this.streetInfoData = streetMapState!._streetInfo;
+      if (streetMapState) this.streetInfoData = streetMapState!._streetInfo;
     }
   }
 
@@ -407,4 +434,42 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       }
     }
   }
+}
+
+function MergePolygonData(
+  polygonData: PolygonData,
+  assignedData: AssignedData,
+  groupFilter: GroupFilter,
+  groupData: GroupData,
+  streetInfoData: StreetInfoData,
+  data: PublicStreet[]
+): EditMapData {
+  const results: EditMapData = {};
+
+  if (assignedData !== {} && groupData !== {} && polygonData != {}) {
+    for (const item of Object.entries(assignedData)) {
+      const pc = item[0];
+      if (assignedData[pc] !== undefined) {
+        const groupKey = assignedData[pc].key;
+        if (groupFilter[groupKey]) {
+          const polygon = polygonData[pc];
+          const pathX: MapPolygon = polygon.polygon;
+          const groupDataItem = groupData[groupKey];
+          const options = {
+            paths: pathX,
+            options: {
+              strokeColor: groupDataItem.colour,
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              fillColor: groupDataItem.colour,
+              fillOpacity: 0.35,
+              editable: true,
+            },
+          };
+          results[pc] = options;
+        }
+      }
+    }
+  }
+  return results;
 }
