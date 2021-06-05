@@ -1,3 +1,5 @@
+import { TemplateResult } from 'lit-html';
+
 type pair = number[];
 export interface LatLng {
   lat: number;
@@ -11,6 +13,7 @@ export interface MapPolygon {
 export interface EditMapDataItem {
   paths: MapPolygon;
   options: google.maps.PolygonOptions;
+  text: TemplateResult;
 }
 
 export interface EditMapData {

@@ -504,7 +504,7 @@ export class UserLogin extends connect(store)(PageViewElement) {
   // eslint-disable-next-line class-methods-use-this
   private async logout() {
     try {
-      const result = await usersDB.logOut();
+      const result = await usersDB.logout();
       if (result.ok) {
         const thisUser: UsersItem = {
           displayName: 'Login',

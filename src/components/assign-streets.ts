@@ -40,7 +40,7 @@ import {
   groupDataLoad,
 } from '../actions/groupdata';
 import { PolygonData, polygonDataLoad } from '../actions/polygondata';
-
+import { streetNames } from '../res/postcodeData';
 import { pathEditIcon } from './my-icons';
 
 // We are lazy loading its reducer.
@@ -75,7 +75,7 @@ import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
 import '@material/mwc-button';
 import './edit-map';
-import { PublicStreet } from '../actions/publicstreet';
+import { PublicStreet, PublicStreetData } from '../actions/publicstreet';
 import { StreetInfoData } from '../actions/streetmap';
 import { AssignedData, assignedDataLoad } from '../actions/assignedData';
 import {
@@ -159,11 +159,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
           height: 100%;
         }
 
-        assign-streets-view {
-          width: 100%;
-          height: 80vh;
-        }
-
         .groupList {
           background-color: var(--cl);
           color: var(--tx);
@@ -172,17 +167,22 @@ export class AssignStreets extends connect(store)(PageViewElement) {
         #selectGroup {
           position: fixed;
           fill: white;
-          bottom: 15px;
-          right: 15px;
+          bottom: 23px;
+          right: 60px;
           z-index: 1;
         }
 
         #filter {
           position: fixed;
           fill: white;
-          bottom: 15px;
-          right: 240px;
+          bottom: 23px;
+          right: 270px;
           z-index: 1;
+        }
+
+        #map {
+          width: 100%;
+          height: calc(100vh - 64px);
         }
 
         @media print {
@@ -451,19 +451,27 @@ function MergePolygonData(
       const pc = item[0];
       if (assignedData[pc] !== undefined) {
         const groupKey = assignedData[pc].key;
+
         if (groupFilter[groupKey]) {
           const polygon = polygonData[pc];
           const pathX: MapPolygon = polygon.polygon;
           const groupDataItem = groupData[groupKey];
+          const label = html`<p><b>${groupDataItem.name}</b></p>
+            ${lookupPublicStreet(pc, streetNames)}${lookupStreetInfo(
+              pc,
+              streetInfoData
+            )}`;
+
           const options = {
             paths: pathX,
+            text: label,
             options: {
               strokeColor: groupDataItem.colour,
               strokeOpacity: 0.8,
               strokeWeight: 2,
               fillColor: groupDataItem.colour,
               fillOpacity: 0.35,
-              editable: true,
+              editable: false,
             },
           };
           results[pc] = options;
@@ -472,4 +480,18 @@ function MergePolygonData(
     }
   }
   return results;
+}
+
+function lookupPublicStreet(postcode: string, data: PublicStreetData) {
+  return data[postcode].name;
+}
+
+function lookupStreetInfo(pc: string, streetInfoData: StreetInfoData) {
+  let info = '';
+  const streetInfo = streetInfoData[pc];
+  if (streetInfo !== undefined) {
+    info = `<br><b>First house: </b>${streetInfo.firstHouse}<br><b>Last house: </b>${streetInfo.lastHouse}<br><b>Number of properties: </b>${streetInfo.numberOfProperties}<br><b>Street order: </b>${streetInfo.streetOrder}`;
+  }
+
+  return info;
 }

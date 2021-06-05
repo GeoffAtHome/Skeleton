@@ -331,7 +331,7 @@ export class EditMap extends LitElement {
       this.clickedPolygon(pc, newPolygon);
     });
     newPolygon.addListener('mouseover', event => {
-      this.mouseoverPolygon(event.domEvent, pc);
+      this.mouseoverPolygon(event.domEvent, polygon.text);
     });
     newPolygon.addListener('mouseout', () => {
       this.mouseoutPolygon();
@@ -421,11 +421,10 @@ export class EditMap extends LitElement {
     this.dispatchEvent(event);
   }
 
-  mouseoverPolygon(event: MouseEvent, text: string): void {
+  mouseoverPolygon(event: MouseEvent, text: TemplateResult): void {
     if (this.popup) {
       this.showPopup = 'show';
-      this.popupText = html`<h2>Hello</h2>
-        ${text}`;
+      this.popupText = text;
       this.popup.style.left = `${event.pageX.toString()}px`;
       this.popup.style.top = `${event.pageY.toString()}px`;
     }

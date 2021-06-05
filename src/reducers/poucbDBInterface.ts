@@ -68,6 +68,7 @@ export async function loadPouchDB(
   db: PouchDB.Database,
   action: ActionCreator<any>
 ) {
+  console.log(`Loading: ${db.name}`);
   try {
     const data = await db.allDocs({ include_docs: true });
     const results: DataList = {};
@@ -79,6 +80,7 @@ export async function loadPouchDB(
       results[_item.id] = item;
     }
     store.dispatch(action(results));
+    console.log(`Loaded: ${db.name}`);
   } catch (err) {
     pouchDBError(err);
   }

@@ -105,6 +105,10 @@ export class AssignStreetsView extends connect(store)(LitElement) {
         :host {
           display: block;
         }
+        #map {
+          width: 100%;
+          height: 80vh;
+        }
       `,
     ];
   }
