@@ -5,10 +5,14 @@ export interface LatLng {
   lat: number;
   lng: number;
 }
-export interface MapPolygon {
-  coordinates: Array<Array<pair>>;
+
+type PolygonPath = Array<pair>;
+type SinglePolygon = Array<PolygonPath>;
+type MultiplePolygon = Array<Array<PolygonPath>>;
+export type MapPolygon = {
+  coordinates: SinglePolygon | MultiplePolygon;
   type: string;
-}
+};
 
 export interface EditMapDataItem {
   paths: MapPolygon;
@@ -24,10 +28,30 @@ export interface PolygonsOnMap {
   [index: string]: google.maps.Polygon;
 }
 
-export function getPath(polygon: MapPolygon): Array<LatLng> {
-  return polygon.coordinates[0].map(pair => {
-    return { lat: pair[1], lng: pair[0] };
+export function getPathP(polygon: PolygonPath): Array<LatLng> {
+  return polygon.map(point => {
+    return { lat: point[1], lng: point[0] };
   });
+}
+export function getPath(polygon: MapPolygon): Array<LatLng> {
+  const polygonPath: PolygonPath = <PolygonPath>polygon.coordinates[0];
+  return getPathP(polygonPath);
+}
+
+export function getPaths(polygon: MapPolygon): Array<Array<LatLng>> {
+  const result = [];
+  const { length } = polygon.coordinates;
+  let loop = 0;
+  while (loop < length) {
+    console.log(polygon.coordinates[loop].length);
+    const polygonPath: PolygonPath =
+      polygon.coordinates[loop].length === 1
+        ? <PolygonPath>polygon.coordinates[loop][0]
+        : <PolygonPath>polygon.coordinates[loop];
+    result.push(getPathP(polygonPath));
+    loop += 1;
+  }
+  return result;
 }
 
 export function pathsAreDifferent(
@@ -53,11 +77,18 @@ export function getPathGooglePolygon(polygon: google.maps.Polygon): MapPolygon {
       coordinates: [path.map(p => [p.lng(), p.lat()])],
     };
   }
-  console.log('Path has more than one polygon');
+  const { length } = paths;
+  const coordinates = [];
+  let loop = 0;
+  while (loop < length) {
+    const path = paths[loop].getArray();
+    coordinates.push(path.map(p => [p.lng(), p.lat()]));
+    loop += 1;
+  }
 
   const p: MapPolygon = {
-    type: 'Polygon',
-    coordinates: [],
+    type: 'MultiPolygon',
+    coordinates,
   };
   return p;
 }

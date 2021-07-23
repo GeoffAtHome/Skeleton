@@ -40,6 +40,7 @@ import {
   EditMapData,
   EditMapDataItem,
   PolygonsOnMap,
+  getPaths,
 } from './polygons';
 
 /**
@@ -282,16 +283,20 @@ export class EditMap extends LitElement {
         // New polygon to draw
         this.DrawPolygon(pc, item);
       } else {
-        // Has the polygon changed?
+        // Has the polygon or options changed?
         const oldPath = getPathGooglePolygon(layer);
-        if (pathsAreDifferent(oldPath, item.paths)) {
+        if (
+          pathsAreDifferent(oldPath, item.paths) ||
+          this.optionsAreDifferent(item.options, layer)
+        ) {
+          // Quick update to make the UI responsive
+          layer.setOptions(item.options);
+          this.popupText = item.text;
+
           // Paths are different - so remove the old polygon
           layer.setMap(null);
           // then draw the new
           this.DrawPolygon(pc, item);
-        } else if (this.optionsAreDifferent(item.options, layer)) {
-          // Have the options changed?
-          layer.setOptions(item.options);
         }
       }
     }
@@ -311,15 +316,23 @@ export class EditMap extends LitElement {
     options: google.maps.PolygonOptions,
     layer: google.maps.Polygon
   ): boolean {
-    for (const [key, value] of Object.keys(options)) {
-      if (value !== layer.get(key)) return true;
+    for (const [key, value] of Object.entries(options)) {
+      if (value !== layer.get(key)) {
+        console.log(`${key} : ${value} vs ${layer.get(key)}`);
+        return true;
+      }
     }
     return false;
   }
 
   private DrawPolygon(pc: string, polygon: EditMapDataItem) {
     const { options } = polygon;
-    options.paths = getPath(polygon.paths);
+    if (polygon.paths.type === 'Polygon')
+      options.paths = getPath(polygon.paths);
+    else {
+      console.log(pc);
+      options.paths = getPaths(polygon.paths);
+    }
     // eslint-disable-next-line no-undef
     const newPolygon = new google.maps.Polygon(options);
     this.polygonsOnMap[pc] = newPolygon;

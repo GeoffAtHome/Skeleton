@@ -69,15 +69,15 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
       });
       break;
 
-      case 'todo':
+    case 'todo':
       import('../components/todo-list');
       break;
 
-      case 'assignstreets':
+    case 'assignstreets':
       import('../components/assign-streets');
       break;
 
-      case 'postBoxView':
+    case 'postBoxView':
       import('../components/postbox-view');
       break;
 
@@ -96,7 +96,7 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
     case 'rounds':
       import('../components/round-boxes');
       break;
-      
+
     default:
       // eslint-disable-next-line no-param-reassign
       page = 'view404';
@@ -154,7 +154,7 @@ export const updateOffline: ActionCreator<ThunkResult> = (offline: boolean) => (
   if (offline !== getState().app!.offline) {
     dispatch(showSnackbar());
   }
-  const message: string = `You are now${offline ? 'offline.' : 'online.'}`;
+  const message: string = `You are now ${offline ? 'offline' : 'online'}`;
 
   dispatch({
     type: NOTIFY_MESSAGE,

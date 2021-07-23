@@ -78,6 +78,9 @@ export class MyApp extends connect(store)(LitElement) {
   @property({ type: Boolean })
   private _snackbarOpened = false;
 
+  @property({ type: String })
+  private _message: string = '';
+
   @property({ type: Boolean })
   private _offline = false;
 
@@ -317,7 +320,7 @@ export class MyApp extends connect(store)(LitElement) {
         </div>
       </mwc-drawer>
       <snack-bar ?active="${this._snackbarOpened}">
-        You are now ${this._offline ? 'offline' : 'online'}.
+        ${this._message}.
       </snack-bar>
       <pwa-install></pwa-install>
       <pwa-update
@@ -353,6 +356,8 @@ export class MyApp extends connect(store)(LitElement) {
 
   stateChanged(state: RootState) {
     this._page = state.app!.page;
+    this._message = state.app!.message;
+
     this._offline = state.app!.offline;
     this._snackbarOpened = state.app!.snackbarOpened;
     this._drawerOpened = state.app!.drawerOpened;

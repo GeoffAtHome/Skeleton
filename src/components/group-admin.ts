@@ -53,6 +53,7 @@ import { SharedStyles } from './shared-styles';
 import { labelIcon } from './my-icons';
 import { notifyMessage } from '../actions/app';
 import { userDataSelector } from '../reducers/users';
+import { roundDataLoad } from '../actions/roundsdata';
 
 if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({ groupData });
@@ -280,8 +281,11 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
         ) {
           this.admin = usersState._newUser.claims.administrator;
           this.groupId = usersState._newUser.claims.group;
-          if (!(this.admin === false && this.groupId === ''))
+          if (!(this.admin === false && this.groupId === '')) {
             store.dispatch(groupDataLoad(this.admin, this.groupId));
+          } else {
+            store.dispatch(roundDataLoad(this.admin, this.groupId));
+          }
         }
       }
     }

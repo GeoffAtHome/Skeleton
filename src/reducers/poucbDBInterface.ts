@@ -41,7 +41,7 @@ function getRegisteredDatabase(name: string) {
 
 function pouchDBError(error: any) {
   // eslint-disable-next-line no-console
-  console.log(`DB Error:${error}`);
+  console.log(`DB Error: ${error}`);
 }
 export interface DataList {
   [index: string]: any;
@@ -68,7 +68,6 @@ export async function loadPouchDB(
   db: PouchDB.Database,
   action: ActionCreator<any>
 ) {
-  console.log(`Loading: ${db.name}`);
   try {
     const data = await db.allDocs({ include_docs: true });
     const results: DataList = {};
@@ -80,7 +79,6 @@ export async function loadPouchDB(
       results[_item.id] = item;
     }
     store.dispatch(action(results));
-    console.log(`Loaded: ${db.name}`);
   } catch (err) {
     pouchDBError(err);
   }

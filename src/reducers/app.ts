@@ -15,12 +15,14 @@ import {
   OPEN_SNACKBAR,
   CLOSE_SNACKBAR,
   UPDATE_DRAWER_STATE,
+  NOTIFY_MESSAGE,
 } from '../actions/app';
 import { RootAction } from '../store';
 
 export interface AppState {
   page: string;
   offline: boolean;
+  message: string;
   drawerOpened: boolean;
   snackbarOpened: boolean;
   title: string;
@@ -29,6 +31,7 @@ export interface AppState {
 const INITIAL_STATE: AppState = {
   page: '',
   offline: false,
+  message: '',
   drawerOpened: false,
   snackbarOpened: false,
   title: '',
@@ -46,6 +49,12 @@ const app: Reducer<AppState, RootAction> = (state = INITIAL_STATE, action) => {
         ...state,
         offline: action.offline,
       };
+    case NOTIFY_MESSAGE:
+      return {
+        ...state,
+        message: action.message,
+      };
+
     case UPDATE_DRAWER_STATE:
       return {
         ...state,

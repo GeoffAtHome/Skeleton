@@ -44,16 +44,18 @@ import { streetNames } from '../res/postcodeData';
 import { pathEditIcon } from './my-icons';
 
 // We are lazy loading its reducer.
-import groupdata, { groupDataSelector } from '../reducers/groupdata';
+import groupData, { groupDataSelector } from '../reducers/groupdata';
 import { streetMapSelector } from '../reducers/streetmap';
 import polygonData, { polygonDataSelector } from '../reducers/polygondata';
 import assignedData, { assignedDataSelector } from '../reducers/assignedData';
 import userData, { userDataSelector } from '../reducers/users';
+import roundData, { roundDataSelector } from '../reducers/roundsdata';
+
 import { streetInfoLoad } from '../actions/streetInfo';
 
 if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({
-    groupdata,
+    groupData,
   });
 }
 if (polygonDataSelector(store.getState()) === undefined) {
@@ -64,6 +66,9 @@ if (assignedDataSelector(store.getState()) === undefined) {
 }
 if (userDataSelector(store.getState()) === undefined) {
   store.addReducers({ userData });
+}
+if (roundDataSelector(store.getState()) === undefined) {
+  store.addReducers({ roundData });
 }
 
 // These are the elements needed by this element.
@@ -77,16 +82,26 @@ import '@material/mwc-button';
 import './edit-map';
 import { PublicStreet, PublicStreetData } from '../actions/publicstreet';
 import { StreetInfoData } from '../actions/streetmap';
-import { AssignedData, assignedDataLoad } from '../actions/assignedData';
 import {
-  EditMapData,
-  getPath,
-  getPathGooglePolygon,
-  MapPolygon,
-} from './polygons';
+  AssignedData,
+  assignedDataLoad,
+  assignedDataUpdateGroup,
+} from '../actions/assignedData';
+import { EditMapData, MapPolygon } from './polygons';
+import { notifyMessage } from '../actions/app';
+import { roundDataLoad, roundDataUpdateRound } from '../actions/roundsdata';
 
 let LAssignedData: AssignedData = {};
 
+let admin: boolean | undefined = undefined;
+
+let selectedGroup: GroupDataItem = {
+  _id: '',
+  name: '',
+  notes: '',
+  contactDetails: '',
+  colour: '',
+};
 @customElement('assign-streets')
 export class AssignStreets extends connect(store)(PageViewElement) {
   @query('#selectGroupDialog')
@@ -98,17 +113,14 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   @query('#checkedAll')
   private checkedAll: any;
 
+  @query('#map')
+  private map: any;
+
   @property({ type: Array })
   private data: Array<PublicStreet> = [];
 
   @property({ type: Boolean, reflect: true })
   private drawOpened: boolean = false;
-
-  @property({ type: String })
-  private changedIndex: string = '';
-
-  @property({ type: Object })
-  private polygon: MapPolygon = { type: 'Polygon', coordinates: [] };
 
   @property({ type: Object })
   private groupData: GroupData = {};
@@ -128,20 +140,8 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   @property({ type: Object })
   private polygonData: PolygonData = {};
 
-  @property({ type: Boolean })
-  private admin: boolean | undefined = undefined;
-
   @property({ type: String })
   private groupId = '';
-
-  @property({ type: Object })
-  private selectedGroup: GroupDataItem = {
-    _id: '',
-    name: '',
-    notes: '',
-    contactDetails: '',
-    colour: '',
-  };
 
   @internalProperty()
   private _mapOptions = {
@@ -214,7 +214,7 @@ export class AssignStreets extends connect(store)(PageViewElement) {
         ${Object.entries(this.groupData)
           .sort(this.compareGroup)
           .map(
-            ([, item]) =>
+            ([_id, item]) =>
               html`<div
                 class="groupList"
                 style="--cl: ${item.colour}; --tx: ${getTextColor(item.colour)}"
@@ -228,7 +228,7 @@ export class AssignStreets extends connect(store)(PageViewElement) {
                     style="--mdc-checkbox-unchecked-color: ${getTextColor(
                       item.colour
                     )}"
-                    id="ID${item._id}"
+                    id="ID${_id}"
                     @click="${this.allChecked}"
                   ></mwc-checkbox
                 ></mwc-formfield>
@@ -251,7 +251,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
           .map(
             ([, item]) =>
               html`<mwc-list-item
-                value="${item._id}"
                 class="groupList"
                 style="--cl: ${item.colour}; --tx: ${getTextColor(item.colour)}"
                 >${item.name}</mwc-list-item
@@ -270,13 +269,15 @@ export class AssignStreets extends connect(store)(PageViewElement) {
     `;
   }
 
-  protected firstUpdated(_changedProperties: any) {}
+  protected firstUpdated(_changedProperties: any) {
+    this.map.addEventListener('clickedPolygon', clickedPolygon);
+  }
 
   updated(changedProps: PropertyValues) {
     if (changedProps.has('admin')) {
       let title = '';
       let select = '';
-      if (this.admin) {
+      if (admin) {
         title = 'Select groups to display';
         select = 'Select group';
       } else {
@@ -321,24 +322,31 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       const usersState = userDataSelector(state);
       if (usersState) {
         if (
-          this.admin !== usersState._newUser.claims.administrator ||
+          admin !== usersState._newUser.claims.administrator ||
           this.groupId !== usersState._newUser.claims.group
         ) {
-          this.admin = usersState._newUser.claims.administrator;
+          admin = usersState._newUser.claims.administrator;
           this.groupId = usersState._newUser.claims.group;
-          if (!(this.admin === false && this.groupId === '')) {
-            store.dispatch(groupDataLoad(this.admin, this.groupId));
+          if (admin === true && this.groupId === '') {
+            store.dispatch(notifyMessage('Loading: Group data'));
+            store.dispatch(groupDataLoad(admin, this.groupId));
+          } else {
+            store.dispatch(notifyMessage('Loading: Round data'));
+            store.dispatch(roundDataLoad(admin, this.groupId));
           }
           // Load the data required for this page
+          store.dispatch(notifyMessage('Loading: polygon data'));
           store.dispatch(polygonDataLoad());
+          store.dispatch(notifyMessage('Loading: assignment data'));
           store.dispatch(assignedDataLoad());
+          store.dispatch(notifyMessage('Loading: streetinfo'));
           store.dispatch(streetInfoLoad());
         }
       }
 
       const groupDataState = groupDataSelector(state);
       if (groupDataState) {
-        this.selectedGroup = groupDataState!._newGroup;
+        selectedGroup = groupDataState!._newGroup;
         this.groupData = groupDataState!._groupData;
       }
 
@@ -396,17 +404,23 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   }
 
   private filterAll(state: boolean) {
-    Object.entries(this.groupData).map(([_key, item]) => {
-      const checkbox: any = this.shadowRoot!.querySelector('#ID' + item._id);
+    Object.entries(this.groupData).map(([_id, item]) => {
+      const checkbox: any = this.shadowRoot!.querySelector('#ID' + _id);
       checkbox.checked = state;
-      this.oldGroupFilter[item._id] = state;
+      this.oldGroupFilter[_id] = state;
     });
   }
 
-  private groupSelected(evt: any) {
-    this.selectedGroup = this.groupData[evt.target.value];
+  private groupSelected(evt: CustomEvent) {
+    const list = Object.entries(this.groupData)
+      .sort(this.compareGroup)
+      .map(([id, item]) => {
+        item._id = id;
+        return item;
+      });
+    selectedGroup = list[evt.detail.index];
     this.selectGroupDialog.close();
-    store.dispatch(groupDataSelectGroup(this.selectedGroup));
+    store.dispatch(groupDataSelectGroup(selectedGroup));
   }
 
   private updateFilter() {
@@ -454,27 +468,29 @@ function MergePolygonData(
 
         if (groupFilter[groupKey]) {
           const polygon = polygonData[pc];
-          const pathX: MapPolygon = polygon.polygon;
-          const groupDataItem = groupData[groupKey];
-          const label = html`<p><b>${groupDataItem.name}</b></p>
-            ${lookupPublicStreet(pc, streetNames)}${lookupStreetInfo(
-              pc,
-              streetInfoData
-            )}`;
+          if (polygon !== undefined) {
+            const pathX: MapPolygon = polygon.polygon;
+            const groupDataItem = groupData[groupKey];
+            const label = html`<p><b>${groupDataItem.name}</b></p>
+              ${lookupPublicStreet(pc, streetNames)}${lookupStreetInfo(
+                pc,
+                streetInfoData
+              )}`;
 
-          const options = {
-            paths: pathX,
-            text: label,
-            options: {
-              strokeColor: groupDataItem.colour,
-              strokeOpacity: 0.8,
-              strokeWeight: 2,
-              fillColor: groupDataItem.colour,
-              fillOpacity: 0.35,
-              editable: false,
-            },
-          };
-          results[pc] = options;
+            const options = {
+              paths: pathX,
+              text: label,
+              options: {
+                strokeColor: groupDataItem.colour,
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: groupDataItem.colour,
+                fillOpacity: 0.35,
+                editable: false,
+              },
+            };
+            results[pc] = options;
+          }
         }
       }
     }
@@ -495,3 +511,61 @@ function lookupStreetInfo(pc: string, streetInfoData: StreetInfoData) {
 
   return info;
 }
+
+function clickedPolygon(el: CustomEvent) {
+  if (selectedGroup._id !== '') {
+    const { detail } = el;
+    /* target.setStyle({ color: this.selectedGroup.colour });
+
+    // Change the tooltip
+    const parts = target.getTooltip().getContent().split(':');
+    target.setTooltipContent(`${this.selectedGroup.name}: ${parts[1]}`);
+
+    // Update group and street
+    const layer = target.getLayers()[0];
+    const key = layer.feature.id; */
+    if (admin) {
+      store.dispatch(
+        assignedDataUpdateGroup(detail, { key: selectedGroup._id.toString() })
+      );
+    } else {
+      store.dispatch(
+        roundDataUpdateRound(detail, { key: selectedGroup._id.toString() })
+      );
+    }
+  } else {
+    store.dispatch(notifyMessage('Select round to assign'));
+  }
+}
+
+const spc = [
+  'CF11 8BJ',
+  'CF11 9NA',
+  'CF14 0SP',
+  'CF14 5BB',
+  'CF15 8GA',
+  'CF23 5HZ',
+  'CF24 1NS',
+  'CF24 1RA',
+  'CF24 3PF',
+  'CF24 4BL',
+  'CF24 4LS',
+  'CF24 4NZ',
+  'CF24 5JW',
+  'CF3 2AA',
+  'CF3 5DG',
+  'CF3 6YA',
+  'CF5 2EB',
+  'CF5 2QF',
+  'CF5 3AB',
+  'CF61 2LH',
+  'CF61 2YS',
+  'CF62 8AA',
+  'CF62 9DZ',
+  'CF63 1QF',
+  'CF63 2FE',
+  'CF64 3RJ',
+  'CF64 4PQ',
+  'CF64 5RF',
+  'CF64 5TT',
+];
