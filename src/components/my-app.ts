@@ -236,8 +236,9 @@ export class MyApp extends connect(store)(LitElement) {
                   <a
                     ?selected="${this._page === 'assignstreets'}"
                     href="/#assignstreets"
-                    >Assign rounds</a
                   >
+                    ${this._admin ? html`Assign streets` : html`Assign rounds`}
+                  </a>
 
                   <a ?selected="${this._page === 'rounds'}" href="/#rounds"
                     >Rounds</a

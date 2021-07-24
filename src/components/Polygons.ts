@@ -43,11 +43,7 @@ export function getPaths(polygon: MapPolygon): Array<Array<LatLng>> {
   const { length } = polygon.coordinates;
   let loop = 0;
   while (loop < length) {
-    console.log(polygon.coordinates[loop].length);
-    const polygonPath: PolygonPath =
-      polygon.coordinates[loop].length === 1
-        ? <PolygonPath>polygon.coordinates[loop][0]
-        : <PolygonPath>polygon.coordinates[loop];
+    const polygonPath: PolygonPath = <PolygonPath>polygon.coordinates[loop];
     result.push(getPathP(polygonPath));
     loop += 1;
   }

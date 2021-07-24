@@ -46,6 +46,7 @@ export interface RoundDataUpdateRound
   extends Action<'ROUND_DATA_UPDATE_ROUND'> {
   _id: string;
   _groupKey: string;
+  _oldGroupKey: string;
 }
 export interface RoundDataRoundUpdated
   extends Action<'ROUND_DATA_ROUND_UPDATED'> {
@@ -102,12 +103,14 @@ export const roundDataLoaded: ActionCreator<RoundDataLoaded> = _data => {
 
 export const roundDataUpdateRound: ActionCreator<RoundDataUpdateRound> = (
   _id: string,
-  _groupKey: string
+  _groupKey: string,
+  _oldGroupKey: string
 ) => {
   return {
     type: ROUND_DATA_UPDATE_ROUND,
     _id,
     _groupKey,
+    _oldGroupKey,
   };
 };
 

@@ -317,10 +317,7 @@ export class EditMap extends LitElement {
     layer: google.maps.Polygon
   ): boolean {
     for (const [key, value] of Object.entries(options)) {
-      if (value !== layer.get(key)) {
-        console.log(`${key} : ${value} vs ${layer.get(key)}`);
-        return true;
-      }
+      if (value !== layer.get(key)) return true;
     }
     return false;
   }
@@ -329,10 +326,8 @@ export class EditMap extends LitElement {
     const { options } = polygon;
     if (polygon.paths.type === 'Polygon')
       options.paths = getPath(polygon.paths);
-    else {
-      console.log(pc);
-      options.paths = getPaths(polygon.paths);
-    }
+    else options.paths = getPaths(polygon.paths);
+
     // eslint-disable-next-line no-undef
     const newPolygon = new google.maps.Polygon(options);
     this.polygonsOnMap[pc] = newPolygon;

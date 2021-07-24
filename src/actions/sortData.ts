@@ -34,7 +34,6 @@ export interface SortDataState {
 }
 
 export interface SortDataLoad extends Action<'SORTDATA_LOAD'> {
-  _admin: string;
   _groupId: string;
 }
 export interface SortDataLoaded extends Action<'SORTDATA_LOADED'> {
@@ -70,10 +69,9 @@ export type SortDataAction =
   | SortDataLoad
   | SortDataLoaded;
 
-export const sortDataLoad: ActionCreator<SortDataLoad> = (_admin, _groupId) => {
+export const sortDataLoad: ActionCreator<SortDataLoad> = _groupId => {
   return {
     type: SORTDATA_LOAD,
-    _admin,
     _groupId,
   };
 };

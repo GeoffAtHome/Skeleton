@@ -40,6 +40,10 @@ import {
   groupDataLoad,
 } from '../actions/groupdata';
 import { PolygonData, polygonDataLoad } from '../actions/polygondata';
+import { roundDataLoad, roundDataUpdateRound } from '../actions/roundsdata';
+import { SortboxList, sortboxLoad } from '../actions/sortboxes';
+import { sortDataLoad } from '../actions/sortData';
+
 import { streetNames } from '../res/postcodeData';
 import { pathEditIcon } from './my-icons';
 
@@ -48,8 +52,10 @@ import groupData, { groupDataSelector } from '../reducers/groupdata';
 import { streetMapSelector } from '../reducers/streetmap';
 import polygonData, { polygonDataSelector } from '../reducers/polygondata';
 import assignedData, { assignedDataSelector } from '../reducers/assignedData';
-import userData, { userDataSelector } from '../reducers/users';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
+import sortData, { sortDataSelector } from '../reducers/sortData';
+import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
+import userData, { userDataSelector } from '../reducers/users';
 
 import { streetInfoLoad } from '../actions/streetInfo';
 
@@ -57,6 +63,12 @@ if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({
     groupData,
   });
+}
+if (sortDataSelector(store.getState()) === undefined) {
+  store.addReducers({ sortData });
+}
+if (sortboxListSelector(store.getState()) === undefined) {
+  store.addReducers({ sortboxList });
 }
 if (polygonDataSelector(store.getState()) === undefined) {
   store.addReducers({ polygonData });
@@ -89,7 +101,6 @@ import {
 } from '../actions/assignedData';
 import { EditMapData, MapPolygon } from './polygons';
 import { notifyMessage } from '../actions/app';
-import { roundDataLoad, roundDataUpdateRound } from '../actions/roundsdata';
 
 let LAssignedData: AssignedData = {};
 
@@ -121,6 +132,9 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
   @property({ type: Boolean, reflect: true })
   private drawOpened: boolean = false;
+
+  @property({ type: Boolean })
+  private admin: boolean = true;
 
   @property({ type: Object })
   private groupData: GroupData = {};
@@ -277,7 +291,7 @@ export class AssignStreets extends connect(store)(PageViewElement) {
     if (changedProps.has('admin')) {
       let title = '';
       let select = '';
-      if (admin) {
+      if (this.admin) {
         title = 'Select groups to display';
         select = 'Select group';
       } else {
@@ -325,16 +339,29 @@ export class AssignStreets extends connect(store)(PageViewElement) {
           admin !== usersState._newUser.claims.administrator ||
           this.groupId !== usersState._newUser.claims.group
         ) {
-          admin = usersState._newUser.claims.administrator;
+          this.admin = usersState._newUser.claims.administrator;
           this.groupId = usersState._newUser.claims.group;
-          if (admin === true && this.groupId === '') {
+          admin = this.admin;
+
+          if (!(this.admin === false && this.groupId === '')) {
             store.dispatch(notifyMessage('Loading: Group data'));
-            store.dispatch(groupDataLoad(admin, this.groupId));
+            store.dispatch(groupDataLoad(this.admin, this.groupId));
           } else {
             store.dispatch(notifyMessage('Loading: Round data'));
-            store.dispatch(roundDataLoad(admin, this.groupId));
+            store.dispatch(roundDataLoad(this.admin, this.groupId));
           }
+
           // Load the data required for this page
+          if (admin === false && this.groupId !== '') {
+            // assignedDataURL  | sortDataURL and sortBoxesURL
+            store.dispatch(notifyMessage('Loading: Sort boxes'));
+            store.dispatch(sortboxLoad(this.groupId));
+            store.dispatch(notifyMessage('Loading: Sort data'));
+            store.dispatch(sortDataLoad(this.groupId));
+            store.dispatch(notifyMessage('Loading: assignment data'));
+            store.dispatch(roundDataLoad());
+            store.dispatch(notifyMessage('Loading: Rounds data'));
+          }
           store.dispatch(notifyMessage('Loading: polygon data'));
           store.dispatch(polygonDataLoad());
           store.dispatch(notifyMessage('Loading: assignment data'));
@@ -350,8 +377,29 @@ export class AssignStreets extends connect(store)(PageViewElement) {
         this.groupData = groupDataState!._groupData;
       }
 
-      const assignedDataState = assignedDataSelector(state);
-      LAssignedData = assignedDataState!._assignedData;
+      if (admin === false && this.groupId !== '') {
+        const sortDataState = sortDataSelector(state);
+        const sortData = sortDataState!._sortData;
+
+        const sortBoxesState = sortboxListSelector(state);
+        const sortBoxList = sortBoxesState!._sortboxList;
+
+        const assignedDataState = assignedDataSelector(state);
+        const assignedData = assignedDataState!._assignedData;
+
+        const roundsDataState = roundDataSelector(state);
+        const roundsData = roundsDataState!._roundData;
+
+        LAssignedData = MergeData(
+          this.groupId,
+          roundsData,
+          assignedData,
+          sortBoxList
+        );
+      } else {
+        const assignedDataState = assignedDataSelector(state);
+        LAssignedData = assignedDataState!._assignedData;
+      }
 
       const polygonDataState = polygonDataSelector(state);
       if (polygonDataState) {
@@ -530,7 +578,13 @@ function clickedPolygon(el: CustomEvent) {
       );
     } else {
       store.dispatch(
-        roundDataUpdateRound(detail, { key: selectedGroup._id.toString() })
+        roundDataUpdateRound(
+          detail,
+          {
+            key: selectedGroup._id.toString(),
+          },
+          LAssignedData[detail].key
+        )
       );
     }
   } else {
@@ -538,34 +592,33 @@ function clickedPolygon(el: CustomEvent) {
   }
 }
 
-const spc = [
-  'CF11 8BJ',
-  'CF11 9NA',
-  'CF14 0SP',
-  'CF14 5BB',
-  'CF15 8GA',
-  'CF23 5HZ',
-  'CF24 1NS',
-  'CF24 1RA',
-  'CF24 3PF',
-  'CF24 4BL',
-  'CF24 4LS',
-  'CF24 4NZ',
-  'CF24 5JW',
-  'CF3 2AA',
-  'CF3 5DG',
-  'CF3 6YA',
-  'CF5 2EB',
-  'CF5 2QF',
-  'CF5 3AB',
-  'CF61 2LH',
-  'CF61 2YS',
-  'CF62 8AA',
-  'CF62 9DZ',
-  'CF63 1QF',
-  'CF63 2FE',
-  'CF64 3RJ',
-  'CF64 4PQ',
-  'CF64 5RF',
-  'CF64 5TT',
-];
+function MergeData(
+  groupId: string,
+  roundsData: AssignedData,
+  assignedData: AssignedData,
+  sortData: SortboxList
+) {
+  const results: AssignedData = {};
+  for (const [pc, assigned] of Object.entries(assignedData)) {
+    if (assigned.key === groupId) {
+      // Do we have a round for this street?
+      let round = '0'; // Round 0 is unassigned
+      let sortbox = '0'; // Sortbox 0 is unassigned
+      if (roundsData[pc] !== undefined) {
+        round = roundsData[pc].key;
+      }
+
+      // Do we have a sortbox for this street?
+      if (sortData[round] !== undefined) {
+        sortbox = round;
+      }
+
+      results[pc] = {
+        _id: pc,
+        key: round,
+        sortbox: sortbox,
+      };
+    }
+  }
+  return results;
+}

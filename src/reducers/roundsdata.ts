@@ -74,7 +74,17 @@ const roundData: Reducer<RoundDataState, RootAction> = (
       };
 
     case ROUND_DATA_UPDATE_ROUND:
-      updateItemPouchDB(roundDataDB, action._id, action._groupKey);
+      if (action._oldGroupKey !== '0')
+        updateItemPouchDB(roundDataDB, action._id, action._groupKey);
+      else {
+        const item = {
+          _id: action._id,
+          key: action._groupKey,
+          sortbox: '',
+        };
+
+        createItemPouchDB(roundDataDB, item);
+      }
       return {
         ...state,
       };
