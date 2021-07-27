@@ -9,113 +9,131 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Reducer } from 'redux';
-import { STREET_ID, EDIT_PATH, IStreetMapState, DISPLAY_DETAILS_DIALOG, UPDATE_STREET, CANCEL_DIALOGS, DATA_LOADED, ST_MOVE_MAP, STREETS_LOADED, STREETINFO_LOADED, StreetInfoData, streetMapChanges, streetMapDeletes, StreetMapDataLoaded } from '../actions/streetmap.js';
+import {
+  STREET_ID,
+  EDIT_PATH,
+  IStreetMapState,
+  DISPLAY_DETAILS_DIALOG,
+  UPDATE_STREET,
+  CANCEL_DIALOGS,
+  DATA_LOADED,
+  ST_MOVE_MAP,
+  STREETS_LOADED,
+  STREETINFO_LOADED,
+  StreetInfoData,
+  streetMapChanges,
+  streetMapDeletes,
+  StreetMapDataLoaded,
+} from '../actions/streetmap';
 import { rootURL, streetInfoURL } from './dbconst';
 
 import {
-    createItemPouchDB,
-    deleteItemPouchDB,
-    loadPouchDB,
-    RegisterSyncPouchDB,
-    updateItemPouchDB,
-  } from './poucbDBInterface';
-  
-  function streetMapChangesDispatch(docs: any) {
-    store.dispatch(streetMapChanges(docs));
-  }
-  
-  function streetMapDeletedDispatch(docs: any) {
-    store.dispatch(streetMapDeletes(docs));
-  }
-  
-  let streetMapDB: PouchDB.Database =
-  RegisterSyncPouchDB(
-    streetInfoURL,
-    rootURL,
-    streetMapChangesDispatch,
-    streetMapDeletedDispatch
-  );;
-  
-import { RootAction, RootState, store } from '../store.js';
+  createItemPouchDB,
+  deleteItemPouchDB,
+  loadPouchDB,
+  RegisterSyncPouchDB,
+  updateItemPouchDB,
+} from './poucbDBInterface';
+
+import { RootAction, RootState, store } from '../store';
+import { LoadingStatus } from './PouchDBStatus';
+
+function streetMapChangesDispatch(docs: any) {
+  store.dispatch(streetMapChanges(docs));
+}
+
+function streetMapDeletedDispatch(docs: any) {
+  store.dispatch(streetMapDeletes(docs));
+}
+
+const streetMapDB: PouchDB.Database = RegisterSyncPouchDB(
+  streetInfoURL,
+  rootURL,
+  streetMapChangesDispatch,
+  streetMapDeletedDispatch
+);
 
 const INITIAL_STATE: IStreetMapState = {
-    _streetInfo: {},
-    _streets: [],
-    _editPath: false,
-    _index: '',
-    _displayDetailsDialog: false
+  _loadingStatus: LoadingStatus.Unknown,
+  _streetInfo: {},
+  _streets: [],
+  _editPath: false,
+  _index: '',
+  _displayDetailsDialog: false,
 };
 
-const streetmap: Reducer<IStreetMapState, RootAction> = (state = INITIAL_STATE, action) => {
-    switch (action.type) {
-        case STREET_ID:
-            return {
-                ...state,
-                _index: action._index
-            };
+const streetmap: Reducer<IStreetMapState, RootAction> = (
+  state = INITIAL_STATE,
+  action
+) => {
+  switch (action.type) {
+    case STREET_ID:
+      return {
+        ...state,
+        _index: action._index,
+        _loadingStatus: LoadingStatus.Loading,
+      };
 
+    case DATA_LOADED:
+      loadPouchDB(streetMapDB, StreetMapDataLoaded);
 
-        case DATA_LOADED:
-            loadPouchDB(streetMapDB, StreetMapDataLoaded);
+      return {
+        ...state,
+        _editPath: false,
+        _loadingStatus: LoadingStatus.Loaded,
+      };
 
-            return {
-                ...state,
-                _editPath: false
-            }
+    case STREETS_LOADED:
+      return {
+        ...state,
+        _streets: action._streets,
+      };
 
-        case STREETS_LOADED:
-            return {
-                ...state,
-                _streets: action._streets
-            };
+    case STREETINFO_LOADED:
+      return {
+        ...state,
+        _streetInfo: action._streetInfo,
+      };
 
+    case EDIT_PATH:
+      return {
+        ...state,
+        _editPath: !state._editPath,
+      };
 
-        case STREETINFO_LOADED:
-            return {
-                ...state,
-                _streetInfo: action._streetInfo
-            };
+    case ST_MOVE_MAP:
+      return {
+        ...state,
+        _pos: [action._latlng.lat, action._latlng.lng],
+      };
 
-        case EDIT_PATH:
-            return {
-                ...state,
-                _editPath: !state._editPath
-            };
-
-        case ST_MOVE_MAP:
-            return {
-                ...state,
-                _pos: [action._latlng.lat, action._latlng.lng]
-
-            };
-
-        case UPDATE_STREET:
-            updateItemPouchDB(streetMapDB, action._key, action._item);
-            const streetInfoData: StreetInfoData = state._streetInfo
-            streetInfoData[action._key] = action._item
-            return {
-                ...state,
-                _displayDetailsDialog: false,
-                _streetInfo: streetInfoData
-            }
-
-        case DISPLAY_DETAILS_DIALOG:
-            return {
-                ...state,
-                _displayDetailsDialog: true
-            }
-
-        case CANCEL_DIALOGS:
-            return {
-                ...state,
-                _displayDetailsDialog: false
-            }
-
-        default:
-            return state;
+    case UPDATE_STREET: {
+      updateItemPouchDB(streetMapDB, action._key, action._item);
+      const streetInfoData: StreetInfoData = state._streetInfo;
+      streetInfoData[action._key] = action._item;
+      return {
+        ...state,
+        _displayDetailsDialog: false,
+        _streetInfo: streetInfoData,
+      };
     }
-};
 
+    case DISPLAY_DETAILS_DIALOG:
+      return {
+        ...state,
+        _displayDetailsDialog: true,
+      };
+
+    case CANCEL_DIALOGS:
+      return {
+        ...state,
+        _displayDetailsDialog: false,
+      };
+
+    default:
+      return state;
+  }
+};
 
 export default streetmap;
 

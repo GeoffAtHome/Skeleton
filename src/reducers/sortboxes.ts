@@ -33,6 +33,7 @@ import {
   RegisterSyncPouchDB,
   updateItemPouchDB,
 } from './poucbDBInterface';
+import { LoadingStatus } from './PouchDBStatus';
 
 function sortboxChangesDispatch(docs: any) {
   store.dispatch(sortboxChanges(docs));
@@ -45,6 +46,7 @@ function sortboxDeletedDispatch(docs: any) {
 let sortboxDB: PouchDB.Database;
 
 const INITIAL_STATE: SortboxState = {
+  _loadingStatus: LoadingStatus.Unknown,
   _newSortbox: {
     _id: '',
     name: '',
@@ -71,12 +73,14 @@ const sortboxList: Reducer<SortboxState, RootAction> = (
       loadPouchDB(sortboxDB, sortboxLoaded);
       return {
         ...state,
+        _loadingStatus: LoadingStatus.Loading,
       };
 
     case SORTBOX_LOADED:
       return {
         ...state,
         _sortboxList: action._data,
+        _loadingStatus: LoadingStatus.Loaded,
       };
 
     case SELECT_SORTBOX:

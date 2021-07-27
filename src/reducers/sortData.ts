@@ -33,6 +33,7 @@ import {
   RegisterSyncPouchDB,
   updateItemPouchDB,
 } from './poucbDBInterface';
+import { LoadingStatus } from './PouchDBStatus';
 
 function sortDataChangesDispatch(docs: any) {
   store.dispatch(sortDataChanges(docs));
@@ -45,6 +46,7 @@ function sortDataDeletedDispatch(docs: any) {
 let sortDataDB: PouchDB.Database;
 
 const INITIAL_STATE: SortDataState = {
+  _loadingStatus: LoadingStatus.Unknown,
   _sortData: {},
 };
 
@@ -63,12 +65,14 @@ const sortDataList: Reducer<SortDataState, RootAction> = (
       loadPouchDB(sortDataDB, sortDataLoaded);
       return {
         ...state,
+        _loadingStatus: LoadingStatus.Loading,
       };
 
     case SORTDATA_LOADED:
       return {
         ...state,
         _sortData: action._data,
+        _loadingStatus: LoadingStatus.Loaded,
       };
 
     case SELECT_SORTDATA:

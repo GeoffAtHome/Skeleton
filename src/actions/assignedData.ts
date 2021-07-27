@@ -9,6 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Action, ActionCreator } from 'redux';
+import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const ASSIGNED_DATA_LOAD = 'ASSIGNED_DATA_LOAD';
 export const ASSIGNED_DATA_LOADED = 'ASSIGNED_DATA_LOADED';
@@ -28,6 +29,7 @@ export interface AssignedData {
 }
 
 export interface AssignedDataState {
+  _loadingStatus: LoadingStatus;
   _assignedData: AssignedData;
 }
 export interface AssignedDataLoad extends Action<'ASSIGNED_DATA_LOAD'> {}

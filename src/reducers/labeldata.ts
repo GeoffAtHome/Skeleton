@@ -32,6 +32,7 @@ import {
   LabelData,
 } from '../actions/labeldata';
 import { RootAction, RootState, store } from '../store';
+import { LoadingStatus } from './PouchDBStatus';
 
 function LabelChangesDispatch(docs: any) {
   store.dispatch(labelChanges(docs));
@@ -44,6 +45,7 @@ function LabelDeletedDispatch(docs: any) {
 let LabelDB: PouchDB.Database;
 
 const INITIAL_STATE: LabelDataState = {
+  _loadingStatus: LoadingStatus.Unknown,
   _label: [],
   _newLabel: {
     text: '',
@@ -67,12 +69,14 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       return {
         ...state,
         _index: action._index,
+        _loadingStatus: LoadingStatus.Loading,
       };
 
     case LABELS_LOADED:
       return {
         ...state,
         _label: action._labels,
+        _loadingStatus: LoadingStatus.Loaded,
       };
 
     case EDIT_LABEL:

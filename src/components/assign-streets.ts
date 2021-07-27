@@ -42,7 +42,6 @@ import {
 import { PolygonData, polygonDataLoad } from '../actions/polygondata';
 import { roundDataLoad, roundDataUpdateRound } from '../actions/roundsdata';
 import { SortboxList, sortboxLoad } from '../actions/sortboxes';
-import { sortDataLoad } from '../actions/sortData';
 
 import { streetNames } from '../res/postcodeData';
 import { pathEditIcon } from './my-icons';
@@ -53,7 +52,6 @@ import { streetMapSelector } from '../reducers/streetmap';
 import polygonData, { polygonDataSelector } from '../reducers/polygondata';
 import assignedData, { assignedDataSelector } from '../reducers/assignedData';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
-import sortData, { sortDataSelector } from '../reducers/sortData';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
 import userData, { userDataSelector } from '../reducers/users';
 
@@ -63,9 +61,6 @@ if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({
     groupData,
   });
-}
-if (sortDataSelector(store.getState()) === undefined) {
-  store.addReducers({ sortData });
 }
 if (sortboxListSelector(store.getState()) === undefined) {
   store.addReducers({ sortboxList });
@@ -347,20 +342,16 @@ export class AssignStreets extends connect(store)(PageViewElement) {
             store.dispatch(notifyMessage('Loading: Group data'));
             store.dispatch(groupDataLoad(this.admin, this.groupId));
           } else {
-            store.dispatch(notifyMessage('Loading: Round data'));
-            store.dispatch(roundDataLoad(this.admin, this.groupId));
           }
 
           // Load the data required for this page
           if (admin === false && this.groupId !== '') {
             // assignedDataURL  | sortDataURL and sortBoxesURL
+            store.dispatch(notifyMessage('Loading: Round data'));
+            store.dispatch(roundDataLoad(this.admin, this.groupId));
             store.dispatch(notifyMessage('Loading: Sort boxes'));
             store.dispatch(sortboxLoad(this.groupId));
             store.dispatch(notifyMessage('Loading: Sort data'));
-            store.dispatch(sortDataLoad(this.groupId));
-            store.dispatch(notifyMessage('Loading: assignment data'));
-            store.dispatch(roundDataLoad());
-            store.dispatch(notifyMessage('Loading: Rounds data'));
           }
           store.dispatch(notifyMessage('Loading: polygon data'));
           store.dispatch(polygonDataLoad());
@@ -378,9 +369,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       }
 
       if (admin === false && this.groupId !== '') {
-        const sortDataState = sortDataSelector(state);
-        const sortData = sortDataState!._sortData;
-
         const sortBoxesState = sortboxListSelector(state);
         const sortBoxList = sortBoxesState!._sortboxList;
 
@@ -580,9 +568,7 @@ function clickedPolygon(el: CustomEvent) {
       store.dispatch(
         roundDataUpdateRound(
           detail,
-          {
-            key: selectedGroup._id.toString(),
-          },
+          selectedGroup._id.toString(),
           LAssignedData[detail].key
         )
       );

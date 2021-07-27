@@ -9,6 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Action, ActionCreator } from 'redux';
+import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const STREET_INFO_LOAD = 'STREET_INFO_LOAD';
 export const STREET_INFO_LOADED = 'STREET_INFO_LOADED';
@@ -30,6 +31,7 @@ export interface StreetInfoData {
 }
 
 export interface StreetInfoState {
+  _loadingStatus: LoadingStatus;
   _streetInfo: StreetInfoData;
 }
 

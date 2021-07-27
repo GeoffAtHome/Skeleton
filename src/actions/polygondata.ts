@@ -10,6 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import { Action, ActionCreator } from 'redux';
 import { MapPolygon } from '../components/polygons';
+import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const POLYGON_DATA_LOAD = 'POLYGON_DATA_LOAD';
 export const POLYGON_DATA_LOADED = 'POLYGON_DATA_LOADED';
@@ -37,6 +38,7 @@ export interface PolygonData {
 }
 
 export interface PolygonDataState {
+  _loadingStatus: LoadingStatus;
   _index: string;
   _changedIndex: string;
   _pos: [number, number];

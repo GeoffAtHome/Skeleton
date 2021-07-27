@@ -9,6 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Action, ActionCreator } from 'redux';
+import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const STREET_ID = 'STREET_ID';
 export const DATA_LOADED = 'DATA_LOADED';
@@ -43,6 +44,7 @@ district_sort_box – identifier for district sort box
 local_sort_box – identifier for local sort box */
 
 export interface IStreetMapState {
+  _loadingStatus: LoadingStatus;
   _streetInfo: StreetInfoData;
   _streets: Array<string>;
   _editPath: boolean;

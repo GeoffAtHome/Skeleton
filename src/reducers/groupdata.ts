@@ -34,6 +34,7 @@ import {
   RegisterSyncPouchDB,
   updateItemPouchDB,
 } from './poucbDBInterface';
+import { LoadingStatus } from './PouchDBStatus';
 
 function groupDataChangesDispatch(docs: any) {
   store.dispatch(groupDataChanges(docs));
@@ -46,6 +47,7 @@ function groupDataDeletedDispatch(docs: any) {
 let groupDataDB: PouchDB.Database;
 
 const INITIAL_STATE: GroupDataState = {
+  _loadingStatus: LoadingStatus.Unknown,
   _newGroup: {
     _id: '',
     name: '',
@@ -86,12 +88,14 @@ const groupData: Reducer<GroupDataState, RootAction> = (
       loadPouchDB(groupDataDB, groupDataLoaded);
       return {
         ...state,
+        _loadingStatus: LoadingStatus.Loading,
       };
 
     case GROUP_DATA_LOADED:
       return {
         ...state,
         _groupData: action._data,
+        _loadingStatus: LoadingStatus.Loaded,
       };
 
     case ADD_GROUP: {

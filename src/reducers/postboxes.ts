@@ -34,6 +34,7 @@ import {
   RegisterSyncPouchDB,
   updateItemPouchDB,
 } from './poucbDBInterface';
+import { LoadingStatus } from './PouchDBStatus';
 
 function postboxChangesDispatch(docs: any) {
   store.dispatch(postBoxChanges(docs));
@@ -54,6 +55,7 @@ const postboxDB = RegisterSyncPouchDB(
 const defaultPos = { lat: 51.50502153288204, lng: -3.240311294225257 };
 
 const INITIAL_STATE: IPostBoxState = {
+  _loadingStatus: LoadingStatus.Unknown,
   _newPostbox: {
     pos: defaultPos,
     description: {
@@ -77,12 +79,14 @@ const postBoxState: Reducer<IPostBoxState, RootAction> = (
       loadPouchDB(postboxDB, postBoxDataLoaded);
       return {
         ...state,
+        _loadingStatus: LoadingStatus.Loading,
       };
 
     case POSTBOX_DATA_LOADED:
       return {
         ...state,
         _data: { ...action._data },
+        _loadingStatus: LoadingStatus.Loaded,
       };
 
     case EDIT_POSTBOX:

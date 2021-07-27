@@ -10,6 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 import { Action, ActionCreator } from 'redux';
 import { LatLng } from '../components/polygons';
+import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const GET_LABEL = 'GET_LABEL';
 export const LABELS_LOADED = 'LABELS_LOADED';
@@ -34,6 +35,7 @@ export interface LabelData {
 }
 
 export interface LabelDataState {
+  _loadingStatus: LoadingStatus;
   _label: Array<ILabel>;
   _newLabel: ILabel;
   _editLabel: number;

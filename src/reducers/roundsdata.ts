@@ -35,6 +35,7 @@ import {
   RegisterSyncPouchDB,
   updateItemPouchDB,
 } from './poucbDBInterface';
+import { LoadingStatus } from './PouchDBStatus';
 
 function roundDataChangesDispatch(docs: any) {
   store.dispatch(roundDataChanges(docs));
@@ -47,6 +48,7 @@ function roundDataDeletedDispatch(docs: any) {
 let roundDataDB: PouchDB.Database;
 
 const INITIAL_STATE: RoundDataState = {
+  _loadingStatus: LoadingStatus.Unknown,
   _roundData: {},
 };
 
@@ -65,12 +67,14 @@ const roundData: Reducer<RoundDataState, RootAction> = (
       loadPouchDB(roundDataDB, roundDataLoaded);
       return {
         ...state,
+        _loadingStatus: LoadingStatus.Loading,
       };
 
     case ROUND_DATA_LOADED:
       return {
         ...state,
         _roundData: action._data,
+        _loadingStatus: LoadingStatus.Loaded,
       };
 
     case ROUND_DATA_UPDATE_ROUND:

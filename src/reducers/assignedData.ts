@@ -31,6 +31,7 @@ import {
   RegisterSyncPouchDB,
   updateItemPouchDB,
 } from './poucbDBInterface';
+import { LoadingStatus } from './PouchDBStatus';
 
 function assignedDataChangesDispatch(docs: any) {
   store.dispatch(assignedDataChanges(docs));
@@ -43,6 +44,7 @@ function assignedDataDeletedDispatch(docs: any) {
 let assignedDataDB: PouchDB.Database;
 
 const INITIAL_STATE: AssignedDataState = {
+  _loadingStatus: LoadingStatus.Unknown,
   _assignedData: {},
 };
 
@@ -61,12 +63,14 @@ const assignedData: Reducer<AssignedDataState, RootAction> = (
       loadPouchDB(assignedDataDB, assignedDataLoaded);
       return {
         ...state,
+        _loadingStatus: LoadingStatus.Loading,
       };
 
     case ASSIGNED_DATA_LOADED:
       return {
         ...state,
         _assignedData: action._data,
+        _loadingStatus: LoadingStatus.Loaded,
       };
 
     case ASSIGNED_DATA_UPDATE_GROUP:

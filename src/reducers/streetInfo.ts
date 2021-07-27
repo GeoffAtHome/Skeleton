@@ -33,6 +33,7 @@ import {
 } from '../actions/streetInfo';
 import { RootAction, RootState, store } from '../store';
 import { UsersItem } from '../actions/users';
+import { LoadingStatus } from './PouchDBStatus';
 
 function streetInfoChangesDispatch(docs: any) {
   store.dispatch(streetInfoChanges(docs));
@@ -45,6 +46,7 @@ function streetInfoDeletedDispatch(docs: any) {
 let streetInfoDB: PouchDB.Database;
 
 const INITIAL_STATE: StreetInfoState = {
+  _loadingStatus: LoadingStatus.Unknown,
   _streetInfo: {},
 };
 
@@ -73,12 +75,14 @@ const streetInfoData: Reducer<StreetInfoState, RootAction> = (
 
       return {
         ...state,
+        _loadingStatus: LoadingStatus.Loading,
       };
 
     case STREET_INFO_LOADED:
       return {
         ...state,
         _streetInfo: action._data,
+        _loadingStatus: LoadingStatus.Loaded,
       };
 
     case STREET_INFO_UPDATE: {
