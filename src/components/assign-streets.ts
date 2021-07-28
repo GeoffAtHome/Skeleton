@@ -40,7 +40,11 @@ import {
   groupDataLoad,
 } from '../actions/groupdata';
 import { PolygonData, polygonDataLoad } from '../actions/polygondata';
-import { roundDataLoad, roundDataUpdateRound } from '../actions/roundsdata';
+import {
+  RoundData,
+  roundDataLoad,
+  roundDataUpdateRound,
+} from '../actions/roundsdata';
 import { SortboxList, sortboxLoad } from '../actions/sortboxes';
 
 import { streetNames } from '../res/postcodeData';
@@ -96,6 +100,7 @@ import {
 } from '../actions/assignedData';
 import { EditMapData, MapPolygon } from './polygons';
 import { notifyMessage } from '../actions/app';
+import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 let LAssignedData: AssignedData = {};
 
@@ -121,6 +126,24 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
   @query('#map')
   private map: any;
+
+  @property({ type: Number })
+  private assignedDataLoading: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private groupDataLoading: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private roundDataLoading: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private sortboxLoading: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private polygonDataLoading: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private streetInfoLoading: LoadingStatus = LoadingStatus.Unknown;
 
   @property({ type: Array })
   private data: Array<PublicStreet> = [];
@@ -157,6 +180,15 @@ export class AssignStreets extends connect(store)(PageViewElement) {
     center: { lat: 51.50502153288204, lng: -3.240311294225257 },
     zoom: 10,
   };
+
+  @internalProperty()
+  private sortBoxList: SortboxList = {};
+
+  @internalProperty()
+  private assignedData: AssignedData = {};
+
+  @internalProperty()
+  private roundsData: RoundData = {};
 
   static get styles() {
     return [
@@ -301,6 +333,35 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       this.filterAll(true);
       this.showFilter();
     }
+
+    if (
+      changedProps.has('groupFilter') ||
+      changedProps.has('assignedDataLoading') ||
+      changedProps.has('groupDataLoading') ||
+      changedProps.has('roundDataLoading') ||
+      changedProps.has('roundsData') ||
+      changedProps.has('sortboxLoading') ||
+      changedProps.has('polygonDataLoading') ||
+      changedProps.has('streetInfoLoading')
+    ) {
+      if (this.admin === false && this.groupId !== '') {
+        LAssignedData = MergeData(
+          this.groupId,
+          this.roundsData,
+          this.assignedData,
+          this.sortBoxList
+        );
+      }
+      this.editMapData = MergePolygonData(
+        this.polygonData,
+        LAssignedData,
+        this.groupFilter,
+        this.groupData,
+        this.streetInfoData,
+        this.data
+      );
+    }
+
     if (changedProps.has('groupFilter')) {
       this.editMapData = MergePolygonData(
         this.polygonData,
@@ -366,44 +427,38 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       if (groupDataState) {
         selectedGroup = groupDataState!._newGroup;
         this.groupData = groupDataState!._groupData;
+        this.groupDataLoading = groupDataState!._loadingStatus;
       }
 
       if (admin === false && this.groupId !== '') {
         const sortBoxesState = sortboxListSelector(state);
-        const sortBoxList = sortBoxesState!._sortboxList;
+        const sortBoxList: SortboxList = sortBoxesState!._sortboxList;
+        this.sortboxLoading = sortBoxesState!._loadingStatus;
 
         const assignedDataState = assignedDataSelector(state);
-        const assignedData = assignedDataState!._assignedData;
+        this.assignedData = assignedDataState!._assignedData;
+        this.assignedDataLoading = assignedDataState!._loadingStatus;
 
         const roundsDataState = roundDataSelector(state);
-        const roundsData = roundsDataState!._roundData;
-
-        LAssignedData = MergeData(
-          this.groupId,
-          roundsData,
-          assignedData,
-          sortBoxList
-        );
+        this.roundsData = roundsDataState!._roundData;
+        this.roundDataLoading = roundsDataState!._loadingStatus;
       } else {
         const assignedDataState = assignedDataSelector(state);
+        this.assignedDataLoading = assignedDataState!._loadingStatus;
         LAssignedData = assignedDataState!._assignedData;
       }
 
       const polygonDataState = polygonDataSelector(state);
       if (polygonDataState) {
-        (this.polygonData = polygonDataState!._polygonData),
-          (this.editMapData = MergePolygonData(
-            this.polygonData,
-            LAssignedData,
-            this.groupFilter,
-            this.groupData,
-            this.streetInfoData,
-            this.data
-          ));
+        this.polygonDataLoading = polygonDataState._loadingStatus;
+        this.polygonData = polygonDataState._polygonData;
       }
 
       const streetMapState = streetMapSelector(state);
-      if (streetMapState) this.streetInfoData = streetMapState!._streetInfo;
+      if (streetMapState) {
+        this.streetInfoData = streetMapState._streetInfo;
+        this.streetInfoLoading = streetMapState._loadingStatus;
+      }
     }
   }
 

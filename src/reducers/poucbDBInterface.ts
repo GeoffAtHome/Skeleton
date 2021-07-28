@@ -4,6 +4,7 @@
 import { ActionCreator } from 'redux';
 import { store } from '../store';
 import 'pouchdb-authentication/dist/pouchdb.authentication';
+import { AsyncData, asyncPoll } from './async-poller';
 
 // We are lazy loading its reducer.
 import syncState, {
@@ -11,6 +12,7 @@ import syncState, {
   syncStateSelector,
 } from '../reducers/syncState';
 import { syncStateChange } from '../actions/syncState';
+import { doesElementContainFocus } from '@material/mwc-base/utils';
 
 if (syncStateSelector(store.getState()) === undefined) {
   store.addReducers({
@@ -31,6 +33,22 @@ interface databaseRegister {
 }
 
 const registeredDatabases: Array<databaseRegister> = [];
+let currentDB = 0;
+
+function getCurrentDatabase() {
+  if (registeredDatabases.length > 0) {
+    return registeredDatabases[currentDB];
+  }
+  return undefined;
+}
+function getNextDatabase() {
+  if (registeredDatabases.length > 0) {
+    currentDB += 1;
+    if (currentDB >= registeredDatabases.length) currentDB = 0;
+    return getCurrentDatabase();
+  }
+  return undefined;
+}
 
 function getRegisteredDatabase(name: string) {
   const db = registeredDatabases.find(e => e.name === name);
@@ -113,16 +131,21 @@ export async function updateItemPouchDB(
   id: string,
   item: any
 ) {
+  const newItem = item;
+  newItem._id = id;
   try {
-    const newItem = item;
     // Get revision
     const revItem = await db.get(id);
     newItem._rev = revItem._rev;
-    newItem._id = id;
     await db.put(newItem);
     await registerChange(db.name);
   } catch (err) {
-    pouchDBError(err);
+    if (err.status === 404) {
+      // Item does not exist so create a new one
+      createItemPouchDB(db, newItem);
+    } else {
+      pouchDBError(err);
+    }
   }
 }
 
@@ -215,7 +238,7 @@ function SyncOncePouchDB(
   localDB: PouchDB.Database,
   remoteDB: PouchDB.Database
 ) {
-  const options = { live: true, retry: true };
+  const options = { /* live: true, */ retry: true };
   const syncHandler: PouchDB.Replication.Sync<{}> = localDB
     .sync(remoteDB, options)
     .on('change', (info: any) => syncChange(info, localDB.name)) // handle change
@@ -234,6 +257,7 @@ export function LoadPouchDB(
 ) {
   localDB.replicate.from(remoteDB).on('complete', (_info: any) => {
     syncComplete(localDB.name, _info);
+    syncPausedCancel(localDB);
   });
 }
 
@@ -244,38 +268,6 @@ export function ReSyncPouchDB(name: string) {
     db.state = true;
     db.changed = false;
     db.active = false;
-  }
-}
-
-export function RegisterSyncPouchDB(
-  name: string,
-  rootURL: string,
-  changes: changeCallback,
-  deletes: changeCallback
-) {
-  try {
-    const db = getRegisteredDatabase(name);
-    return db.localDB;
-  } catch (err) {
-    const localDB = createPouchDB(name, {});
-    const remoteDB = createPouchDB(rootURL + name, {});
-
-    const db: databaseRegister = {
-      name,
-      localDB,
-      remoteDB,
-      changes,
-      deletes,
-      state: false,
-      active: false,
-      changed: false,
-    };
-
-    registeredDatabases.push(db);
-    LoadPouchDB(localDB, remoteDB);
-    ReSyncPouchDB(name);
-
-    return localDB;
   }
 }
 
@@ -329,7 +321,7 @@ export function SyncPouchDB(
   changes: changeCallback,
   deletes: changeCallback
 ) {
-  const options = { live: true, retry: true };
+  const options = { /* live: true, */ retry: true };
   localDB.replicate.from(remoteDB).on('complete', (_info: any) => {
     syncSyncComplete(localDB.name, _info);
     localDB
@@ -341,4 +333,57 @@ export function SyncPouchDB(
       .on('complete', (info: any) => syncSyncComplete(localDB.name, info)) // handle complete
       .on('error', (err: any) => syncSyncError(localDB.name, err)); // handle error
   });
+}
+
+export function syncNextDB() {
+  const thisCurrentDB = getCurrentDatabase();
+  if (thisCurrentDB !== undefined) {
+    // Stop syncing current database
+    const nextDB = getNextDatabase();
+
+    // Start syncing next database
+    if (nextDB !== undefined) {
+      console.log(`Calling sync once on ${nextDB.name}`);
+      SyncOncePouchDB(nextDB?.localDB, nextDB?.remoteDB);
+    }
+  }
+}
+
+let poller = 0;
+
+export function RegisterSyncPouchDB(
+  name: string,
+  rootURL: string,
+  changes: changeCallback,
+  deletes: changeCallback
+) {
+  try {
+    const db = getRegisteredDatabase(name);
+    return db.localDB;
+  } catch (err) {
+    const localDB = createPouchDB(name, {});
+    const remoteDB = createPouchDB(rootURL + name, {});
+
+    const db: databaseRegister = {
+      name,
+      localDB,
+      remoteDB,
+      changes,
+      deletes,
+      state: false,
+      active: false,
+      changed: false,
+    };
+
+    registeredDatabases.push(db);
+    LoadPouchDB(localDB, remoteDB);
+    ReSyncPouchDB(name);
+    if (poller === 0) {
+      // create the poller
+      poller = 1;
+      setInterval(syncNextDB, 500);
+    }
+
+    return localDB;
+  }
 }

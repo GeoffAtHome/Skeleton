@@ -77,21 +77,15 @@ const roundData: Reducer<RoundDataState, RootAction> = (
         _loadingStatus: LoadingStatus.Loaded,
       };
 
-    case ROUND_DATA_UPDATE_ROUND:
-      if (action._oldGroupKey !== '0')
-        updateItemPouchDB(roundDataDB, action._id, action._groupKey);
-      else {
-        const item = {
-          _id: action._id,
-          key: action._groupKey,
-          sortbox: '',
-        };
-
-        createItemPouchDB(roundDataDB, item);
-      }
+    case ROUND_DATA_UPDATE_ROUND: {
+      const updateList = { ...state._roundData };
+      updateList[action._id] = { _id: action._id, key: action._groupKey };
+      updateItemPouchDB(roundDataDB, action._id, { key: action._groupKey });
       return {
         ...state,
+        _roundData: updateList,
       };
+    }
 
     /* TODO: Should be in assigned?
     case ROUND_DATA_ROUND_UPDATED: {
