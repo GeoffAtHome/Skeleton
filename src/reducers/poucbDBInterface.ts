@@ -4,7 +4,6 @@
 import { ActionCreator } from 'redux';
 import { store } from '../store';
 import 'pouchdb-authentication/dist/pouchdb.authentication';
-import { AsyncData, asyncPoll } from './async-poller';
 
 // We are lazy loading its reducer.
 import syncState, {
@@ -12,7 +11,6 @@ import syncState, {
   syncStateSelector,
 } from '../reducers/syncState';
 import { syncStateChange } from '../actions/syncState';
-import { doesElementContainFocus } from '@material/mwc-base/utils';
 
 if (syncStateSelector(store.getState()) === undefined) {
   store.addReducers({
@@ -343,7 +341,6 @@ export function syncNextDB() {
 
     // Start syncing next database
     if (nextDB !== undefined) {
-      console.log(`Calling sync once on ${nextDB.name}`);
       SyncOncePouchDB(nextDB?.localDB, nextDB?.remoteDB);
     }
   }
