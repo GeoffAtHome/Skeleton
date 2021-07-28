@@ -3,8 +3,8 @@
 // ADMIN            | USER
 // assignedDataURL  | sortDataURL and sortBoxesURL
 // groupDataURL     | groupsURL
-
-export const rootURL = 'https://scoutpostadmin.soord.org.uk:6984/';
+// When changing URL don't forget to update certificates on web server and couchdb
+export const rootURL = 'https://postadmin.soord.org.uk:6984/';
 export const assignedDataURL = 'assigned'; // Each Postcode is assigned to a group
 export const groupDataURL = 'groupdata'; // List of groups
 export const labelsURL = 'labels';

@@ -64,6 +64,7 @@ import {
 } from '../actions/assigneddata';
 import { SortData, sortDataLoad } from '../actions/sortData';
 import { RoundData, roundDataLoad } from '../actions/roundsdata';
+import { notifyMessage } from '../actions/app';
 
 interface GridData {
   name: string;
@@ -337,7 +338,7 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
   protected firstUpdated(_changedProperties: any) {
     store.dispatch(streetInfoLoad());
     store.dispatch(assignedDataLoad());
-    // this.mergeTheData(this.assignedData, this.streetInfoData);
+    this.mergeTheData(this.assignedData, this.streetInfoData);
   }
 
   private getRoundDataSize(key: string) {
@@ -405,10 +406,14 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
         ) {
           this.admin = usersState._newUser.claims.administrator;
           this.groupId = usersState._newUser.claims.group;
+
           if (!(this.admin === false && this.groupId === '')) {
+            store.dispatch(notifyMessage('Loading: Group data'));
             store.dispatch(groupDataLoad(this.admin, this.groupId));
+            store.dispatch(notifyMessage('Loading: Rounds data'));
             store.dispatch(roundDataLoad(this.admin, this.groupId));
-            store.dispatch(sortDataLoad(this.admin, this.groupId));
+            store.dispatch(notifyMessage('Loading: Sort data'));
+            store.dispatch(sortDataLoad(this.groupId));
           }
           // Load the data required for this page
           store.dispatch(streetInfoLoad());
@@ -509,24 +514,28 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
     gridData: GridData[]
   ) {
     if (Object.keys(this.roundData).length !== 0) {
-      const index = item.key === undefined ? 0 : item.key;
+      try {
+        const index = item.key === undefined ? 0 : item.key;
 
-      const thisItem: GridData = {
-        round: item.key,
-        colour: this.roundData[index]!.colour,
-        name,
-        pc,
-        sb: item.sortbox,
-      };
+        const thisItem: GridData = {
+          round: item.key,
+          colour: this.roundData[index]!.colour,
+          name,
+          pc,
+          sb: item.sortbox,
+        };
 
-      if (streetInfo !== undefined) {
-        thisItem.firstHouse = streetInfo.firstHouse.toString();
-        thisItem.lastHouse = streetInfo.lastHouse.toString();
-        thisItem.notes = streetInfo.notes;
-        thisItem.streetOrder = streetInfo.streetOrder;
-        thisItem.numberOfProperties = streetInfo.numberOfProperties;
+        if (streetInfo !== undefined) {
+          thisItem.firstHouse = streetInfo.firstHouse.toString();
+          thisItem.lastHouse = streetInfo.lastHouse.toString();
+          thisItem.notes = streetInfo.notes;
+          thisItem.streetOrder = streetInfo.streetOrder;
+          thisItem.numberOfProperties = streetInfo.numberOfProperties;
+        }
+        gridData.push(thisItem);
+      } catch (err) {
+        console.log(err);
       }
-      gridData.push(thisItem);
     }
   }
 }

@@ -190,6 +190,9 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   @internalProperty()
   private roundsData: RoundData = {};
 
+  @internalProperty()
+  private lastSyncState: string = '';
+
   static get styles() {
     return [
       SharedStyles,
