@@ -100,6 +100,53 @@ if (roundDataSelector(store.getState()) === undefined) {
   store.addReducers({ roundData });
 }
 
+function getRoundDataSize(gridData: GridData[], key: string) {
+  const data = gridData.filter(item => {
+    return item.round === key;
+  });
+  return data.length;
+}
+
+function getRoundData(gridData: GridData[], key: string) {
+  const data = gridData.filter(item => {
+    return item.round === key;
+  });
+  // Strip postcode and town from item
+  const shortData: Array<{ name: string; sb: string | undefined }> = [];
+
+  data.map(item => {
+    const rx = `, ${item.pc}`;
+    // Remove Postcode
+    const items = item.name.replace(rx, '').split(',');
+    const { sb } = item;
+    // Strip Town
+    items.pop();
+    shortData.push({ name: items.join(', '), sb });
+
+    return item;
+  });
+  // data.name is now a list of streets without postcode or town.
+  const uniqueStreets = [
+    ...new Set(shortData.map(item => `${item.name}:${item.sb}`)),
+  ];
+  const streets: Array<{ name: string; sb: string }> = [];
+  uniqueStreets.map(street => {
+    const [name, sb] = street.split(':');
+    streets.push({ name, sb });
+    return street;
+  });
+
+  return streets.sort((left, right) => compareStreet(left.name, right.name));
+}
+
+function getPostcodes(gridData: GridData[], key: string) {
+  const data = gridData.filter(item => {
+    return item.round === key;
+  });
+  const uniquePostcodes = [...new Set(data.map(item => item.pc))];
+  return uniquePostcodes.sort(compareStreet).join(', ');
+}
+
 function MergeAssignedData(
   groupId: string,
   lRoundsData: AssignedData,
@@ -162,6 +209,9 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
 
   @property({ type: Object })
   private sortData: SortData = {};
+
+  @property({ type: Object })
+  private cRoundData: RoundData = {};
 
   @property({ type: Boolean })
   private printing: boolean = false;
@@ -276,7 +326,7 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
       ${this.printing !== true
         ? html` <div class="cards">
             ${Object.entries(this.roundData).map(([key, round]) =>
-              this.getRoundDataSize(key) > 0
+              getRoundDataSize(this.gridData, key) > 0
                 ? html` <div class="sb">
                     <header
                       style="--cl: ${round.colour}; --tx: ${getTextColor(
@@ -287,7 +337,7 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
                       <div class="ar">${key}</div>
                     </header>
                     <main>
-                      ${this.getRoundData(key).map(
+                      ${getRoundData(this.gridData, key).map(
                         item => html`
                           <div class="row">
                             <div class="al">${item.name}</div>
@@ -295,7 +345,7 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
                           </div>
                         `
                       )}
-                      <p>${this.getPostcodes(key)}</p>
+                      <p>${getPostcodes(this.gridData, key)}</p>
                     </main>
                     <footer class="end">${round.notes}</footer>
                   </div>`
@@ -305,18 +355,14 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
         : html`
             <div class="cards">
               ${Object.entries(this.roundData).map(([key, round]) =>
-                this.getRoundDataSize(key) > 0
+                getRoundDataSize(this.gridData, key) > 0
                   ? html` <div class="sb">
-                      <header
-                        style="--cl: ${round.colour}; --tx: ${getTextColor(
-                          round.colour
-                        )}"
-                      >
+                      <header>
                         <span class="al">${round.name}</span>
                         <span class="ar">${key}</span>
                       </header>
                       <main>
-                        ${this.getRoundData(key).map(
+                        ${getRoundData(this.gridData, key).map(
                           item => html`
                             <div class="row">
                               <div class="al">${item.name}</div>
@@ -324,7 +370,7 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
                             </div>
                           `
                         )}
-                        <p>${this.getPostcodes(key)}</p>
+                        <p>${getPostcodes(this.gridData, key)}</p>
                       </main>
                       <footer>NOTES: ${round.notes}</footer>
                     </div>`
@@ -335,54 +381,30 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
     `;
   }
 
-  protected firstUpdated(_changedProperties: any) {
-    store.dispatch(streetInfoLoad());
-    store.dispatch(assignedDataLoad());
-    this.mergeTheData(this.assignedData, this.streetInfoData);
-  }
+  updated(changedProps: PropertyValues) {
+    if (
+      changedProps.has('streetInfoData') ||
+      changedProps.has('roundData') ||
+      changedProps.has('assignedData') ||
+      changedProps.has('cRoundData') ||
+      changedProps.has('sortData')
+    ) {
+      if (
+        Object.keys(this.streetInfoData).length !== 0 &&
+        Object.keys(this.roundData).length !== 0 &&
+        Object.keys(this.assignedData).length !== 0 &&
+        Object.keys(this.cRoundData).length !== 0
+      ) {
+        const assignedMergedData = MergeAssignedData(
+          this.groupId,
+          this.cRoundData,
+          this.assignedData,
+          this.sortData
+        );
 
-  private getRoundDataSize(key: string) {
-    const data = this.gridData.filter(item => {
-      return item.round === key;
-    });
-    return data.length;
-  }
-
-  private getRoundData(key: string) {
-    const data = this.gridData.filter(item => {
-      return item.round === key;
-    });
-    // Strip postcode and town from item
-    data.map(item => {
-      const rx = `, ${item.pc}`;
-      // Remove Postcode
-      const items = item.name.replace(rx, '').split(',');
-      const newItem = item;
-      // Strip Town
-      items.pop();
-      newItem.name = items.join(', ');
-      return newItem;
-    });
-    // data.name is now a list of streets without postcode or town.
-    const uniqueStreets = [
-      ...new Set(data.map(item => `${item.name}:${item.sb}`)),
-    ];
-    const streets: Array<{ name: string; sb: string }> = [];
-    uniqueStreets.map(street => {
-      const [name, sb] = street.split(':');
-      streets.push({ name, sb });
-      return street;
-    });
-
-    return streets.sort((left, right) => compareStreet(left.name, right.name));
-  }
-
-  private getPostcodes(key: string) {
-    const data = this.gridData.filter(item => {
-      return item.round === key;
-    });
-    const uniquePostcodes = [...new Set(data.map(item => item.pc))];
-    return uniquePostcodes.sort(compareStreet).join(', ');
+        this.mergeTheData(assignedMergedData, this.streetInfoData);
+      }
+    }
   }
 
   stateChanged(state: RootState) {
@@ -431,27 +453,10 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
       this.assignedData = assignedDataState!._assignedData;
 
       const roundDataState = roundDataSelector(state);
-      const cRoundData = roundDataState!._roundData;
+      this.cRoundData = roundDataState!._roundData;
 
       const sortDataState = sortDataSelector(state);
       this.sortData = sortDataState!._sortData;
-
-      if (
-        Object.keys(this.streetInfoData).length !== 0 &&
-        Object.keys(this.roundData).length !== 0 &&
-        Object.keys(this.assignedData).length !== 0 &&
-        Object.keys(cRoundData).length !== 0 &&
-        Object.keys(this.sortData).length !== 0
-      ) {
-        const assignedMergedData = MergeAssignedData(
-          this.groupId,
-          cRoundData,
-          this.assignedData,
-          this.sortData
-        );
-
-        this.mergeTheData(assignedMergedData, this.streetInfoData);
-      }
     }
   }
 
