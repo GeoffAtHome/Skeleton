@@ -50,13 +50,53 @@ function _logOutButtonClicked() {
 function getTitle(page: string) {
   let title = '';
 
-  switch (page.toLowerCase()) {
+  switch (page) {
     default:
     case 'welcome':
-      title = 'Scout Badge Requirements';
+      title = 'Cardiff and Vale Scout Post Admin';
       break;
     case 'todo':
       title = 'ToDo List';
+      break;
+
+    case 'assignStreets':
+      title = 'Assign Streets';
+      break;
+
+    case 'sortBoxAdmin':
+      title = 'Sort Box Admin';
+      break;
+
+    case 'assignSortBox':
+      title = 'Assign Sort Box';
+      break;
+
+    case 'sortBoxes':
+      title = 'Sort Boxes';
+      break;
+
+    case 'whereWeDeliverEdit':
+      title = 'where We Deliver Edit';
+      break;
+
+    case 'postBoxView':
+      title = 'Post Box View';
+      break;
+
+    case 'editPostBoxView':
+      title = 'Edit Post Box View';
+      break;
+
+    case 'groupAdmin':
+      title = 'Group Admin';
+      break;
+
+    case 'userLogin':
+      title = 'User Login';
+      break;
+
+    case 'rounds':
+      title = 'Rounds';
       break;
   }
   return title;
@@ -326,7 +366,7 @@ export class MyApp extends connect(store)(LitElement) {
                     ></round-boxes>
                     <assign-streets
                       class="page"
-                      ?active="${this._page === 'assignstreets'}"
+                      ?active="${this._page === 'assignStreets'}"
                     ></assign-streets>
                     <sortbox-admin
                       class="page"

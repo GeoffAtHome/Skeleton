@@ -384,7 +384,7 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       }
     }
 
-    if (state.app!.page === 'assignstreets') {
+    if (state.app!.page === 'assignStreets') {
       const usersState = userDataSelector(state);
       if (usersState) {
         if (
