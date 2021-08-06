@@ -8,15 +8,7 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-import {
-  html,
-  property,
-  query,
-  customElement,
-  css,
-  PropertyValues,
-  internalProperty,
-} from 'lit-element';
+import { html, property, query, customElement, css } from 'lit-element';
 
 // These are the elements needed by this element.
 import { connect } from 'pwa-helpers/connect-mixin';
@@ -31,56 +23,50 @@ import '@material/mwc-button';
 import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
 
+import { labelIcon } from './my-icons';
+
 // This element is connected to the Redux store.
 import { store, RootState } from '../store';
 
-// These are the actions needed by this element.
 import {
-  groupDataAddGroup,
-  groupDataDeleteGroup,
-  groupDataUpdateGroup,
-  GroupData,
-  GroupDataItem,
-  groupDataLoad,
-} from '../actions/groupdata';
-
-// We are lazy loading its reducer.
-import groupData, { groupDataSelector } from '../reducers/groupdata';
+  SortboxItem,
+  sortboxUpdate,
+  sortboxAdd,
+  SortboxList,
+  sortboxLoad,
+  sortboxDelete,
+} from '../actions/sortboxes';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
-
-import { labelIcon } from './my-icons';
 import { notifyMessage } from '../actions/app';
 import { userDataSelector } from '../reducers/users';
-import { roundDataLoad } from '../actions/roundsdata';
+import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
+import { LoadingStatus } from '../reducers/PouchDBStatus';
 
-if (groupDataSelector(store.getState()) === undefined) {
-  store.addReducers({ groupData });
+if (sortboxListSelector(store.getState()) === undefined) {
+  store.addReducers({ sortboxList });
 }
 
-@customElement('group-admin')
-export class GroupAdmin extends connect(store)(PageViewElement) {
-  @query('#editGroup')
+@customElement('sortbox-admin')
+export class SortboxAdmin extends connect(store)(PageViewElement) {
+  @query('#editSortBox')
   private dialog: any;
 
   @query('#addUpdate')
   private addUpdate: any;
 
-  @property({ type: String })
-  private groupId: string = '';
-
-  @property({ type: Boolean })
-  private admin = false;
-
   @property({ type: Object })
-  private newGroup: GroupDataItem = {
+  private newSortbox: SortboxItem = {
     _id: '',
     name: '',
     notes: '',
     contactDetails: '',
     colour: '',
   };
+
+  @property({ type: Object })
+  private sortboxList: SortboxList = {};
 
   @query('#id')
   private editID: any;
@@ -101,10 +87,19 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
   private grid: any;
 
   @property({ type: String })
+  private _page = '';
+
+  @property({ type: String })
   private _id = '';
 
-  @internalProperty()
-  private groupData: GroupData = {};
+  @property({ type: Boolean })
+  private admin: boolean = true;
+
+  @property({ type: String })
+  private groupId = '';
+
+  @property({ type: Number })
+  private sortboxLoading: LoadingStatus = LoadingStatus.Unknown;
 
   static get styles() {
     return [
@@ -116,7 +111,7 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
           height: 100%;
         }
 
-        #addGroup {
+        #addSortBox {
           position: absolute;
           fill: white;
           bottom: 15px;
@@ -141,7 +136,7 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
-      <mwc-dialog id="editGroup" heading="Group">
+      <mwc-dialog id="editSortBox" heading="Sort boxes">
         <div>
           <div>
             <mwc-textfield
@@ -199,7 +194,7 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
           >Close</mwc-button
         >
       </mwc-dialog>
-      <mwc-button id="addGroup" raised @click="${this.addGroup}"
+      <mwc-button id="addSortBox" raised @click="${this.addSortbox}"
         >${labelIcon}</mwc-button
       >
 
@@ -208,8 +203,8 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
         theme="row-dividers"
         column-reordering-allowed
         multi-sort
-        aria-label="Groups"
-        .items="${Object.entries(this.groupData)
+        aria-label="sort boxes"
+        .items="${Object.entries(this.sortboxList)
           .sort(([a], [b]) => {
             return Number(a) - Number(b);
           })
@@ -218,7 +213,7 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
             item._id = k;
             return item;
           })}"
-        @click="${this._groupSelected}"
+        @click="${this._sortboxSelected}"
         active-item="[[activeItem]]"
       >
         <vaadin-grid-filter-column
@@ -265,10 +260,8 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
   }
 
   stateChanged(state: RootState) {
-    if (state.app?.page === 'groupAdmin') {
-      const groupDataState = groupDataSelector(state);
-      this.groupData = { ...groupDataState!._groupData };
-
+    this._page = state.app!.page;
+    if (this._page === 'sortBoxAdmin') {
       const usersState = userDataSelector(state);
       if (usersState) {
         if (
@@ -277,24 +270,28 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
         ) {
           this.admin = usersState._newUser.claims.administrator;
           this.groupId = usersState._newUser.claims.group;
+
           if (!(this.admin === false && this.groupId === '')) {
-            store.dispatch(groupDataLoad(this.admin, this.groupId));
-          } else {
-            store.dispatch(roundDataLoad(this.admin, this.groupId));
+            store.dispatch(notifyMessage('Loading: Sort boxes'));
+            store.dispatch(sortboxLoad(this.groupId));
           }
         }
       }
+
+      const sortBoxesState = sortboxListSelector(state);
+      this.sortboxList = sortBoxesState!._sortboxList;
+      this.sortboxLoading = sortBoxesState!._loadingStatus;
     }
   }
 
-  _groupSelected(_el: Event) {
+  _sortboxSelected(_el: Event) {
     if (this.grid.activeItem._id !== undefined) {
-      this.newGroup = this.grid.activeItem;
-      if (Number(this.newGroup._id) !== 0) {
+      this.newSortbox = this.grid.activeItem;
+      if (Number(this.newSortbox._id) !== 0) {
         this.grid.activeItem = {};
         this.addUpdate.textContent = 'Update';
         this.editID.setAttribute('readonly', '');
-        this.showEditLabelDialog('Update', this.newGroup);
+        this.showEditLabelDialog('Update', this.newSortbox);
       } else {
         store.dispatch(
           notifyMessage('ID zero is reserved and cannot be modified.')
@@ -303,8 +300,8 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
     }
   }
 
-  private addGroup(_el: Event) {
-    this.newGroup = {
+  private addSortbox(_el: Event) {
+    this.newSortbox = {
       _id: '',
       name: '',
       notes: '',
@@ -313,46 +310,29 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
     };
     this.addUpdate.textContent = 'Add';
     this.editID.removeAttribute('readonly');
-    this.showEditLabelDialog('Add', this.newGroup);
+    this.showEditLabelDialog('Add', this.newSortbox);
   }
 
   private close(_el: any) {
     return this.dialog.close();
   }
 
-  private getItems() {
-    Object.entries(this.groupData)
-      .sort(([a], [b]) => {
-        return Number(a) - Number(b);
-      })
-      .map(([k, x]) => {
-        const item = x;
-        item._id = k;
-        return item;
-      });
-  }
-
-  private showEditLabelDialog(title: string, groupItem: GroupDataItem) {
-    let fullTitle = '';
-    if (this.groupId === '') {
-      fullTitle = `${title} Group`;
-    } else {
-      fullTitle = `${title} Round`;
-    }
+  private showEditLabelDialog(title: string, sortboxItem: SortboxItem) {
+    const fullTitle = `${title} Sortbox`;
     this.dialog.setAttribute('heading', fullTitle);
-    this.editID.value = groupItem._id;
-    this.editName.value = groupItem.name;
+    this.editID.value = sortboxItem._id;
+    this.editName.value = sortboxItem.name;
 
-    this.editColour.value = groupItem.colour;
+    this.editColour.value = sortboxItem.colour;
 
-    this.editNotes.value = groupItem.notes;
-    this.editContactDetails.value = groupItem.contactDetails;
-    this._id = groupItem._id;
+    this.editNotes.value = sortboxItem.notes;
+    this.editContactDetails.value = sortboxItem.contactDetails;
+    this._id = sortboxItem._id;
     this.dialog.show();
   }
 
   private checkIfAlreadyAdded(id: string) {
-    const result = this.groupData[id];
+    const result = this.sortboxList[id];
     return result !== undefined;
   }
 
@@ -364,17 +344,18 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
         (this.addUpdate.textContent === 'Add' &&
           !this.checkIfAlreadyAdded(this.editID.value))
       ) {
-        this.newGroup._id = this.editID.value;
-        this.newGroup.name = this.editName.value;
-        this.newGroup.colour = this.editColour.value;
-        this.newGroup.notes = this.editNotes.value;
-        this.newGroup.contactDetails = this.editContactDetails.value;
+        this.newSortbox._id = this.editID.value;
+        this.newSortbox.name = this.editName.value;
+        this.newSortbox.colour = this.editColour.value;
+        this.newSortbox.notes = this.editNotes.value;
+        this.newSortbox.contactDetails = this.editContactDetails.value;
         this.dialog.close();
 
+        this.sortboxList = {};
         if (this.addUpdate.textContent === 'Add') {
-          store.dispatch(groupDataAddGroup(this.newGroup));
+          store.dispatch(sortboxAdd(this.newSortbox));
         } else {
-          store.dispatch(groupDataUpdateGroup(this.newGroup));
+          store.dispatch(sortboxUpdate(this.newSortbox));
         }
       } else {
         // Let the user know this ID is already taken
@@ -387,6 +368,7 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
 
   private deleteLabel() {
     this.dialog.close();
-    store.dispatch(groupDataDeleteGroup(this.newGroup));
+    this.sortboxList = {};
+    store.dispatch(sortboxDelete(this.newSortbox));
   }
 }

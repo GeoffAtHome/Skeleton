@@ -63,4 +63,8 @@ export const SharedStyles = css`
     font-size: 30px;
     line-height: 64px;
   }
+
+  #grid {
+    height: 92vh;
+  }
 `;

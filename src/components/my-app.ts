@@ -234,14 +234,32 @@ export class MyApp extends connect(store)(LitElement) {
                     ${this._admin ? html`Group admin` : html`Round admin`}
                   </a>
                   <a
-                    ?selected="${this._page === 'assignstreets'}"
-                    href="/#assignstreets"
+                    ?selected="${this._page === 'assignStreets'}"
+                    href="/#assignStreets"
                   >
                     ${this._admin ? html`Assign streets` : html`Assign rounds`}
                   </a>
 
                   <a ?selected="${this._page === 'rounds'}" href="/#rounds"
                     >Rounds</a
+                  >
+                  <a
+                    ?selected="${this._page === 'sortBoxAdmin'}"
+                    href="/#sortBoxAdmin"
+                    >Sort box admin</a
+                  >
+                  <a
+                    ?selected="${this._page === 'assignSortBox'}"
+                    href="/#assignSortBox"
+                    >Assign sort box</a
+                  >
+                  <a ?selected="${this._page === 'sortBoxes'}" href="/sortBoxes"
+                    >Sort boxes</a
+                  >
+                  <a
+                    ?selected="${this._page === 'whereWeDeliverEdit'}"
+                    href="/#whereWeDeliverEdit"
+                    >Edit map</a
                   >
                 `
               : html``}
@@ -310,6 +328,10 @@ export class MyApp extends connect(store)(LitElement) {
                       class="page"
                       ?active="${this._page === 'assignstreets'}"
                     ></assign-streets>
+                    <sortbox-admin
+                      class="page"
+                      ?active="${this._page === 'sortBoxAdmin'}"
+                    ></sortbox-admin>
                   `
                 : html``}
               <my-view404

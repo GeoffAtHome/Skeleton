@@ -66,9 +66,6 @@ if (groupDataSelector(store.getState()) === undefined) {
     groupData,
   });
 }
-if (sortboxListSelector(store.getState()) === undefined) {
-  store.addReducers({ sortboxList });
-}
 if (polygonDataSelector(store.getState()) === undefined) {
   store.addReducers({ polygonData });
 }
@@ -137,9 +134,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   private roundDataLoading: LoadingStatus = LoadingStatus.Unknown;
 
   @property({ type: Number })
-  private sortboxLoading: LoadingStatus = LoadingStatus.Unknown;
-
-  @property({ type: Number })
   private polygonDataLoading: LoadingStatus = LoadingStatus.Unknown;
 
   @property({ type: Number })
@@ -153,6 +147,9 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
   @property({ type: Boolean })
   private admin: boolean = true;
+
+  @property({ type: String })
+  private groupId = '';
 
   @property({ type: Object })
   private groupData: GroupData = {};
@@ -171,9 +168,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
   @property({ type: Object })
   private polygonData: PolygonData = {};
-
-  @property({ type: String })
-  private groupId = '';
 
   @internalProperty()
   private _mapOptions = {
@@ -343,7 +337,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       changedProps.has('groupDataLoading') ||
       changedProps.has('roundDataLoading') ||
       changedProps.has('roundsData') ||
-      changedProps.has('sortboxLoading') ||
       changedProps.has('polygonDataLoading') ||
       changedProps.has('streetInfoLoading')
     ) {
@@ -415,7 +408,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
             store.dispatch(roundDataLoad(this.admin, this.groupId));
             store.dispatch(notifyMessage('Loading: Sort boxes'));
             store.dispatch(sortboxLoad(this.groupId));
-            store.dispatch(notifyMessage('Loading: Sort data'));
           }
           store.dispatch(notifyMessage('Loading: polygon data'));
           store.dispatch(polygonDataLoad());
@@ -434,10 +426,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       }
 
       if (admin === false && this.groupId !== '') {
-        const sortBoxesState = sortboxListSelector(state);
-        const sortBoxList: SortboxList = sortBoxesState!._sortboxList;
-        this.sortboxLoading = sortBoxesState!._loadingStatus;
-
         const assignedDataState = assignedDataSelector(state);
         this.assignedData = assignedDataState!._assignedData;
         this.assignedDataLoading = assignedDataState!._loadingStatus;

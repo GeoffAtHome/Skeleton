@@ -73,8 +73,24 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
       import('../components/todo-list');
       break;
 
-    case 'assignstreets':
+    case 'assignStreets':
       import('../components/assign-streets');
+      break;
+
+    case 'sortBoxAdmin':
+      import('../components/sortbox-admin');
+      break;
+
+    case 'assignSortBox':
+      // import('../components/assign-sort-box');
+      break;
+
+    case 'sortBoxes':
+      // import('../components/sort-boxes');
+      break;
+
+    case 'whereWeDeliverEdit':
+      // import('../components/where-we-deliver-edit');
       break;
 
     case 'postBoxView':
