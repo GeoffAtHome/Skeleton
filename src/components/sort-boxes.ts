@@ -8,7 +8,6 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-/*
 import {
   html,
   property,
@@ -16,24 +15,59 @@ import {
   customElement,
   css,
   PropertyValues,
-} from "lit-element";
-import { PageViewElement } from "../../../utils/page-view-element";
-import { connect } from "pwa-helpers/connect-mixin";
+} from 'lit-element';
+import { connect } from 'pwa-helpers/connect-mixin';
+import { PageViewElement } from './page-view-element';
 
-import "@vaadin/vaadin-grid/vaadin-grid";
-import "@vaadin/vaadin-grid/vaadin-grid-selection-column";
-import "@vaadin/vaadin-grid/vaadin-grid-filter-column";
-import "@vaadin/vaadin-grid/vaadin-grid-sorter";
-import "@material/mwc-select";
-import "@material/mwc-list/mwc-list-item";
+import '@vaadin/vaadin-grid/vaadin-grid';
+import '@vaadin/vaadin-grid/vaadin-grid-selection-column';
+import '@vaadin/vaadin-grid/vaadin-grid-filter-column';
+import '@vaadin/vaadin-grid/vaadin-grid-sorter';
+import '@material/mwc-select';
+import '@material/mwc-list/mwc-list-item';
 
 // This element is connected to the Redux store.
-import { store, RootState } from "../store";
-import { streetNameCompare, compareStreet } from "../../../utils/sorting";
-import { getTextColor } from "../../../utils/getTextColour";
+import { store, RootState } from '../store';
+import { streetNameCompare, compareStreet } from './sorting';
+import { getTextColor } from './getTextColour';
 
 // These are the actions needed by this element.
-import { StreetInfoData, StreetInfoItem } from "../actions/streetmap";
+import {
+  StreetInfoData,
+  StreetInfoItem,
+  streetMapDataLoad,
+} from '../actions/streetmap';
+
+// These are the actions needed by this element.
+import { streetNames } from '../res/postcodeData';
+import { SortboxList, sortboxLoad } from '../actions/sortboxes';
+import { notifyMessage } from '../actions/app';
+import { SortData, SortDataItem, sortDataLoad } from '../actions/sortData';
+
+// We are lazy loading its reducer.
+import streetmap, { streetMapSelector } from '../reducers/streetmap';
+import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
+import sortDataList, { sortDataSelector } from '../reducers/sortData';
+import { userDataSelector } from '../reducers/users';
+
+// These are the shared styles needed by this element.
+import { SharedStyles } from './shared-styles';
+import {
+  PublicStreetData,
+  AllowedViews,
+  PublicStreet,
+  getNames,
+} from '../actions/publicstreet';
+
+if (sortDataSelector(store.getState()) === undefined) {
+  store.addReducers({ sortDataList });
+}
+if (sortboxListSelector(store.getState()) === undefined) {
+  store.addReducers({ sortboxList });
+}
+if (streetMapSelector(store.getState()) === undefined) {
+  store.addReducers({ streetmap });
+}
 
 interface GridData {
   name: string;
@@ -48,58 +82,31 @@ interface GridData {
   sb?: string;
 }
 
-// We are lazy loading its reducer.
-import streetmap, { streetMapSelector } from "../reducers/streetmap";
-if (streetMapSelector(store.getState()) === undefined) {
-  store.addReducers({ streetmap });
-}
-
-// These are the actions needed by this element.
-import {
-  AssignedData,
-  AssignedDataItem,
-  SortboxData,
-} from "../actions/groupdata";
-
-// We are lazy loading its reducer.
-import groupdata, { groupdataSelector } from "../reducers/groupdata";
-if (groupdataSelector(store.getState()) === undefined) {
-  store.addReducers({ groupdata });
-}
-
-// These are the shared styles needed by this element.
-import { SharedStyles } from "../../../utils/shared-styles";
-import {
-  PublicStreetData,
-  AllowedViews,
-  PublicStreet,
-} from "../actions/publicstreet";
-
-@customElement("sort-boxes")
+@customElement('sort-boxes')
 export class SortBoxes extends connect(store)(PageViewElement) {
-  @property({ type: Object })
-  private data: PublicStreetData | null = null;
-
   @property({ type: Array })
-  private griddata: Array<GridData> = [];
-
-  @property({ type: Boolean, reflect: true })
-  private drawopened: boolean = false;
+  private gridData: Array<GridData> = [];
 
   @property({ type: Object })
   private streetInfoData: StreetInfoData = {};
 
-  @query("#grid")
+  @query('#grid')
   private grid: any;
 
   @property({ type: Object })
-  private sortboxData: SortboxData = {};
+  private sortboxData: SortboxList = {};
 
   @property({ type: Object })
-  private assignedData: AssignedData = {};
+  private sortDataList: SortData = {};
 
   @property({ type: Boolean })
   private printing: boolean = false;
+
+  @property({ type: Boolean })
+  private admin: boolean = true;
+
+  @property({ type: String })
+  private groupId = '';
 
   static get styles() {
     return [
@@ -134,8 +141,8 @@ export class SortBoxes extends connect(store)(PageViewElement) {
         }
 
         .sb {
-          flex: 1 1 600px; /*  Stretching: */ /*
-          flex: 0 1 600px; /*  No stretching: */ /*
+          flex: 1 1 600px; /*  Stretching: */
+          flex: 0 1 600px; /*  No stretching: */
           display: grid;
           grid-template-rows: auto 1fr auto;
         }
@@ -206,20 +213,20 @@ export class SortBoxes extends connect(store)(PageViewElement) {
     return html`
       ${this.printing !== true
         ? html` <div class="cards">
-            ${Object.entries(this.sortboxData).map(([key, sortbox]) =>
+            ${Object.entries(this.sortboxData).map(([key, sortBox]) =>
               this.getSortboxDataSize(key) > 0
                 ? html` <div class="sb">
                     <header
-                      style="--cl: ${sortbox.colour}; --tx: ${getTextColor(
-                        sortbox.colour
+                      style="--cl: ${sortBox.colour}; --tx: ${getTextColor(
+                        sortBox.colour
                       )}"
                     >
-                      <span class="al">${sortbox.name}</span>
+                      <span class="al">${sortBox.name}</span>
                       <span class="ar">${key}</span>
                     </header>
                     <main>
                       ${this.getSortboxData(key).map(
-                        (item) => html`
+                        item => html`
                           <div class="row">
                             <span class="al">${item.name}</span>
                             <span class="ar it">${item.round}</span>
@@ -228,27 +235,27 @@ export class SortBoxes extends connect(store)(PageViewElement) {
                       )}
                       <p>${this.getPostcodes(key)}</p>
                     </main>
-                    <footer>${sortbox.notes}</footer>
+                    <footer>${sortBox.notes}</footer>
                   </div>`
-                : ""
+                : ''
             )}
           </div>`
         : html`
             <div class="cards">
-              ${Object.entries(this.sortboxData).map(([key, sortbox]) =>
+              ${Object.entries(this.sortboxData).map(([key, sortBox]) =>
                 this.getSortboxDataSize(key) > 0
                   ? html` <div class="sb">
                       <header
-                        style="--cl: ${sortbox.colour}; --tx: ${getTextColor(
-                          sortbox.colour
+                        style="--cl: ${sortBox.colour}; --tx: ${getTextColor(
+                          sortBox.colour
                         )}"
                       >
-                        <span class="al">${sortbox.name}</span>
+                        <span class="al">${sortBox.name}</span>
                         <span class="ar">${key}</span>
                       </header>
                       <main>
                         ${this.getSortboxData(key).map(
-                          (item) => html`
+                          item => html`
                             <div class="row">
                               <span class="al">${item.name}</span>
                               <span class="ar it">${item.round}</span>
@@ -257,169 +264,152 @@ export class SortBoxes extends connect(store)(PageViewElement) {
                         )}
                         <p>${this.getPostcodes(key)}</p>
                       </main>
-                      <footer>${sortbox.notes}</footer>
+                      <footer>${sortBox.notes}</footer>
                     </div>`
-                  : ""
+                  : ''
               )}
             </div>
           `}
     `;
   }
 
-  protected firstUpdated(_changedProperties: any) {
-    this.mergeTheData(this.assignedData, this.streetInfoData);
-  }
-
   private getSortboxDataSize(key: string) {
-    const data = this.griddata.filter((item) => {
+    const data = this.gridData.filter(item => {
       return item.sb === key;
     });
     return data.length;
   }
 
   private getSortboxData(key: string) {
-    const data = this.griddata.filter((item) => {
+    const data = this.gridData.filter(item => {
       return item.sb === key;
     });
     // Strip postcode from String
-    data.map((item) => {
-      const rx = ", " + item.pc;
+    const shortData: Array<{ name: string; round: string | undefined }> = [];
+
+    data.map(item => {
+      const rx = `, ${item.pc}`;
       // Remove Postcode
-      const items = item.name.replace(rx, "").split(",");
+      const items = item.name.replace(rx, '').split(',');
       // Strip Town
       items.pop();
-      item.name = items.join(", ");
+      shortData.push({ name: items.join(', '), round: item.round });
+
+      return '';
     });
     const uniqueStreets = [
-      ...new Set(data.map((item) => item.name + ":" + item.round)),
+      ...new Set(data.map(item => `${item.name}:${item.round}`)),
     ];
     const streets: Array<{ name: string; round: string }> = [];
-    uniqueStreets.map((street) => {
-      const [name, round] = street.split(":");
-      streets.push({ name: name, round: round });
+    uniqueStreets.map(street => {
+      const [name, round] = street.split(':');
+      streets.push({ name, round });
+
+      return '';
     });
 
     return streets.sort((left, right) => compareStreet(left.name, right.name));
   }
 
   private getPostcodes(key: string) {
-    const data = this.griddata.filter((item) => {
+    const data = this.gridData.filter(item => {
       return item.sb === key;
     });
-    const uniquePostcodes = [...new Set(data.map((item) => item.pc))];
-    return uniquePostcodes.sort(compareStreet).join(", ");
+    const uniquePostcodes = [...new Set(data.map(item => item.pc))];
+    return uniquePostcodes.sort(compareStreet).join(', ');
   }
 
   updated(changedProps: PropertyValues) {
-    console.log(changedProps);
     if (
-      changedProps.has("data") ||
-      changedProps.has("assignedData") ||
-      changedProps.has("streetInfoData") ||
-      changedProps.has("sortboxData")
+      changedProps.has('data') ||
+      changedProps.has('assignedData') ||
+      changedProps.has('streetInfoData') ||
+      changedProps.has('sortboxData')
     ) {
-      this.mergeTheData(this.assignedData, this.streetInfoData);
+      this.mergeTheData(this.sortDataList, this.streetInfoData);
     }
   }
 
   stateChanged(state: RootState) {
-    if (this.drawopened !== state.app!.drawerOpened) {
-      this.drawopened = state.app!.drawerOpened;
-      if (this.grid !== null) {
-        if (this.drawopened) {
-          this.grid.setAttribute("drawopened", "");
-        } else {
-          this.grid.removeAttribute("drawopened");
+    if (state.app!.page === 'sortBoxes') {
+      const usersState = userDataSelector(state);
+      if (usersState) {
+        if (
+          this.admin !== usersState._newUser.claims.administrator ||
+          this.groupId !== usersState._newUser.claims.group
+        ) {
+          this.admin = usersState._newUser.claims.administrator;
+          this.groupId = usersState._newUser.claims.group;
+
+          // Load the data required for this page
+          if (this.admin === false && this.groupId !== '') {
+            store.dispatch(notifyMessage('Loading: Sort boxes'));
+            store.dispatch(sortboxLoad(this.groupId));
+          }
+          store.dispatch(notifyMessage('Loading: Sort data'));
+          store.dispatch(sortDataLoad(this.groupId));
+
+          store.dispatch(notifyMessage('Loading: street map data'));
+          store.dispatch(streetMapDataLoad());
+        }
+
+        const streetMapState = streetMapSelector(state);
+        this.streetInfoData = streetMapState!._streetInfo;
+
+        const sortboxListState = sortboxListSelector(state);
+        this.sortboxData = sortboxListState!._sortboxList;
+
+        const sortDataState = sortDataSelector(state);
+        if (sortDataState) {
+          this.sortDataList = sortDataState._sortData;
         }
       }
     }
-
-    if (state.app!.page === "sortboxes") {
-      const streetMapState = streetMapSelector(state);
-      this.streetInfoData = streetMapState!._streetInfo;
-
-      const groupdataState = groupdataSelector(state);
-      this.assignedData = groupdataState!._assignedData;
-      this.sortboxData = groupdataState!._sortboxData;
-
-      this.mergeTheData(this.assignedData, this.streetInfoData);
-    }
   }
 
-  private getNames(view: AllowedViews, item: PublicStreet) {
-    const names = [];
-    switch (+view) {
-      case AllowedViews.English:
-        names.push(item.name);
-        break;
-      case AllowedViews.Welsh:
-        if (item.wname !== undefined) {
-          names.push(item.wname);
-        } else {
-          names.push(item.name);
-        }
-        break;
+  private mergeTheData(sortData: SortData, streetInfoData: StreetInfoData) {
+    const gridData: Array<GridData> = [];
 
-      default:
-        names.push(item.name);
-        if (item.wname !== undefined) {
-          names.push(item.wname);
-        }
-    }
-    return names;
-  }
-
-  private mergeTheData(
-    assignedData: AssignedData,
-    streetInfoData: StreetInfoData
-  ) {
-    const griddata: Array<GridData> = [];
-
-    if (
-      assignedData !== undefined &&
-      streetInfoData !== undefined &&
-      this.data !== null
-    ) {
-      for (const [pc, item] of Object.entries(assignedData)) {
-        const pci = this.data[pc];
+    if (sortData !== undefined && streetInfoData !== undefined) {
+      for (const [pc, item] of Object.entries(sortData)) {
+        const pci = streetNames[pc];
         const streetInfo = streetInfoData[pc];
 
-        const names = this.getNames(AllowedViews.Both, pci);
+        const names = getNames(AllowedViews.Both, pci);
 
         for (const name of names) {
-          this.AddToList(item, name, pc, streetInfo, griddata);
+          this.AddToList(item, name, pc, streetInfo, gridData);
         }
       }
-      this.griddata = griddata.sort((left, right) =>
+      this.gridData = gridData.sort((left, right) =>
         streetNameCompare(left.name, right.name)
       );
     }
   }
 
   private AddToList(
-    item: AssignedDataItem,
+    item: SortDataItem,
     name: string,
     pc: string,
     streetInfo: StreetInfoItem,
-    griddata: GridData[]
+    gridData: GridData[]
   ) {
     const index = item.sortbox === undefined ? 0 : item.sortbox;
-    const thisitem: GridData = {
+    const thisItem: GridData = {
       round: item.key,
       colour: this.sortboxData[index].colour,
-      name: name,
-      pc: pc,
+      name,
+      pc,
       sb: item.sortbox,
     };
 
     if (streetInfo !== undefined) {
-      thisitem.firstHouse = streetInfo.firstHouse;
-      thisitem.lastHouse = streetInfo.lastHouse;
-      thisitem.notes = streetInfo.notes;
-      thisitem.streetOrder = streetInfo.streetOrder;
-      thisitem.numberOfProperties = streetInfo.numberOfProperties;
+      thisItem.firstHouse = streetInfo.firstHouse;
+      thisItem.lastHouse = streetInfo.lastHouse;
+      thisItem.notes = streetInfo.notes;
+      thisItem.streetOrder = streetInfo.streetOrder;
+      thisItem.numberOfProperties = streetInfo.numberOfProperties;
     }
-    griddata.push(thisitem);
+    gridData.push(thisItem);
   }
 }
-*/

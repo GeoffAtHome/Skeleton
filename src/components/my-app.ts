@@ -293,7 +293,9 @@ export class MyApp extends connect(store)(LitElement) {
                     href="/#assignSortBox"
                     >Assign sort box</a
                   >
-                  <a ?selected="${this._page === 'sortBoxes'}" href="/sortBoxes"
+                  <a
+                    ?selected="${this._page === 'sortBoxes'}"
+                    href="/#sortBoxes"
                     >Sort boxes</a
                   >
                   <a
@@ -372,6 +374,14 @@ export class MyApp extends connect(store)(LitElement) {
                       class="page"
                       ?active="${this._page === 'sortBoxAdmin'}"
                     ></sortbox-admin>
+                    <assign-sortbox
+                      class="page"
+                      ?active="${this._page === 'assignSortBox'}"
+                    ></assign-sortbox>
+                    <sort-boxes
+                      class="page"
+                      ?active="${this._page === 'sortBoxes'}"
+                    ></sort-boxes>
                   `
                 : html``}
               <my-view404

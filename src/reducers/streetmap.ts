@@ -23,13 +23,14 @@ import {
   StreetInfoData,
   streetMapChanges,
   streetMapDeletes,
+  StreetMapStreetsLoaded,
   StreetMapDataLoaded,
+  DATA_LOAD,
+  streetMapDataLoaded,
 } from '../actions/streetmap';
 import { rootURL, streetInfoURL } from './dbconst';
 
 import {
-  createItemPouchDB,
-  deleteItemPouchDB,
   loadPouchDB,
   RegisterSyncPouchDB,
   updateItemPouchDB,
@@ -71,22 +72,28 @@ const streetmap: Reducer<IStreetMapState, RootAction> = (
       return {
         ...state,
         _index: action._index,
-        _loadingStatus: LoadingStatus.Loading,
       };
 
-    case DATA_LOADED:
-      loadPouchDB(streetMapDB, StreetMapDataLoaded);
+    case DATA_LOAD:
+      loadPouchDB(streetMapDB, streetMapDataLoaded);
 
       return {
         ...state,
         _editPath: false,
-        _loadingStatus: LoadingStatus.Loaded,
+        _loadingStatus: LoadingStatus.Loading,
       };
 
+    case DATA_LOADED:
+      return {
+        ...state,
+        _streetInfo: action._data,
+        _loadingStatus: LoadingStatus.Loaded,
+      };
     case STREETS_LOADED:
       return {
         ...state,
         _streets: action._streets,
+        _loadingStatus: LoadingStatus.Loaded,
       };
 
     case STREETINFO_LOADED:

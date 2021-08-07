@@ -12,6 +12,7 @@ import { Action, ActionCreator } from 'redux';
 import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const STREET_ID = 'STREET_ID';
+export const DATA_LOAD = 'DATA_LOAD';
 export const DATA_LOADED = 'DATA_LOADED';
 export const STREETS_LOADED = 'STREETS_LOADED';
 export const STREETINFO_LOADED = 'STREETINFO_LOADED';
@@ -80,8 +81,9 @@ export interface PostcodeData {
 export interface StreetMapStreetId extends Action<'STREET_ID'> {
   _index: string;
 }
+export interface StreetMapDataLoad extends Action<'DATA_LOAD'> {}
 export interface StreetMapDataLoaded extends Action<'DATA_LOADED'> {
-  _data: IStreetMapState;
+  _data: StreetInfoData;
 }
 export interface StreetMapStreetsLoaded extends Action<'STREETS_LOADED'> {
   _streets: Array<string>;
@@ -117,6 +119,7 @@ export type StreetMapAction =
   | StreetMapChanges
   | StreetMapStreetId
   | StreetMapStreetInfoLoaded
+  | StreetMapDataLoad
   | StreetMapDataLoaded
   | StreetMapStreetEditPath
   | StreetMapStreetUpdateStreetItem
@@ -133,21 +136,26 @@ export const StreetMapGetPolygon: ActionCreator<StreetMapStreetId> = _index => {
   };
 };
 
-export const StreetMapDataLoaded: ActionCreator<StreetMapDataLoaded> = _data => {
+export const streetMapDataLoad: ActionCreator<StreetMapDataLoad> = () => {
+  return {
+    type: DATA_LOAD,
+  };
+};
+export const streetMapDataLoaded: ActionCreator<StreetMapDataLoaded> = _data => {
   return {
     type: DATA_LOADED,
     _data,
   };
 };
 
-export const StreetMapStreetsLoaded: ActionCreator<StreetMapStreetsLoaded> = _streets => {
+export const streetMapStreetsLoaded: ActionCreator<StreetMapStreetsLoaded> = _streets => {
   return {
     type: STREETS_LOADED,
     _streets,
   };
 };
 
-export const StreetMapStreetInfoLoaded: ActionCreator<StreetMapStreetInfoLoaded> = _streetInfo => {
+export const streetMapStreetInfoLoaded: ActionCreator<StreetMapStreetInfoLoaded> = _streetInfo => {
   return {
     type: STREETINFO_LOADED,
     _streetInfo,

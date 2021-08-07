@@ -82,11 +82,11 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
       break;
 
     case 'assignSortBox':
-      // import('../components/assign-sort-box');
+      import('../components/assign-sortbox');
       break;
 
     case 'sortBoxes':
-      // import('../components/sort-boxes');
+      import('../components/sort-boxes');
       break;
 
     case 'whereWeDeliverEdit':

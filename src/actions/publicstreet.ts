@@ -71,3 +71,26 @@ export const publicStreetSelectedView: ActionCreator<PublicStreetSelectedView> =
     _selectedView,
   };
 };
+
+export function getNames(view: AllowedViews, item: PublicStreet) {
+  const names = [];
+  switch (+view) {
+    case AllowedViews.English:
+      names.push(item.name);
+      break;
+    case AllowedViews.Welsh:
+      if (item.wName !== undefined) {
+        names.push(item.wName);
+      } else {
+        names.push(item.name);
+      }
+      break;
+
+    default:
+      names.push(item.name);
+      if (item.wName !== undefined) {
+        names.push(item.wName);
+      }
+  }
+  return names;
+}

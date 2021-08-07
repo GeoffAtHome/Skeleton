@@ -151,4 +151,4 @@ export default sortDataList;
 // We use a tiny library called `reselect` to create efficient
 // selectors. More info: https://github.com/reduxjs/reselect.
 
-export const sortDataSelector = (state: RootState) => state.sortData;
+export const sortDataSelector = (state: RootState) => state.sortDataList;

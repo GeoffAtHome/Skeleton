@@ -56,7 +56,7 @@ export interface RootState {
   polygonData?: PolygonDataState;
   roundData?: RoundDataState;
   sortboxList?: SortboxState;
-  sortData?: SortDataState;
+  sortDataList?: SortDataState;
   assignedData?: AssignedDataState;
   publicStreetMap?: PublicStreetState;
   streetmap?: IStreetMapState;
