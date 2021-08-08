@@ -112,19 +112,17 @@ function getRoundData(gridData: GridData[], key: string) {
     return item.round === key;
   });
   // Strip postcode and town from item
-  const shortData: Array<{ name: string; sb: string | undefined }> = [];
-
-  data.map(item => {
-    const rx = `, ${item.pc}`;
-    // Remove Postcode
-    const items = item.name.replace(rx, '').split(',');
-    const { sb } = item;
-    // Strip Town
-    items.pop();
-    shortData.push({ name: items.join(', '), sb });
-
-    return item;
-  });
+  const shortData: Array<{ name: string; sb: string | undefined }> = data.map(
+    item => {
+      const rx = `, ${item.pc}`;
+      // Remove Postcode
+      const items = item.name.replace(rx, '').split(',');
+      const { sb } = item;
+      // Strip Town
+      items.pop();
+      return { name: items.join(', '), sb };
+    }
+  );
   // data.name is now a list of streets without postcode or town.
   const uniqueStreets = [
     ...new Set(shortData.map(item => `${item.name}:${item.sb}`)),

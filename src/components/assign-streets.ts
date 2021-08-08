@@ -97,7 +97,7 @@ import {
 } from '../actions/assignedData';
 import { EditMapData, MapPolygon } from './polygons';
 import { notifyMessage } from '../actions/app';
-import { LoadingStatus } from '../reducers/PouchDBStatus';
+import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
 
 let LAssignedData: AssignedData = {};
 
@@ -312,6 +312,38 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
+    if (changedProps.has('groupDataLoading'))
+      NotifyStatus('Group data', this.groupDataLoading);
+
+    if (changedProps.has('assignedDataLoading'))
+      NotifyStatus('Assigned data', this.assignedDataLoading);
+
+    if (changedProps.has('roundDataLoading'))
+      NotifyStatus('Round data', this.roundDataLoading);
+
+    if (changedProps.has('assignedDataLoading'))
+      NotifyStatus('Assigned data', this.assignedDataLoading);
+
+    if (changedProps.has('polygonDataLoading'))
+      NotifyStatus('Polygon data', this.polygonDataLoading);
+
+    if (changedProps.has('streetInfoLoading'))
+      NotifyStatus('Street info', this.streetInfoLoading);
+
+    if (changedProps.has('admin') || changedProps.has('groupId')) {
+      if (!(this.admin === false && this.groupId === '')) {
+        store.dispatch(groupDataLoad(this.admin, this.groupId));
+      }
+      // Load the data required for this page
+      if (this.admin === false && this.groupId !== '') {
+        store.dispatch(roundDataLoad(this.admin, this.groupId));
+        store.dispatch(sortboxLoad(this.groupId));
+      }
+      store.dispatch(polygonDataLoad());
+      store.dispatch(assignedDataLoad());
+      store.dispatch(streetInfoLoad());
+    }
+
     if (changedProps.has('admin')) {
       let title = '';
       let select = '';
@@ -386,44 +418,14 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
     if (state.app!.page === 'assignStreets') {
       const usersState = userDataSelector(state);
-      if (usersState) {
-        if (
-          admin !== usersState._newUser.claims.administrator ||
-          this.groupId !== usersState._newUser.claims.group
-        ) {
-          this.admin = usersState._newUser.claims.administrator;
-          this.groupId = usersState._newUser.claims.group;
-          admin = this.admin;
-
-          if (!(this.admin === false && this.groupId === '')) {
-            store.dispatch(notifyMessage('Loading: Group data'));
-            store.dispatch(groupDataLoad(this.admin, this.groupId));
-          } else {
-          }
-
-          // Load the data required for this page
-          if (admin === false && this.groupId !== '') {
-            // assignedDataURL  | sortDataURL and sortBoxesURL
-            store.dispatch(notifyMessage('Loading: Round data'));
-            store.dispatch(roundDataLoad(this.admin, this.groupId));
-            store.dispatch(notifyMessage('Loading: Sort boxes'));
-            store.dispatch(sortboxLoad(this.groupId));
-          }
-          store.dispatch(notifyMessage('Loading: polygon data'));
-          store.dispatch(polygonDataLoad());
-          store.dispatch(notifyMessage('Loading: assignment data'));
-          store.dispatch(assignedDataLoad());
-          store.dispatch(notifyMessage('Loading: streetinfo'));
-          store.dispatch(streetInfoLoad());
-        }
-      }
+      this.admin = usersState!._newUser.claims.administrator;
+      this.groupId = usersState!._newUser.claims.group;
+      admin = this.admin;
 
       const groupDataState = groupDataSelector(state);
-      if (groupDataState) {
-        selectedGroup = groupDataState!._newGroup;
-        this.groupData = groupDataState!._groupData;
-        this.groupDataLoading = groupDataState!._loadingStatus;
-      }
+      selectedGroup = groupDataState!._newGroup;
+      this.groupData = groupDataState!._groupData;
+      this.groupDataLoading = groupDataState!._loadingStatus;
 
       if (admin === false && this.groupId !== '') {
         const assignedDataState = assignedDataSelector(state);
@@ -440,16 +442,12 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       }
 
       const polygonDataState = polygonDataSelector(state);
-      if (polygonDataState) {
-        this.polygonDataLoading = polygonDataState._loadingStatus;
-        this.polygonData = polygonDataState._polygonData;
-      }
+      this.polygonDataLoading = polygonDataState!._loadingStatus;
+      this.polygonData = polygonDataState!._polygonData;
 
       const streetMapState = streetMapSelector(state);
-      if (streetMapState) {
-        this.streetInfoData = streetMapState._streetInfo;
-        this.streetInfoLoading = streetMapState._loadingStatus;
-      }
+      this.streetInfoData = streetMapState!._streetInfo;
+      this.streetInfoLoading = streetMapState!._loadingStatus;
     }
   }
 
@@ -597,15 +595,7 @@ function lookupStreetInfo(pc: string, streetInfoData: StreetInfoData) {
 function clickedPolygon(el: CustomEvent) {
   if (selectedGroup._id !== '') {
     const { detail } = el;
-    /* target.setStyle({ color: this.selectedGroup.colour });
 
-    // Change the tooltip
-    const parts = target.getTooltip().getContent().split(':');
-    target.setTooltipContent(`${this.selectedGroup.name}: ${parts[1]}`);
-
-    // Update group and street
-    const layer = target.getLayers()[0];
-    const key = layer.feature.id; */
     if (admin) {
       store.dispatch(
         assignedDataUpdateGroup(detail, { key: selectedGroup._id.toString() })

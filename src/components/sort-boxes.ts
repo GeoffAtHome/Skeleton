@@ -32,33 +32,35 @@ import { streetNameCompare, compareStreet } from './sorting';
 import { getTextColor } from './getTextColour';
 
 // These are the actions needed by this element.
+import { AssignedData, assignedDataLoad } from '../actions/assigneddata';
+import { RoundData, roundDataLoad } from '../actions/roundsdata';
+import { SortboxList, sortboxLoad } from '../actions/sortboxes';
+import { SortData, SortDataItem, sortDataLoad } from '../actions/sortData';
+import { AllowedViews, getNames } from '../actions/publicstreet';
 import {
   StreetInfoData,
   StreetInfoItem,
   streetMapDataLoad,
 } from '../actions/streetmap';
-
-// These are the actions needed by this element.
 import { streetNames } from '../res/postcodeData';
-import { SortboxList, sortboxLoad } from '../actions/sortboxes';
 import { notifyMessage } from '../actions/app';
-import { SortData, SortDataItem, sortDataLoad } from '../actions/sortData';
 
 // We are lazy loading its reducer.
-import streetmap, { streetMapSelector } from '../reducers/streetmap';
+import assignedData, { assignedDataSelector } from '../reducers/assignedData';
+import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
 import sortDataList, { sortDataSelector } from '../reducers/sortData';
+import streetmap, { streetMapSelector } from '../reducers/streetmap';
 import { userDataSelector } from '../reducers/users';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
-import {
-  PublicStreetData,
-  AllowedViews,
-  PublicStreet,
-  getNames,
-} from '../actions/publicstreet';
+import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import { LOADED_TODO } from '../actions/tododata';
 
+if (assignedDataSelector(store.getState()) === undefined) {
+  store.addReducers({ assignedData });
+}
 if (sortDataSelector(store.getState()) === undefined) {
   store.addReducers({ sortDataList });
 }
@@ -67,6 +69,9 @@ if (sortboxListSelector(store.getState()) === undefined) {
 }
 if (streetMapSelector(store.getState()) === undefined) {
   store.addReducers({ streetmap });
+}
+if (roundDataSelector(store.getState()) === undefined) {
+  store.addReducers({ roundData });
 }
 
 interface GridData {
@@ -82,10 +87,50 @@ interface GridData {
   sb?: string;
 }
 
+function MergeAssignedData(
+  groupId: string,
+  lRoundsData: AssignedData,
+  lAssignedData: AssignedData,
+  lSortData: AssignedData
+) {
+  const results: AssignedData = {};
+  for (const [pc, assigned] of Object.entries(lAssignedData)) {
+    if (assigned.key === groupId) {
+      // Do we have a round for this street?
+      let round = '0'; // Round 0 is unassigned
+      let sortbox = '0'; // Sortbox 0 is unassigned
+      if (lRoundsData[pc] !== undefined) {
+        round = lRoundsData[pc].key;
+      }
+
+      // Do we have a sortbox for this street?
+      if (lSortData[pc] !== undefined) {
+        sortbox = lSortData[pc].key;
+      }
+
+      results[pc] = {
+        _id: pc,
+        key: round,
+        sortbox,
+      };
+    }
+  }
+  return results;
+}
+
 @customElement('sort-boxes')
 export class SortBoxes extends connect(store)(PageViewElement) {
   @property({ type: Array })
   private gridData: Array<GridData> = [];
+
+  @property({ type: Object })
+  private assignedData: AssignedData = {};
+
+  @property({ type: Object })
+  private cRoundData: RoundData = {};
+
+  @property({ type: Object })
+  private sortData: SortData = {};
 
   @property({ type: Object })
   private streetInfoData: StreetInfoData = {};
@@ -94,7 +139,7 @@ export class SortBoxes extends connect(store)(PageViewElement) {
   private grid: any;
 
   @property({ type: Object })
-  private sortboxData: SortboxList = {};
+  private sortboxList: SortboxList = {};
 
   @property({ type: Object })
   private sortDataList: SortData = {};
@@ -107,6 +152,21 @@ export class SortBoxes extends connect(store)(PageViewElement) {
 
   @property({ type: String })
   private groupId = '';
+
+  @property({ type: Number })
+  private assignedDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private streetInfoDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private sortDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private sortboxListStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private cRoundDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   static get styles() {
     return [
@@ -213,7 +273,7 @@ export class SortBoxes extends connect(store)(PageViewElement) {
     return html`
       ${this.printing !== true
         ? html` <div class="cards">
-            ${Object.entries(this.sortboxData).map(([key, sortBox]) =>
+            ${Object.entries(this.sortboxList).map(([key, sortBox]) =>
               this.getSortboxDataSize(key) > 0
                 ? html` <div class="sb">
                     <header
@@ -242,7 +302,7 @@ export class SortBoxes extends connect(store)(PageViewElement) {
           </div>`
         : html`
             <div class="cards">
-              ${Object.entries(this.sortboxData).map(([key, sortBox]) =>
+              ${Object.entries(this.sortboxList).map(([key, sortBox]) =>
                 this.getSortboxDataSize(key) > 0
                   ? html` <div class="sb">
                       <header
@@ -320,6 +380,30 @@ export class SortBoxes extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
+    if (changedProps.has('assignedDataStatus'))
+      NotifyStatus('Assigned data', this.assignedDataStatus);
+
+    if (changedProps.has('streetInfoDataStatus'))
+      NotifyStatus('Street info', this.streetInfoDataStatus);
+
+    if (changedProps.has('sortDataStatus'))
+      NotifyStatus('Sort data', this.sortDataStatus);
+
+    if (changedProps.has('sortboxListStatus'))
+      NotifyStatus('Sort boxes', this.sortboxListStatus);
+
+    if (changedProps.has('cRoundDataStatus'))
+      NotifyStatus('Round data', this.cRoundDataStatus);
+
+    if (changedProps.has('admin') || changedProps.has('groupId')) {
+      // Load the data required for this page
+      store.dispatch(sortboxLoad(this.groupId));
+      store.dispatch(roundDataLoad(this.admin, this.groupId));
+      store.dispatch(sortDataLoad(this.groupId));
+      store.dispatch(streetMapDataLoad());
+      store.dispatch(assignedDataLoad());
+    }
+
     if (
       changedProps.has('data') ||
       changedProps.has('assignedData') ||
@@ -328,42 +412,52 @@ export class SortBoxes extends connect(store)(PageViewElement) {
     ) {
       this.mergeTheData(this.sortDataList, this.streetInfoData);
     }
+
+    if (
+      changedProps.has('active') ||
+      changedProps.has('groupId') ||
+      changedProps.has('cRoundData') ||
+      changedProps.has('assignedData') ||
+      changedProps.has('sortData') ||
+      changedProps.has('streetInfoData') ||
+      changedProps.has('selectedView')
+    ) {
+      const assignedMergedData = MergeAssignedData(
+        this.groupId,
+        this.cRoundData,
+        this.assignedData,
+        this.sortData
+      );
+
+      this.mergeTheData(assignedMergedData, this.streetInfoData);
+    }
   }
 
   stateChanged(state: RootState) {
     if (state.app!.page === 'sortBoxes') {
       const usersState = userDataSelector(state);
-      if (usersState) {
-        if (
-          this.admin !== usersState._newUser.claims.administrator ||
-          this.groupId !== usersState._newUser.claims.group
-        ) {
-          this.admin = usersState._newUser.claims.administrator;
-          this.groupId = usersState._newUser.claims.group;
+      this.admin = usersState!._newUser.claims.administrator;
+      this.groupId = usersState!._newUser.claims.group;
 
-          // Load the data required for this page
-          if (this.admin === false && this.groupId !== '') {
-            store.dispatch(notifyMessage('Loading: Sort boxes'));
-            store.dispatch(sortboxLoad(this.groupId));
-          }
-          store.dispatch(notifyMessage('Loading: Sort data'));
-          store.dispatch(sortDataLoad(this.groupId));
+      const assignedDataState = assignedDataSelector(state);
+      this.assignedData = assignedDataState!._assignedData;
+      this.assignedDataStatus = assignedDataState!._loadingStatus;
 
-          store.dispatch(notifyMessage('Loading: street map data'));
-          store.dispatch(streetMapDataLoad());
-        }
+      const streetMapState = streetMapSelector(state);
+      this.streetInfoData = streetMapState!._streetInfo;
+      this.streetInfoDataStatus = streetMapState!._loadingStatus;
 
-        const streetMapState = streetMapSelector(state);
-        this.streetInfoData = streetMapState!._streetInfo;
+      const sortDataState = sortDataSelector(state);
+      this.sortData = sortDataState!._sortData;
+      this.sortDataStatus = sortDataState!._loadingStatus;
 
-        const sortboxListState = sortboxListSelector(state);
-        this.sortboxData = sortboxListState!._sortboxList;
+      const sortboxListState = sortboxListSelector(state);
+      this.sortboxList = sortboxListState!._sortboxList;
+      this.sortboxListStatus = sortboxListState!._loadingStatus;
 
-        const sortDataState = sortDataSelector(state);
-        if (sortDataState) {
-          this.sortDataList = sortDataState._sortData;
-        }
-      }
+      const roundDataState = roundDataSelector(state);
+      this.cRoundData = roundDataState!._roundData;
+      this.cRoundDataStatus = roundDataState!._loadingStatus;
     }
   }
 
@@ -397,7 +491,7 @@ export class SortBoxes extends connect(store)(PageViewElement) {
     const index = item.sortbox === undefined ? 0 : item.sortbox;
     const thisItem: GridData = {
       round: item.key,
-      colour: this.sortboxData[index].colour,
+      colour: this.sortboxList[index].colour,
       name,
       pc,
       sb: item.sortbox,

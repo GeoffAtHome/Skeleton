@@ -75,6 +75,7 @@ import { userDataSelector } from '../reducers/users';
 import { streetNames } from '../res/postcodeData';
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
+import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
 
 if (assignedDataSelector(store.getState()) === undefined) {
   store.addReducers({ assignedData });
@@ -97,10 +98,6 @@ if (publicStreetMapSelector(store.getState()) === undefined) {
 if (roundDataSelector(store.getState()) === undefined) {
   store.addReducers({ roundData });
 }
-
-/* if (groupdataSelector(store.getState()) === undefined) {
-  store.addReducers({ groupdata });
-} */
 
 interface GridData {
   name: string;
@@ -186,10 +183,10 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
   private assignedData: AssignedData = {};
 
   @property({ type: Object })
-  private sortData: SortData = {};
+  private cRoundData: RoundData = {};
 
   @property({ type: Object })
-  private cRoundData: RoundData = {};
+  private sortData: SortData = {};
 
   @property({ type: Boolean })
   private printing: boolean = false;
@@ -199,6 +196,21 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
 
   @property({ type: String })
   private groupId = '';
+
+  @property({ type: Number })
+  private assignedDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private streetInfoDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private sortDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private sortboxListStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private cRoundDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   static get styles() {
     return [
@@ -352,6 +364,29 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
+    if (changedProps.has('assignedDataStatus'))
+      NotifyStatus('Assigned data', this.assignedDataStatus);
+
+    if (changedProps.has('streetInfoDataStatus'))
+      NotifyStatus('Street info', this.streetInfoDataStatus);
+
+    if (changedProps.has('sortDataStatus'))
+      NotifyStatus('Sort data', this.sortDataStatus);
+
+    if (changedProps.has('sortboxListStatus'))
+      NotifyStatus('Sort boxes', this.sortboxListStatus);
+
+    if (changedProps.has('cRoundDataStatus'))
+      NotifyStatus('Round data', this.cRoundDataStatus);
+
+    if (changedProps.has('admin') || changedProps.has('groupId')) {
+      // Load the data required for this page
+      store.dispatch(sortboxLoad(this.groupId));
+      store.dispatch(roundDataLoad(this.admin, this.groupId));
+      store.dispatch(sortDataLoad(this.groupId));
+      store.dispatch(streetMapDataLoad());
+      store.dispatch(assignedDataLoad());
+    }
     if (
       changedProps.has('active') ||
       changedProps.has('groupId') ||
@@ -418,50 +453,31 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
 
     if (state.app!.page === 'assignSortBox') {
       const usersState = userDataSelector(state);
-      if (usersState) {
-        if (
-          this.admin !== usersState._newUser.claims.administrator ||
-          this.groupId !== usersState._newUser.claims.group
-        ) {
-          this.admin = usersState._newUser.claims.administrator;
-          this.groupId = usersState._newUser.claims.group;
+      this.admin = usersState!._newUser.claims.administrator;
+      this.groupId = usersState!._newUser.claims.group;
 
-          // Load the data required for this page
-          if (this.admin === false && this.groupId !== '') {
-            store.dispatch(notifyMessage('Loading: Sort boxes'));
-            store.dispatch(sortboxLoad(this.groupId));
-          }
-          store.dispatch(notifyMessage('Loading: Rounds data'));
-          store.dispatch(roundDataLoad(this.admin, this.groupId));
+      const assignedDataState = assignedDataSelector(state);
+      this.assignedData = assignedDataState!._assignedData;
+      this.assignedDataStatus = assignedDataState!._loadingStatus;
 
-          store.dispatch(notifyMessage('Loading: Sort data'));
-          store.dispatch(sortDataLoad(this.groupId));
+      const streetMapState = streetMapSelector(state);
+      this.streetInfoData = streetMapState!._streetInfo;
+      this.streetInfoDataStatus = streetMapState!._loadingStatus;
 
-          store.dispatch(notifyMessage('Loading: street map data'));
-          store.dispatch(streetMapDataLoad());
+      const sortDataState = sortDataSelector(state);
+      this.sortData = sortDataState!._sortData;
+      this.sortDataStatus = sortDataState!._loadingStatus;
 
-          store.dispatch(notifyMessage('Loading: assigned data'));
-          store.dispatch(assignedDataLoad());
-        }
+      const sortboxListState = sortboxListSelector(state);
+      this.sortboxList = sortboxListState!._sortboxList;
+      this.sortboxListStatus = sortboxListState!._loadingStatus;
 
-        const assignedDataState = assignedDataSelector(state);
-        this.assignedData = assignedDataState!._assignedData;
+      const roundDataState = roundDataSelector(state);
+      this.cRoundData = roundDataState!._roundData;
+      this.cRoundDataStatus = roundDataState!._loadingStatus;
 
-        const streetMapState = streetMapSelector(state);
-        this.streetInfoData = streetMapState!._streetInfo;
-
-        const sortDataState = sortDataSelector(state);
-        this.sortData = sortDataState!._sortData;
-
-        const sortboxListState = sortboxListSelector(state);
-        this.sortboxList = sortboxListState!._sortboxList;
-
-        const roundDataState = roundDataSelector(state);
-        this.cRoundData = roundDataState!._roundData;
-
-        const publicStreetState = publicStreetMapSelector(state);
-        this.selectedView = publicStreetState!.selectedView;
-      }
+      const publicStreetState = publicStreetMapSelector(state);
+      this.selectedView = publicStreetState!.selectedView;
     }
   }
 
