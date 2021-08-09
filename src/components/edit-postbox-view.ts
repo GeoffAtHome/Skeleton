@@ -16,6 +16,7 @@ import {
   LitElement,
   property,
   internalProperty,
+  PropertyValues,
 } from 'lit-element';
 
 // These are the shared styles needed by this element.
@@ -48,6 +49,7 @@ import {
 import postBoxState, { postboxSelector } from '../reducers/postboxes';
 import { MarkerData } from './Markers';
 import { PageViewElement } from './page-view-element';
+import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
 
 if (postboxSelector(store.getState()) === undefined) {
   store.addReducers({
@@ -99,6 +101,9 @@ export class EditPostboxView extends connect(store)(PageViewElement) {
 
   @query('#lat')
   private editLat: any;
+
+  @property({ type: Number })
+  private postBoxDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   @internalProperty()
   private _mapOptions = {
@@ -249,10 +254,16 @@ export class EditPostboxView extends connect(store)(PageViewElement) {
     this.map.addEventListener('clickedMarker', _MarkerClick);
   }
 
+  updated(changedProps: PropertyValues) {
+    if (changedProps.has('postBoxDataStatus'))
+      NotifyStatus('post box data', this.postBoxDataStatus);
+  }
+
   stateChanged(state: RootState) {
-    if(this.active) {
+    if (this.active) {
       const postboxState = postboxSelector(state);
       postBoxData = { ...postboxState!._data };
+      this.postBoxDataStatus = postboxState!._loadingStatus;
       this.drawLabels(postBoxData);
 
       if (postboxState!._postBoxKey !== '') {

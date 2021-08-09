@@ -54,6 +54,7 @@ import { labelIcon } from './my-icons';
 import { notifyMessage } from '../actions/app';
 import { userDataSelector } from '../reducers/users';
 import { roundDataLoad } from '../actions/roundsdata';
+import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
 
 if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({ groupData });
@@ -102,6 +103,9 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
 
   @property({ type: String })
   private _id = '';
+
+  @property({ type: Number })
+  private groupDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   @internalProperty()
   private groupData: GroupData = {};
@@ -264,26 +268,28 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
     `;
   }
 
+  updated(changedProps: PropertyValues) {
+    if (changedProps.has('groupDataStatus'))
+      NotifyStatus('Group data', this.groupDataStatus);
+
+    if (changedProps.has('admin') || changedProps.has('groupId')) {
+      if (!(this.admin === false && this.groupId === '')) {
+        store.dispatch(groupDataLoad(this.admin, this.groupId));
+      } else {
+        store.dispatch(roundDataLoad(this.admin, this.groupId));
+      }
+    }
+  }
+
   stateChanged(state: RootState) {
     if (state.app?.page === 'groupAdmin') {
       const groupDataState = groupDataSelector(state);
       this.groupData = { ...groupDataState!._groupData };
+      this.groupDataStatus = groupDataState!._loadingStatus;
 
       const usersState = userDataSelector(state);
-      if (usersState) {
-        if (
-          this.admin !== usersState._newUser.claims.administrator ||
-          this.groupId !== usersState._newUser.claims.group
-        ) {
-          this.admin = usersState._newUser.claims.administrator;
-          this.groupId = usersState._newUser.claims.group;
-          if (!(this.admin === false && this.groupId === '')) {
-            store.dispatch(groupDataLoad(this.admin, this.groupId));
-          } else {
-            store.dispatch(roundDataLoad(this.admin, this.groupId));
-          }
-        }
-      }
+      this.admin = usersState!._newUser.claims.administrator;
+      this.groupId = usersState!._newUser.claims.group;
     }
   }
 

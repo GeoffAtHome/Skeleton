@@ -131,19 +131,19 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   private map: any;
 
   @property({ type: Number })
-  private assignedDataLoading: LoadingStatus = LoadingStatus.Unknown;
+  private assignedDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   @property({ type: Number })
-  private groupDataLoading: LoadingStatus = LoadingStatus.Unknown;
+  private groupDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   @property({ type: Number })
-  private roundDataLoading: LoadingStatus = LoadingStatus.Unknown;
+  private roundDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   @property({ type: Number })
-  private polygonDataLoading: LoadingStatus = LoadingStatus.Unknown;
+  private polygonDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   @property({ type: Number })
-  private streetInfoLoading: LoadingStatus = LoadingStatus.Unknown;
+  private streetInfoStatus: LoadingStatus = LoadingStatus.Unknown;
 
   @property({ type: Array })
   private data: Array<PublicStreet> = [];
@@ -318,23 +318,23 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
-    if (changedProps.has('groupDataLoading'))
-      NotifyStatus('Group data', this.groupDataLoading);
+    if (changedProps.has('groupDataStatus'))
+      NotifyStatus('Group data', this.groupDataStatus);
 
-    if (changedProps.has('assignedDataLoading'))
-      NotifyStatus('Assigned data', this.assignedDataLoading);
+    if (changedProps.has('assignedDataStatus'))
+      NotifyStatus('Assigned data', this.assignedDataStatus);
 
-    if (changedProps.has('roundDataLoading'))
-      NotifyStatus('Round data', this.roundDataLoading);
+    if (changedProps.has('roundDataStatus'))
+      NotifyStatus('Round data', this.roundDataStatus);
 
-    if (changedProps.has('assignedDataLoading'))
-      NotifyStatus('Assigned data', this.assignedDataLoading);
+    if (changedProps.has('assignedDataStatus'))
+      NotifyStatus('Assigned data', this.assignedDataStatus);
 
-    if (changedProps.has('polygonDataLoading'))
-      NotifyStatus('Polygon data', this.polygonDataLoading);
+    if (changedProps.has('polygonDataStatus'))
+      NotifyStatus('Polygon data', this.polygonDataStatus);
 
-    if (changedProps.has('streetInfoLoading'))
-      NotifyStatus('Street info', this.streetInfoLoading);
+    if (changedProps.has('streetInfoStatus'))
+      NotifyStatus('Street info', this.streetInfoStatus);
 
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       if (!(this.admin === false && this.groupId === '')) {
@@ -431,29 +431,29 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       const groupDataState = groupDataSelector(state);
       selectedGroup = groupDataState!._newGroup;
       this.groupData = groupDataState!._groupData;
-      this.groupDataLoading = groupDataState!._loadingStatus;
+      this.groupDataStatus = groupDataState!._loadingStatus;
 
       if (admin === false && this.groupId !== '') {
         const assignedDataState = assignedDataSelector(state);
         this.assignedData = assignedDataState!._assignedData;
-        this.assignedDataLoading = assignedDataState!._loadingStatus;
+        this.assignedDataStatus = assignedDataState!._loadingStatus;
 
         const roundsDataState = roundDataSelector(state);
         this.roundsData = roundsDataState!._roundData;
-        this.roundDataLoading = roundsDataState!._loadingStatus;
+        this.roundDataStatus = roundsDataState!._loadingStatus;
       } else {
         const assignedDataState = assignedDataSelector(state);
-        this.assignedDataLoading = assignedDataState!._loadingStatus;
+        this.assignedDataStatus = assignedDataState!._loadingStatus;
         LAssignedData = assignedDataState!._assignedData;
       }
 
       const polygonDataState = polygonDataSelector(state);
-      this.polygonDataLoading = polygonDataState!._loadingStatus;
+      this.polygonDataStatus = polygonDataState!._loadingStatus;
       this.polygonData = polygonDataState!._polygonData;
 
       const streetMapState = streetMapSelector(state);
       this.streetInfoData = streetMapState!._streetInfo;
-      this.streetInfoLoading = streetMapState!._loadingStatus;
+      this.streetInfoStatus = streetMapState!._loadingStatus;
     }
   }
 
