@@ -31,22 +31,8 @@ import { store, RootState } from '../store';
 import { streetNameCompare, compareStreet } from './sorting';
 import { getTextColor } from './getTextColour';
 
-// We are lazy loading its reducer.
-import streetmap, { streetMapSelector } from '../reducers/streetmap';
-import groupData, { groupDataSelector } from '../reducers/groupdata';
-import assignedData, { assignedDataSelector } from '../reducers/assignedData';
-import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
-import userData, { userDataSelector } from '../reducers/users';
-import sortData, { sortDataSelector } from '../reducers/sortData';
-import roundData, { roundDataSelector } from '../reducers/roundsdata';
-
 // These are the actions needed by this element.
 import { GroupData, groupDataLoad } from '../actions/groupdata';
-
-import { streetNames } from '../res/postcodeData';
-
-// These are the shared styles needed by this element.
-import { SharedStyles } from './shared-styles';
 import {
   PublicStreetData,
   AllowedViews,
@@ -66,6 +52,22 @@ import { SortData, sortDataLoad } from '../actions/sortData';
 import { RoundData, roundDataLoad } from '../actions/roundsdata';
 import { notifyMessage } from '../actions/app';
 
+// We are lazy loading its reducer.
+import assignedData, { assignedDataSelector } from '../reducers/assignedData';
+import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import groupData, { groupDataSelector } from '../reducers/groupdata';
+import roundData, { roundDataSelector } from '../reducers/roundsdata';
+import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
+import sortDataList, { sortDataSelector } from '../reducers/sortData';
+import streetmap, { streetMapSelector } from '../reducers/streetmap';
+import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
+import { userDataSelector } from '../reducers/users';
+
+import { streetNames } from '../res/postcodeData';
+
+// These are the shared styles needed by this element.
+import { SharedStyles } from './shared-styles';
+
 interface GridData {
   name: string;
   colour: string;
@@ -78,8 +80,8 @@ interface GridData {
   round?: string;
   sb?: string;
 }
-if (streetMapSelector(store.getState()) === undefined) {
-  store.addReducers({ streetmap });
+if (streetInfoDataSelector(store.getState()) === undefined) {
+  store.addReducers({ streetInfoData });
 }
 if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({ groupData });
@@ -87,14 +89,14 @@ if (groupDataSelector(store.getState()) === undefined) {
 if (assignedDataSelector(store.getState()) === undefined) {
   store.addReducers({ assignedData });
 }
-if (streetInfoDataSelector(store.getState()) === undefined) {
-  store.addReducers({ streetInfoData });
-}
-if (userDataSelector(store.getState()) === undefined) {
-  store.addReducers({ userData });
-}
 if (sortDataSelector(store.getState()) === undefined) {
-  store.addReducers({ sortData });
+  store.addReducers({ sortDataList });
+}
+if (sortboxListSelector(store.getState()) === undefined) {
+  store.addReducers({ sortboxList });
+}
+if (streetMapSelector(store.getState()) === undefined) {
+  store.addReducers({ streetmap });
 }
 if (roundDataSelector(store.getState()) === undefined) {
   store.addReducers({ roundData });
@@ -213,6 +215,24 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
 
   @property({ type: Boolean })
   private printing: boolean = false;
+
+  @property({ type: Number })
+  private assignedDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private streetInfoDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private sortDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private sortboxListStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private cRoundDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private roundDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   static get styles() {
     return [
@@ -380,6 +400,38 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
+    if (changedProps.has('assignedDataStatus'))
+      NotifyStatus('Assigned data', this.assignedDataStatus);
+
+    if (changedProps.has('streetInfoDataStatus'))
+      NotifyStatus('Street info', this.streetInfoDataStatus);
+
+    if (changedProps.has('sortDataStatus'))
+      NotifyStatus('Sort data', this.sortDataStatus);
+
+    if (changedProps.has('sortboxListStatus'))
+      NotifyStatus('Sort boxes', this.sortboxListStatus);
+
+    if (changedProps.has('cRoundDataStatus'))
+      NotifyStatus('Round data', this.cRoundDataStatus);
+
+    if (changedProps.has('roundDataStatus'))
+      NotifyStatus('Group data', this.roundDataStatus);
+
+    if (changedProps.has('admin') || changedProps.has('groupId')) {
+      if (!(this.admin === false && this.groupId === '')) {
+        store.dispatch(notifyMessage('Loading: Group data'));
+        store.dispatch(groupDataLoad(this.admin, this.groupId));
+        store.dispatch(notifyMessage('Loading: Rounds data'));
+        store.dispatch(roundDataLoad(this.admin, this.groupId));
+        store.dispatch(notifyMessage('Loading: Sort data'));
+        store.dispatch(sortDataLoad(this.groupId));
+      }
+      // Load the data required for this page
+      store.dispatch(streetInfoLoad());
+      store.dispatch(assignedDataLoad());
+    }
+
     if (
       changedProps.has('streetInfoData') ||
       changedProps.has('roundData') ||
@@ -419,42 +471,28 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
 
     if (state.app?.page === 'rounds') {
       const usersState = userDataSelector(state);
-      if (usersState) {
-        if (
-          this.admin !== usersState._newUser.claims.administrator ||
-          this.groupId !== usersState._newUser.claims.group
-        ) {
-          this.admin = usersState._newUser.claims.administrator;
-          this.groupId = usersState._newUser.claims.group;
-
-          if (!(this.admin === false && this.groupId === '')) {
-            store.dispatch(notifyMessage('Loading: Group data'));
-            store.dispatch(groupDataLoad(this.admin, this.groupId));
-            store.dispatch(notifyMessage('Loading: Rounds data'));
-            store.dispatch(roundDataLoad(this.admin, this.groupId));
-            store.dispatch(notifyMessage('Loading: Sort data'));
-            store.dispatch(sortDataLoad(this.groupId));
-          }
-          // Load the data required for this page
-          store.dispatch(streetInfoLoad());
-          store.dispatch(assignedDataLoad());
-        }
-      }
+      this.admin = usersState!._newUser.claims.administrator;
+      this.groupId = usersState!._newUser.claims.group;
 
       const streetInfoDataState = streetInfoDataSelector(state);
       this.streetInfoData = streetInfoDataState!._streetInfo;
+      this.streetInfoDataStatus = streetInfoDataState!._loadingStatus;
 
       const groupDataState = groupDataSelector(state);
       this.roundData = groupDataState!._groupData;
+      this.roundDataStatus = groupDataState!._loadingStatus;
 
       const assignedDataState = assignedDataSelector(state);
       this.assignedData = assignedDataState!._assignedData;
+      this.assignedDataStatus = assignedDataState!._loadingStatus;
 
       const roundDataState = roundDataSelector(state);
       this.cRoundData = roundDataState!._roundData;
+      this.cRoundDataStatus = roundDataState!._loadingStatus;
 
       const sortDataState = sortDataSelector(state);
       this.sortData = sortDataState!._sortData;
+      this.sortDataStatus = sortDataState!._loadingStatus;
     }
   }
 

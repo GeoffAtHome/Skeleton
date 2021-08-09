@@ -56,7 +56,6 @@ import { userDataSelector } from '../reducers/users';
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
-import { LOADED_TODO } from '../actions/tododata';
 
 if (assignedDataSelector(store.getState()) === undefined) {
   store.addReducers({ assignedData });

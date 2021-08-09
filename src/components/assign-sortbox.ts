@@ -89,9 +89,6 @@ if (sortboxListSelector(store.getState()) === undefined) {
 if (streetMapSelector(store.getState()) === undefined) {
   store.addReducers({ streetmap });
 }
-if (streetMapSelector(store.getState()) === undefined) {
-  store.addReducers({ streetmap });
-}
 if (publicStreetMapSelector(store.getState()) === undefined) {
   store.addReducers({ publicStreetMap });
 }

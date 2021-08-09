@@ -52,11 +52,11 @@ import { pathEditIcon } from './my-icons';
 
 // We are lazy loading its reducer.
 import groupData, { groupDataSelector } from '../reducers/groupdata';
-import { streetMapSelector } from '../reducers/streetmap';
 import polygonData, { polygonDataSelector } from '../reducers/polygondata';
 import assignedData, { assignedDataSelector } from '../reducers/assignedData';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
+import streetmap, { streetMapSelector } from '../reducers/streetmap';
 import userData, { userDataSelector } from '../reducers/users';
 
 import { streetInfoLoad } from '../actions/streetInfo';
@@ -77,6 +77,12 @@ if (userDataSelector(store.getState()) === undefined) {
 }
 if (roundDataSelector(store.getState()) === undefined) {
   store.addReducers({ roundData });
+}
+if (sortboxListSelector(store.getState()) === undefined) {
+  store.addReducers({ sortboxList });
+}
+if (streetMapSelector(store.getState()) === undefined) {
+  store.addReducers({ streetmap });
 }
 
 // These are the elements needed by this element.
