@@ -251,7 +251,7 @@ export class MyApp extends connect(store)(LitElement) {
             <a ?selected="${this._page === 'welcome'}" href="/#welcome"
               >Welcome</a
             >
-            ${this._loggedIn === true
+            ${this._loggedIn === true && this._admin
               ? html`
                   <a
                     ?selected="${this._page === 'postBoxView'}"
@@ -259,21 +259,43 @@ export class MyApp extends connect(store)(LitElement) {
                     >Where to purchase stamps and post</a
                   >
                   <a
-                    ?selected="${this._page === 'editPostBoxView'}"
-                    href="/#editPostBoxView"
-                    >Edit purchase stamps and post</a
-                  >
-                  <a
                     ?selected="${this._page === 'groupAdmin'}"
                     href="/#groupAdmin"
-                  >
-                    ${this._admin ? html`Group admin` : html`Round admin`}
+                    >Group admin
                   </a>
                   <a
                     ?selected="${this._page === 'assignStreets'}"
                     href="/#assignStreets"
+                    >Assign streets
+                  </a>
+                  <a
+                    ?selected="${this._page === 'whereWeDeliverEdit'}"
+                    href="/#whereWeDeliverEdit"
+                    >Edit map</a
                   >
-                    ${this._admin ? html`Assign streets` : html`Assign rounds`}
+                  <a
+                    ?selected="${this._page === 'editPostBoxView'}"
+                    href="/#editPostBoxView"
+                    >Edit delivery</a
+                  >
+                `
+              : html``}
+            ${this._loggedIn === true && !this._admin
+              ? html`
+                  <a
+                    ?selected="${this._page === 'postBoxView'}"
+                    href="/#postBoxView"
+                    >Where to purchase stamps and post</a
+                  >
+                  <a
+                    ?selected="${this._page === 'groupAdmin'}"
+                    href="/#groupAdmin"
+                    >Round admin
+                  </a>
+                  <a
+                    ?selected="${this._page === 'assignStreets'}"
+                    href="/#assignStreets"
+                    >Assign rounds
                   </a>
 
                   <a ?selected="${this._page === 'rounds'}" href="/#rounds"
@@ -314,6 +336,7 @@ export class MyApp extends connect(store)(LitElement) {
               @click="${this._menuButtonClicked}"
               >${menuIcon}</mwc-button
             >
+            <div slot="actionItems">${this._displayName}</div>
             <mwc-button
               class="btn"
               title="Logout"
