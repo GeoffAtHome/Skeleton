@@ -87,18 +87,6 @@ const roundData: Reducer<RoundDataState, RootAction> = (
       };
     }
 
-    /* TODO: Should be in assigned?
-    case ROUND_DATA_ROUND_UPDATED: {
-      const x = state._assignedData[action._id];
-      x.key = action._groupKey;
-      const data = state._assignedData;
-      data[action._id] = x;
-      return {
-        ...state,
-        _assignedData: data,
-      };
-    } */
-
     case ADD_ROUND: {
       createItemPouchDB(roundDataDB, action._newGroup);
       const newList = { ...state._roundData };

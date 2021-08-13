@@ -21,8 +21,6 @@ import { lazyReducerEnhancer } from 'pwa-helpers/lazy-reducer-enhancer';
 
 import app, { AppState } from './reducers/app';
 import { AppAction } from './actions/app';
-import { ToDoAction, IToDoDataState } from './actions/tododata';
-import { FilterStateAction, IFilterState } from './actions/todostate';
 import { StreetInfoAction, StreetInfoState } from './actions/streetInfo';
 import { SyncStateAction, ISyncState } from './actions/syncState';
 import { PostBoxAction, IPostBoxState } from './actions/postboxes';
@@ -48,8 +46,6 @@ declare global {
 // Overall state extends static states and partials lazy states.
 export interface RootState {
   app?: AppState;
-  toDoData?: IToDoDataState;
-  toDoFilterState?: IFilterState;
   syncState?: ISyncState;
   postBoxState?: IPostBoxState;
   groupData?: GroupDataState;
@@ -67,8 +63,6 @@ export interface RootState {
 
 export type RootAction =
   | AppAction
-  | ToDoAction
-  | FilterStateAction
   | SyncStateAction
   | GroupDataAction
   | PolygonDataAction

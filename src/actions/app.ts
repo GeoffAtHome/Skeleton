@@ -69,10 +69,6 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
       });
       break;
 
-    case 'todo':
-      import('../components/todo-list');
-      break;
-
     case 'assignStreets':
       import('../components/assign-streets');
       break;

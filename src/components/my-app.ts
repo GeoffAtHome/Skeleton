@@ -55,9 +55,6 @@ function getTitle(page: string) {
     case 'welcome':
       title = 'Cardiff and Vale Scout Post Admin';
       break;
-    case 'todo':
-      title = 'ToDo List';
-      break;
 
     case 'assignStreets':
       title = 'Assign Streets';
@@ -256,7 +253,6 @@ export class MyApp extends connect(store)(LitElement) {
             >
             ${this._loggedIn === true
               ? html`
-                  <a ?selected="${this._page === 'todo'}" href="/#todo">ToDo</a>
                   <a
                     ?selected="${this._page === 'postBoxView'}"
                     href="/#postBoxView"
@@ -346,10 +342,6 @@ export class MyApp extends connect(store)(LitElement) {
               ></user-login>
               ${this._loggedIn === true
                 ? html`
-                    <todo-list
-                      class="page"
-                      ?active="${this._page === 'todo'}"
-                    ></todo-list>
                     <postbox-view
                       class="page"
                       ?active="${this._page === 'postBoxView'}"
