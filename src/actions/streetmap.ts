@@ -8,6 +8,8 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
+/*
+
 import { Action, ActionCreator } from 'redux';
 import { LoadingStatus } from '../reducers/PouchDBStatus';
 
@@ -24,6 +26,7 @@ export const CANCEL_DIALOGS = 'CANCEL_DIALOGS';
 export const EDIT_LABEL = 'EDIT_LABEL';
 export const STREET_MAP_CHANGES = 'STREET_MAP_CHANGES';
 export const STREET_MAP_DELETES = 'STREET_MAP_DELETES';
+*/
 
 /* streetName – name of the street
 postcode - postcode for the street (Note some streets have multiple postcodes. These streets should be split by postcode).
@@ -44,6 +47,7 @@ street_order – The layout of the street in terms of house numbers/name. It can
 district_sort_box – identifier for district sort box
 local_sort_box – identifier for local sort box */
 
+/*
 export interface IStreetMapState {
   _loadingStatus: LoadingStatus;
   _streetInfo: StreetInfoData;
@@ -218,3 +222,4 @@ export const streetMapDeletes: ActionCreator<StreetMapDeletes> = _docs => {
     _docs,
   };
 };
+*/

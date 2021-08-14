@@ -40,8 +40,8 @@ import { AllowedViews, getNames } from '../actions/publicstreet';
 import {
   StreetInfoData,
   StreetInfoItem,
-  streetMapDataLoad,
-} from '../actions/streetmap';
+  streetInfoLoad,
+} from '../actions/streetInfo';
 import { streetNames } from '../res/postcodeData';
 import { notifyMessage } from '../actions/app';
 
@@ -50,7 +50,8 @@ import assignedData, { assignedDataSelector } from '../reducers/assignedData';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
 import sortDataList, { sortDataSelector } from '../reducers/sortData';
-import streetmap, { streetMapSelector } from '../reducers/streetmap';
+import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
+
 import { userDataSelector } from '../reducers/users';
 
 // These are the shared styles needed by this element.
@@ -66,8 +67,8 @@ if (sortDataSelector(store.getState()) === undefined) {
 if (sortboxListSelector(store.getState()) === undefined) {
   store.addReducers({ sortboxList });
 }
-if (streetMapSelector(store.getState()) === undefined) {
-  store.addReducers({ streetmap });
+if (streetInfoDataSelector(store.getState()) === undefined) {
+  store.addReducers({ streetInfoData });
 }
 if (roundDataSelector(store.getState()) === undefined) {
   store.addReducers({ roundData });
@@ -399,7 +400,7 @@ export class SortBoxes extends connect(store)(PageViewElement) {
       store.dispatch(sortboxLoad(this.groupId));
       store.dispatch(roundDataLoad(this.admin, this.groupId));
       store.dispatch(sortDataLoad(this.groupId));
-      store.dispatch(streetMapDataLoad());
+      store.dispatch(streetInfoLoad());
       store.dispatch(assignedDataLoad());
     }
 
@@ -442,9 +443,9 @@ export class SortBoxes extends connect(store)(PageViewElement) {
       this.assignedData = assignedDataState!._assignedData;
       this.assignedDataStatus = assignedDataState!._loadingStatus;
 
-      const streetMapState = streetMapSelector(state);
-      this.streetInfoData = streetMapState!._streetInfo;
-      this.streetInfoDataStatus = streetMapState!._loadingStatus;
+      const streetInfoState = streetInfoDataSelector(state);
+      this.streetInfoData = streetInfoState!._streetInfo;
+      this.streetInfoDataStatus = streetInfoState!._loadingStatus;
 
       const sortDataState = sortDataSelector(state);
       this.sortData = sortDataState!._sortData;
@@ -460,13 +461,13 @@ export class SortBoxes extends connect(store)(PageViewElement) {
     }
   }
 
-  private mergeTheData(sortData: SortData, streetInfoData: StreetInfoData) {
+  private mergeTheData(sortData: SortData, lStreetInfoData: StreetInfoData) {
     const gridData: Array<GridData> = [];
 
-    if (sortData !== undefined && streetInfoData !== undefined) {
+    if (sortData !== undefined && lStreetInfoData !== undefined) {
       for (const [pc, item] of Object.entries(sortData)) {
         const pci = streetNames[pc];
-        const streetInfo = streetInfoData[pc];
+        const streetInfo = lStreetInfoData[pc];
 
         const names = getNames(AllowedViews.Both, pci);
 
@@ -497,8 +498,8 @@ export class SortBoxes extends connect(store)(PageViewElement) {
     };
 
     if (streetInfo !== undefined) {
-      thisItem.firstHouse = streetInfo.firstHouse;
-      thisItem.lastHouse = streetInfo.lastHouse;
+      thisItem.firstHouse = streetInfo.firstHouse.toString();
+      thisItem.lastHouse = streetInfo.lastHouse.toString();
       thisItem.notes = streetInfo.notes;
       thisItem.streetOrder = streetInfo.streetOrder;
       thisItem.numberOfProperties = streetInfo.numberOfProperties;

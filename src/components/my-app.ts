@@ -397,6 +397,10 @@ export class MyApp extends connect(store)(LitElement) {
                       class="page"
                       ?active="${this._page === 'sortBoxes'}"
                     ></sort-boxes>
+                    <where-we-deliver-edit
+                      class="page"
+                      ?active="${this._page === 'whereWeDeliverEdit'}"
+                    ></where-we-deliver-edit>
                   `
                 : html``}
               <my-view404

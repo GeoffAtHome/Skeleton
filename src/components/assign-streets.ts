@@ -33,6 +33,11 @@ import { store, RootState } from '../store';
 
 // These are the actions needed by this element.
 import {
+  AssignedData,
+  assignedDataLoad,
+  assignedDataUpdateGroup,
+} from '../actions/assignedData';
+import {
   GroupDataItem,
   groupDataSelectGroup,
   GroupData,
@@ -40,27 +45,30 @@ import {
   groupDataLoad,
 } from '../actions/groupdata';
 import { PolygonData, polygonDataLoad } from '../actions/polygondata';
+import { PublicStreet, PublicStreetData } from '../actions/publicstreet';
 import {
   RoundData,
   roundDataLoad,
   roundDataUpdateRound,
 } from '../actions/roundsdata';
 import { SortboxList, sortboxLoad } from '../actions/sortboxes';
+import { StreetInfoData, streetInfoLoad } from '../actions/streetInfo';
 
 import { streetNames } from '../res/postcodeData';
 import { pathEditIcon } from './my-icons';
 
 // We are lazy loading its reducer.
+import assignedData, { assignedDataSelector } from '../reducers/assignedData';
 import groupData, { groupDataSelector } from '../reducers/groupdata';
 import polygonData, { polygonDataSelector } from '../reducers/polygondata';
-import assignedData, { assignedDataSelector } from '../reducers/assignedData';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
-import streetmap, { streetMapSelector } from '../reducers/streetmap';
+import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
 import userData, { userDataSelector } from '../reducers/users';
 
-import { streetInfoLoad } from '../actions/streetInfo';
-
+if (assignedDataSelector(store.getState()) === undefined) {
+  store.addReducers({ assignedData });
+}
 if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({
     groupData,
@@ -69,20 +77,17 @@ if (groupDataSelector(store.getState()) === undefined) {
 if (polygonDataSelector(store.getState()) === undefined) {
   store.addReducers({ polygonData });
 }
-if (assignedDataSelector(store.getState()) === undefined) {
-  store.addReducers({ assignedData });
-}
-if (userDataSelector(store.getState()) === undefined) {
-  store.addReducers({ userData });
-}
 if (roundDataSelector(store.getState()) === undefined) {
   store.addReducers({ roundData });
 }
 if (sortboxListSelector(store.getState()) === undefined) {
   store.addReducers({ sortboxList });
 }
-if (streetMapSelector(store.getState()) === undefined) {
-  store.addReducers({ streetmap });
+if (streetInfoDataSelector(store.getState()) === undefined) {
+  store.addReducers({ streetInfoData });
+}
+if (userDataSelector(store.getState()) === undefined) {
+  store.addReducers({ userData });
 }
 
 // These are the elements needed by this element.
@@ -94,13 +99,6 @@ import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
 import '@material/mwc-button';
 import './edit-map';
-import { PublicStreet, PublicStreetData } from '../actions/publicstreet';
-import { StreetInfoData } from '../actions/streetmap';
-import {
-  AssignedData,
-  assignedDataLoad,
-  assignedDataUpdateGroup,
-} from '../actions/assignedData';
 import { EditMapData, MapPolygon } from './polygons';
 import { notifyMessage } from '../actions/app';
 import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
@@ -132,6 +130,9 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
   @property({ type: Number })
   private assignedDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
+  @property({ type: Number })
+  private sortBoxStatus: LoadingStatus = LoadingStatus.Unknown;
 
   @property({ type: Number })
   private groupDataStatus: LoadingStatus = LoadingStatus.Unknown;
@@ -333,6 +334,9 @@ export class AssignStreets extends connect(store)(PageViewElement) {
     if (changedProps.has('streetInfoStatus'))
       NotifyStatus('Street info', this.streetInfoStatus);
 
+    if (changedProps.has('sortBoxStatus'))
+      NotifyStatus('Sort box', this.sortBoxStatus);
+
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       // Load the data required for this page
       if (this.admin === false && this.groupId === '') {
@@ -444,9 +448,13 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       this.polygonDataStatus = polygonDataState!._loadingStatus;
       this.polygonData = polygonDataState!._polygonData;
 
-      const streetMapState = streetMapSelector(state);
-      this.streetInfoData = streetMapState!._streetInfo;
-      this.streetInfoStatus = streetMapState!._loadingStatus;
+      const streetInfoState = streetInfoDataSelector(state);
+      this.streetInfoData = streetInfoState!._streetInfo;
+      this.streetInfoStatus = streetInfoState!._loadingStatus;
+
+      const sortboxState = sortboxListSelector(state);
+      this.sortBoxList = sortboxState!._sortboxList;
+      this.sortBoxStatus = sortboxState!._loadingStatus;
     }
   }
 

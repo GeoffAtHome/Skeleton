@@ -21,18 +21,17 @@ import { lazyReducerEnhancer } from 'pwa-helpers/lazy-reducer-enhancer';
 
 import app, { AppState } from './reducers/app';
 import { AppAction } from './actions/app';
-import { StreetInfoAction, StreetInfoState } from './actions/streetInfo';
-import { SyncStateAction, ISyncState } from './actions/syncState';
-import { PostBoxAction, IPostBoxState } from './actions/postboxes';
+import { AssignedDataAction, AssignedDataState } from './actions/assigneddata';
 import { GroupDataAction, GroupDataState } from './actions/groupdata';
+import { LabelDataAction, LabelDataState } from './actions/labeldata';
 import { PolygonDataAction, PolygonDataState } from './actions/polygondata';
+import { PostBoxAction, IPostBoxState } from './actions/postboxes';
+import { PublicStreetAction, PublicStreetState } from './actions/publicstreet';
 import { RoundDataAction, RoundDataState } from './actions/roundsdata';
 import { SortboxAction, SortboxState } from './actions/sortboxes';
 import { SortDataAction, SortDataState } from './actions/sortData';
-import { AssignedDataAction, AssignedDataState } from './actions/assigneddata';
-import { PublicStreetAction, PublicStreetState } from './actions/publicstreet';
-import { StreetMapAction, IStreetMapState } from './actions/streetmap';
-import { LabelDataAction, LabelDataState } from './actions/labeldata';
+import { StreetInfoAction, StreetInfoState } from './actions/streetInfo';
+import { SyncStateAction, ISyncState } from './actions/syncState';
 import { UsersAction, UsersState } from './actions/users';
 
 declare global {
@@ -46,19 +45,18 @@ declare global {
 // Overall state extends static states and partials lazy states.
 export interface RootState {
   app?: AppState;
-  syncState?: ISyncState;
-  postBoxState?: IPostBoxState;
+  assignedData?: AssignedDataState;
   groupData?: GroupDataState;
+  labelData?: LabelDataState;
+  postBoxState?: IPostBoxState;
   polygonData?: PolygonDataState;
+  publicStreetMap?: PublicStreetState;
   roundData?: RoundDataState;
   sortboxList?: SortboxState;
   sortDataList?: SortDataState;
-  assignedData?: AssignedDataState;
-  publicStreetMap?: PublicStreetState;
-  streetmap?: IStreetMapState;
-  labelData?: LabelDataState;
-  userData?: UsersState;
   streetInfoData?: StreetInfoState;
+  syncState?: ISyncState;
+  userData?: UsersState;
 }
 
 export type RootAction =
@@ -72,7 +70,6 @@ export type RootAction =
   | AssignedDataAction
   | PostBoxAction
   | PublicStreetAction
-  | StreetMapAction
   | StreetInfoAction
   | LabelDataAction
   | UsersAction;

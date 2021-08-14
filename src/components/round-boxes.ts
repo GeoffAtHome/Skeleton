@@ -59,7 +59,6 @@ import groupData, { groupDataSelector } from '../reducers/groupdata';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
 import sortDataList, { sortDataSelector } from '../reducers/sortData';
-import streetmap, { streetMapSelector } from '../reducers/streetmap';
 import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
 import { userDataSelector } from '../reducers/users';
 
@@ -94,9 +93,6 @@ if (sortDataSelector(store.getState()) === undefined) {
 }
 if (sortboxListSelector(store.getState()) === undefined) {
   store.addReducers({ sortboxList });
-}
-if (streetMapSelector(store.getState()) === undefined) {
-  store.addReducers({ streetmap });
 }
 if (roundDataSelector(store.getState()) === undefined) {
   store.addReducers({ roundData });
