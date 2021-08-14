@@ -419,15 +419,10 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
       NotifyStatus('Group data', this.roundDataStatus);
 
     if (changedProps.has('admin') || changedProps.has('groupId')) {
-      if (!(this.admin === false && this.groupId === '')) {
-        store.dispatch(notifyMessage('Loading: Group data'));
-        store.dispatch(groupDataLoad(this.admin, this.groupId));
-        store.dispatch(notifyMessage('Loading: Rounds data'));
-        store.dispatch(roundDataLoad(this.admin, this.groupId));
-        store.dispatch(notifyMessage('Loading: Sort data'));
-        store.dispatch(sortDataLoad(this.groupId));
-      }
       // Load the data required for this page
+      store.dispatch(groupDataLoad(this.admin, this.groupId));
+      store.dispatch(roundDataLoad(this.admin, this.groupId));
+      store.dispatch(sortDataLoad(this.groupId));
       store.dispatch(streetInfoLoad());
       store.dispatch(assignedDataLoad());
     }

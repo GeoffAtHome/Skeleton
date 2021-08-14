@@ -152,7 +152,7 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   private drawOpened: boolean = false;
 
   @property({ type: Boolean })
-  private admin: boolean = true;
+  private admin: boolean = false;
 
   @property({ type: String })
   private groupId = '';
@@ -327,9 +327,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
     if (changedProps.has('roundDataStatus'))
       NotifyStatus('Round data', this.roundDataStatus);
 
-    if (changedProps.has('assignedDataStatus'))
-      NotifyStatus('Assigned data', this.assignedDataStatus);
-
     if (changedProps.has('polygonDataStatus'))
       NotifyStatus('Polygon data', this.polygonDataStatus);
 
@@ -337,20 +334,18 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       NotifyStatus('Street info', this.streetInfoStatus);
 
     if (changedProps.has('admin') || changedProps.has('groupId')) {
-      if (!(this.admin === false && this.groupId === '')) {
-        store.dispatch(groupDataLoad(this.admin, this.groupId));
-      }
       // Load the data required for this page
-      if (this.admin === false && this.groupId !== '') {
+      if (this.admin === false && this.groupId === '') {
+        store.dispatch(groupDataLoad(this.admin, this.groupId));
+      } else {
+        store.dispatch(groupDataLoad(this.admin, this.groupId));
         store.dispatch(roundDataLoad(this.admin, this.groupId));
         store.dispatch(sortboxLoad(this.groupId));
       }
       store.dispatch(polygonDataLoad());
       store.dispatch(assignedDataLoad());
       store.dispatch(streetInfoLoad());
-    }
 
-    if (changedProps.has('admin')) {
       let title = '';
       let select = '';
       if (this.admin) {
@@ -363,6 +358,7 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       this.selectGroupDialog.setAttribute('heading', title);
       this.selectGroup.setAttribute('label', select);
     }
+
     if (changedProps.has('groupData')) {
       this.checkedAll.checked = true;
       this.filterAll(true);
@@ -371,11 +367,12 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
     if (
       changedProps.has('groupFilter') ||
-      changedProps.has('assignedDataLoading') ||
-      changedProps.has('groupDataLoading') ||
-      changedProps.has('roundDataLoading') ||
+      changedProps.has('groupId') ||
       changedProps.has('roundsData') ||
+      changedProps.has('assignedData') ||
+      changedProps.has('sortBoxList') ||
       changedProps.has('polygonDataLoading') ||
+      changedProps.has('groupData') ||
       changedProps.has('streetInfoLoading')
     ) {
       if (this.admin === false && this.groupId !== '') {
@@ -385,6 +382,8 @@ export class AssignStreets extends connect(store)(PageViewElement) {
           this.assignedData,
           this.sortBoxList
         );
+      } else {
+        LAssignedData = this.assignedData;
       }
       this.editMapData = MergePolygonData(
         this.polygonData,
@@ -433,19 +432,13 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       this.groupData = groupDataState!._groupData;
       this.groupDataStatus = groupDataState!._loadingStatus;
 
-      if (admin === false && this.groupId !== '') {
-        const assignedDataState = assignedDataSelector(state);
-        this.assignedData = assignedDataState!._assignedData;
-        this.assignedDataStatus = assignedDataState!._loadingStatus;
+      const roundsDataState = roundDataSelector(state);
+      this.roundsData = roundsDataState!._roundData;
+      this.roundDataStatus = roundsDataState!._loadingStatus;
 
-        const roundsDataState = roundDataSelector(state);
-        this.roundsData = roundsDataState!._roundData;
-        this.roundDataStatus = roundsDataState!._loadingStatus;
-      } else {
-        const assignedDataState = assignedDataSelector(state);
-        this.assignedDataStatus = assignedDataState!._loadingStatus;
-        LAssignedData = assignedDataState!._assignedData;
-      }
+      const assignedDataState = assignedDataSelector(state);
+      this.assignedData = assignedDataState!._assignedData;
+      this.assignedDataStatus = assignedDataState!._loadingStatus;
 
       const polygonDataState = polygonDataSelector(state);
       this.polygonDataStatus = polygonDataState!._loadingStatus;

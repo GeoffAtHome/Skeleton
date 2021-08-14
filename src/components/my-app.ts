@@ -452,15 +452,13 @@ export class MyApp extends connect(store)(LitElement) {
     this.appTitle = getTitle(this._page);
 
     const usersState = userDataSelector(state);
-    if (usersState) {
-      this._admin = usersState._newUser.claims.administrator;
-      this._member = usersState._newUser.claims.member;
-      this._groupId = usersState._newUser.claims.group;
-      this._displayName = usersState._newUser.displayName
-        ? usersState._newUser.displayName
-        : '';
-      this._loggedIn = this._admin || this._member;
-    }
+    this._admin = usersState!._newUser.claims.administrator;
+    this._member = usersState!._newUser.claims.member;
+    this._groupId = usersState!._newUser.claims.group;
+    this._displayName = usersState!._newUser.displayName
+      ? usersState!._newUser.displayName
+      : '';
+    this._loggedIn = this._admin || this._member;
   }
 
   handleStart(e: TouchEvent) {
