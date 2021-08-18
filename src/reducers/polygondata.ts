@@ -85,14 +85,19 @@ const polygonData: Reducer<PolygonDataState, RootAction> = (
         _polygon: action._polygon,
       };
 
-    case UPDATE_POLYGON:
-      updateItemPouchDB(PolygonDB, state._index, action._polygon);
-      state._polygonData[state._index].polygon = action._polygon;
+    case UPDATE_POLYGON: {
+      const updatedPolygonData = state._polygonData;
+      const updatedPolygon = updatedPolygonData[action._pc];
+      updatedPolygon.polygon = action._polygon;
+      updateItemPouchDB(PolygonDB, action._pc, updatedPolygon);
+      updatedPolygonData[action._pc] = updatedPolygon;
 
       return {
         ...state,
+        _polygonData: updatedPolygonData,
         _polygon: action._polygon,
       };
+    }
 
     case POLYGON_DATA_GET_POLYGON: {
       const polygondata = state._polygonData[action._pc];
@@ -104,13 +109,15 @@ const polygonData: Reducer<PolygonDataState, RootAction> = (
       };
     }
 
-    case POLYGON_DATA_CHANGED_POLYGON:
-      state._polygonData[action._pc].pos = action._pos;
-      state._polygonData[action._pc].polygon = action._polygon;
+    case POLYGON_DATA_CHANGED_POLYGON: {
+      const changedPolygonData = state._polygonData;
+      changedPolygonData[action._pc].pos = action._pos;
+      changedPolygonData[action._pc].polygon = action._polygon;
       if (action._pc === state._index) {
-        const lPolygonData = state._polygonData[action._pc];
+        const lPolygonData = changedPolygonData[action._pc];
         return {
           ...state,
+          _polygonData: changedPolygonData,
           _changedIndex: action._pc,
           _pos: lPolygonData.pos,
           _polygon: lPolygonData.polygon,
@@ -118,8 +125,10 @@ const polygonData: Reducer<PolygonDataState, RootAction> = (
       }
       return {
         ...state,
+        _polygonData: changedPolygonData,
         _changedIndex: action._pc,
       };
+    }
 
     default:
       return state;

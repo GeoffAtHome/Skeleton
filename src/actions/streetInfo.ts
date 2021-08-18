@@ -26,6 +26,20 @@ export interface StreetInfoItem {
   numberOfProperties: number;
 }
 
+export interface PostcodeData {
+  name: string;
+  _id: string;
+  firstHouse?: string;
+  lastHouse?: string;
+  notes?: string;
+  numberOfProperties?: number;
+  streetOrder?: string;
+  districtSortBox?: string;
+  localSortBox?: string;
+  dsb?: string;
+  lsb?: string;
+}
+
 export interface StreetInfoData {
   [index: string]: StreetInfoItem;
 }

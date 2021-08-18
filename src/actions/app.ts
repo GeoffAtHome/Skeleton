@@ -62,35 +62,12 @@ export const updateDrawerState: ActionCreator<AppActionUpdateDrawerState> = (
 
 const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
   switch (page) {
-    case 'welcome':
-      import('../components/welcome-page').then(() => {
-        // Put code in here that you want to run every time when
-        // navigating to view1 after my-view1 is loaded.
-      });
-      break;
-
-    case 'assignStreets':
-      import('../components/assign-streets');
-      break;
-
-    case 'sortBoxAdmin':
-      import('../components/sortbox-admin');
-      break;
-
     case 'assignSortBox':
       import('../components/assign-sortbox');
       break;
 
-    case 'sortBoxes':
-      import('../components/sort-boxes');
-      break;
-
-    case 'whereWeDeliverEdit':
-      // import('../components/where-we-deliver-edit');
-      break;
-
-    case 'postBoxView':
-      import('../components/postbox-view');
+    case 'assignStreets':
+      import('../components/assign-streets');
       break;
 
     case 'editPostBoxView':
@@ -101,12 +78,39 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
       import('../components/group-admin');
       break;
 
-    case 'userLogin':
-      import('../components/user-login');
+    case 'postBoxView':
+      import('../components/postbox-view');
+      break;
+
+    case 'mapEdit':
+      import('../components/map-edit');
       break;
 
     case 'rounds':
       import('../components/round-boxes');
+      break;
+
+    case 'sortBoxAdmin':
+      import('../components/sortbox-admin');
+      break;
+
+    case 'sortBoxes':
+      import('../components/sort-boxes');
+      break;
+
+    case 'userLogin':
+      import('../components/user-login');
+      break;
+
+    case 'welcome':
+      import('../components/welcome-page').then(() => {
+        // Put code in here that you want to run every time when
+        // navigating to view1 after my-view1 is loaded.
+      });
+      break;
+
+    case 'whereWeDeliverEdit':
+      import('../components/where-we-deliver-edit');
       break;
 
     default:

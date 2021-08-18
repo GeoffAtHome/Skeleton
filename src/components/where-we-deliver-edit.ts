@@ -7,7 +7,7 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
-/*
+
 import {
   html,
   property,
@@ -31,7 +31,7 @@ import { store, RootState } from '../store';
 
 // These are the actions needed by this element.
 import { labelDataGetLabel } from '../actions/labeldata';
-import { navigate } from '../actions/app';
+import { navigate, notifyMessage } from '../actions/app';
 
 // These are the actions needed by this element.
 import {
@@ -39,8 +39,7 @@ import {
   AssignedDataItem,
   assignedDataLoad,
 } from '../actions/assignedData';
-import { groupDataLoad } from '../actions/groupdata';
-import { polygonDataGetPolygon } from '../actions/polygondata';
+import { polygonDataGetPolygon, polygonDataLoad } from '../actions/polygondata';
 import {
   PublicStreetData,
   AllowedViews,
@@ -49,7 +48,12 @@ import {
 } from '../actions/publicstreet';
 import { RoundData, roundDataLoad } from '../actions/roundsdata';
 import { SortboxList, sortboxLoad } from '../actions/sortboxes';
-import { streetInfoLoad } from '../actions/streetInfo';
+import {
+  PostcodeData,
+  StreetInfoData,
+  StreetInfoItem,
+  streetInfoLoad,
+} from '../actions/streetInfo';
 
 // We are lazy loading its reducer.
 import assignedData, { assignedDataSelector } from '../reducers/assignedData';
@@ -57,6 +61,7 @@ import publicStreetMap, {
   publicStreetMapSelector,
 } from '../reducers/publicstreet';
 import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import polygonData, { polygonDataSelector } from '../reducers/polygondata';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
 import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
@@ -80,6 +85,9 @@ if (roundDataSelector(store.getState()) === undefined) {
 }
 if (sortboxListSelector(store.getState()) === undefined) {
   store.addReducers({ sortboxList });
+}
+if (polygonDataSelector(store.getState()) === undefined) {
+  store.addReducers({ polygonData });
 }
 
 function viewSelected(evt: any) {
@@ -123,8 +131,8 @@ function AddToList(
   };
 
   if (streetInfo !== undefined) {
-    thisItem.firstHouse = streetInfo.firstHouse;
-    thisItem.lastHouse = streetInfo.lastHouse;
+    thisItem.firstHouse = streetInfo.firstHouse.toString();
+    thisItem.lastHouse = streetInfo.lastHouse.toString();
     thisItem.notes = streetInfo.notes;
     thisItem.streetOrder = streetInfo.streetOrder;
     thisItem.numberOfProperties = streetInfo.numberOfProperties;
@@ -193,7 +201,7 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
   private streetInfoDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   @property({ type: Number })
-  private groupDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  private polygonDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
   @query('#selectView')
   private selectView: any;
@@ -338,20 +346,21 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
     if (changedProps.has('sortBoxStatus'))
       NotifyStatus('Sort box', this.sortBoxStatus);
 
-    if (changedProps.has('Rounds'))
+    if (changedProps.has('roundDataStatus'))
       NotifyStatus('Rounds data', this.roundDataStatus);
+
+    if (changedProps.has('polygonDataStatus'))
+      NotifyStatus('Polygon data', this.polygonDataStatus);
 
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       // Load the data required for this page
-      if (this.admin === false && this.groupId === '') {
-        store.dispatch(groupDataLoad(this.admin, this.groupId));
-      } else {
-        store.dispatch(groupDataLoad(this.admin, this.groupId));
+      if (this.admin === false && this.groupId !== '') {
         store.dispatch(roundDataLoad(this.admin, this.groupId));
         store.dispatch(sortboxLoad(this.groupId));
       }
       store.dispatch(assignedDataLoad());
       store.dispatch(streetInfoLoad());
+      store.dispatch(polygonDataLoad());
     }
 
     if (
@@ -387,13 +396,20 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
   _streetIdChanged(_el: Event) {
     const item = this.grid.activeItem;
     this.grid.activeItem = {};
-    if (item.contains('_id')) {
-      store.dispatch(polygonDataGetPolygon(item._id));
-      store.dispatch(StreetMapGetPolygon(item._id));
-      store.dispatch(labelDataGetLabel(item._id));
-      const newLocation = `/editmap`;
-      window.history.pushState({}, '', newLocation);
-      store.dispatch(navigate(decodeURIComponent(newLocation)));
+    if ('_id' in item) {
+      if (
+        this.assignedDataStatus !== LoadingStatus.Loaded ||
+        this.streetInfoDataStatus !== LoadingStatus.Loaded ||
+        this.polygonDataStatus !== LoadingStatus.Loaded
+      ) {
+        store.dispatch(notifyMessage('Data still loading.'));
+      } else {
+        store.dispatch(polygonDataGetPolygon(item._id));
+        store.dispatch(labelDataGetLabel(item._id));
+        const newLocation = `/#mapEdit`;
+        window.history.pushState({}, '', newLocation);
+        store.dispatch(navigate(decodeURIComponent(newLocation)));
+      }
     }
   }
 
@@ -405,6 +421,7 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
 
       const streetInfoState = streetInfoDataSelector(state);
       this.streetInfoData = streetInfoState!._streetInfo;
+      this.streetInfoDataStatus = streetInfoState!._loadingStatus;
 
       const assignedDataState = assignedDataSelector(state);
       this.assignedData = assignedDataState!._assignedData;
@@ -420,6 +437,9 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
       const sortboxState = sortboxListSelector(state);
       this.sortBoxList = sortboxState!._sortboxList;
       this.sortBoxStatus = sortboxState!._loadingStatus;
+
+      const polygonDataState = polygonDataSelector(state);
+      this.polygonDataStatus = polygonDataState!._loadingStatus;
     }
   }
 
@@ -449,4 +469,3 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
     }
   }
 }
-*/

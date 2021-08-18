@@ -191,7 +191,7 @@ export class EditMap extends LitElement {
   }
 
   setPolygonEditMode(editPolygon: { pc: string; state: boolean }): void {
-    if (this.LastEditPC !== '') {
+    if (this.LastEditPC in this.polygonsOnMap) {
       const lastPolygon = this.polygonsOnMap[this.LastEditPC];
       lastPolygon.setEditable(false);
     }

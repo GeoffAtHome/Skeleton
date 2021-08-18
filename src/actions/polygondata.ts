@@ -54,6 +54,7 @@ export interface PolygonDataLoaded extends Action<'POLYGON_DATA_LOADED'> {
   _data: PolygonData;
 }
 export interface PolygonDataUpdatePolygon extends Action<'UPDATE_POLYGON'> {
+  _pc: string;
   _polygon: MapPolygon;
 }
 export interface PolygonDataPolygonUpdated extends Action<'POLYGON_UPDATED'> {
@@ -107,45 +108,32 @@ export const polygonDataLoaded: ActionCreator<PolygonDataLoaded> = _data => {
   };
 };
 
-export const polygonDataUpdatePolygon: ActionCreator<PolygonDataUpdatePolygon> = _polygon => {
-  return {
-    type: UPDATE_POLYGON,
-    _polygon,
+export const polygonDataUpdatePolygon: ActionCreator<PolygonDataUpdatePolygon> =
+  (_pc, _polygon) => {
+    return {
+      type: UPDATE_POLYGON,
+      _pc,
+      _polygon,
+    };
   };
-};
 
-export const polygonDataPolygonUpdated: ActionCreator<PolygonDataPolygonUpdated> = (
-  _pc,
-  _pos,
-  _polygon
-) => {
-  return {
-    type: POLYGON_UPDATED,
-    _pc,
-    _pos,
-    _polygon,
+export const polygonDataGetPolygon: ActionCreator<PolygonDataGetPolygon> =
+  _pc => {
+    return {
+      type: POLYGON_DATA_GET_POLYGON,
+      _pc,
+    };
   };
-};
 
-export const polygonDataGetPolygon: ActionCreator<PolygonDataGetPolygon> = _pc => {
-  return {
-    type: POLYGON_DATA_GET_POLYGON,
-    _pc,
+export const polygonDataChangedPolygon: ActionCreator<PolygonDataChangedPolygon> =
+  (_pc, _pos, _polygon) => {
+    return {
+      type: POLYGON_DATA_CHANGED_POLYGON,
+      _pc,
+      _pos,
+      _polygon,
+    };
   };
-};
-
-export const polygonDataChangedPolygon: ActionCreator<PolygonDataChangedPolygon> = (
-  _pc,
-  _pos,
-  _polygon
-) => {
-  return {
-    type: POLYGON_DATA_CHANGED_POLYGON,
-    _pc,
-    _pos,
-    _polygon,
-  };
-};
 
 export const polygonChanges: ActionCreator<PolygonChanges> = _docs => {
   return {

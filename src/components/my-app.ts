@@ -401,6 +401,10 @@ export class MyApp extends connect(store)(LitElement) {
                       class="page"
                       ?active="${this._page === 'whereWeDeliverEdit'}"
                     ></where-we-deliver-edit>
+                    <map-edit
+                      class="page"
+                      ?active="${this._page === 'mapEdit'}"
+                    ></map-edit>
                   `
                 : html``}
               <my-view404

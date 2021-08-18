@@ -344,34 +344,3 @@ export class EditPostboxView extends connect(store)(PageViewElement) {
     this.mapPos = e.detail.position;
   };
 }
-
-/*
-function _MarkerClick(el: any) {
-  const markerPos = el.target.getLatLng();
-  for (const [_key, item] of Object.entries(postBoxData)) {
-    if (item.pos.lat === markerPos.lat && item.pos.lng === markerPos.lng) {
-      markerDrag = item;
-      break;
-    }
-  }
-  store.dispatch(postBoxEdit(markerDrag));
-}
-
-function _MarkerStartEdit(el: any) {
-  const markerPos = el.target.getLatLng();
-  for (const [_key, item] of Object.entries(postBoxData)) {
-    if (item.pos.lat === markerPos.lat && item.pos.lng === markerPos.lng) {
-      markerDrag = item;
-      break;
-    }
-  }
-}
-
-function _MarkerEndEdit(el: any) {
-  const latlng = el.target.getLatLng();
-  markerDrag.pos.lat = latlng.lat;
-  markerDrag.pos.lng = latlng.lng;
-
-  store.dispatch(postBoxUpdate(markerDrag));
-}
-*/
