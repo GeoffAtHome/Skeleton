@@ -30,7 +30,7 @@ import '@material/mwc-list/mwc-list-item';
 import { store, RootState } from '../store';
 
 // These are the actions needed by this element.
-import { labelDataGetLabel } from '../actions/labeldata';
+import { labelDataGetLabel, labelDataRegister } from '../actions/labeldata';
 import { navigate, notifyMessage } from '../actions/app';
 
 // These are the actions needed by this element.
@@ -361,6 +361,7 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
       store.dispatch(assignedDataLoad());
       store.dispatch(streetInfoLoad());
       store.dispatch(polygonDataLoad());
+      store.dispatch(labelDataRegister());
     }
 
     if (

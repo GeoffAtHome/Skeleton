@@ -55,9 +55,9 @@ function getRegisteredDatabase(name: string) {
   throw new Error('Database not found');
 }
 
-function pouchDBError(error: any) {
+function pouchDBError(db: PouchDB.Database, error: any) {
   // eslint-disable-next-line no-console
-  console.log(`DB Error: ${error}`);
+  console.log(`DB Error in ${db.name}:  ${error}`);
 }
 export interface DataList {
   [index: string]: any;
@@ -65,17 +65,17 @@ export interface DataList {
 
 type changeCallback = (change: any) => void;
 
-async function registerChange(name: string) {
+async function registerChange(db: PouchDB.Database) {
   try {
-    const item: any = await syncChangesDB.get(name);
+    const item: any = await syncChangesDB.get(db.name);
     item.value += 1;
     await syncChangesDB.put(item);
   } catch (err) {
-    pouchDBError(err);
+    pouchDBError(db, err);
     try {
-      await syncChangesDB.put({ _id: name, value: 0 });
+      await syncChangesDB.put({ _id: db.name, value: 0 });
     } catch (innerErr) {
-      pouchDBError(innerErr);
+      pouchDBError(db, innerErr);
     }
   }
 }
@@ -96,7 +96,7 @@ export async function loadPouchDB(
     }
     store.dispatch(action(results));
   } catch (err) {
-    pouchDBError(err);
+    pouchDBError(db, err);
   }
 }
 
@@ -107,9 +107,9 @@ export async function createItemPouchDB(db: PouchDB.Database, item: any) {
       item._id = Date.now().toString();
     }
     await db.put(item);
-    await registerChange(db.name);
+    await registerChange(db);
   } catch (err) {
-    pouchDBError(err);
+    pouchDBError(db, err);
   }
 }
 
@@ -119,7 +119,7 @@ export async function readItemPouchDB(db: PouchDB.Database, id: any) {
     item = await db.get(id);
     return item;
   } catch (err) {
-    pouchDBError(err);
+    pouchDBError(db, err);
   }
   return item;
 }
@@ -136,13 +136,13 @@ export async function updateItemPouchDB(
     const revItem = await db.get(id);
     newItem._rev = revItem._rev;
     await db.put(newItem);
-    await registerChange(db.name);
+    await registerChange(db);
   } catch (err) {
     if (err.status === 404) {
       // Item does not exist so create a new one
       createItemPouchDB(db, newItem);
     } else {
-      pouchDBError(err);
+      pouchDBError(db, err);
     }
   }
 }
@@ -151,9 +151,9 @@ export async function deleteItemPouchDB(db: PouchDB.Database, id: string) {
   try {
     const revItem = await db.get(id);
     await db.remove(revItem._id, revItem._rev);
-    await registerChange(db.name);
+    await registerChange(db);
   } catch (err) {
-    pouchDBError(err);
+    pouchDBError(db, err);
   }
 }
 
@@ -192,7 +192,7 @@ async function syncChange(
     db.deletes(removes);
   }
   db.changed = true;
-  await registerChange(db.name);
+  await registerChange(db.localDB);
 }
 
 /// -------------------------------------------------------------------------

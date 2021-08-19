@@ -30,8 +30,10 @@ import {
   labelChanges,
   labelDeletes,
   LabelData,
+  REGISTER_LABEL,
 } from '../actions/labeldata';
 import { RootAction, RootState, store } from '../store';
+import { labelsURL, rootURL } from './dbconst';
 import { LoadingStatus } from './PouchDBStatus';
 
 function LabelChangesDispatch(docs: any) {
@@ -55,7 +57,7 @@ const INITIAL_STATE: LabelDataState = {
     },
     colour: '',
   },
-  _editLabel: -1, // -1 is not editting otherwise Label index
+  _editLabel: -1, // -1 is not editing otherwise Label index
   _index: '',
 };
 
@@ -64,6 +66,18 @@ const labelData: Reducer<LabelDataState, RootAction> = (
   action
 ) => {
   switch (action.type) {
+    case REGISTER_LABEL:
+      LabelDB = RegisterSyncPouchDB(
+        labelsURL,
+        rootURL,
+        LabelChangesDispatch,
+        LabelDeletedDispatch
+      );
+      return {
+        ...state,
+        _loadingStatus: LoadingStatus.Loading,
+      };
+
     case GET_LABEL:
       readItemPouchDB(LabelDB, action._index);
       return {

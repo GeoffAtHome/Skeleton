@@ -40,32 +40,38 @@ import {
   labelDataDeleteLabel,
   labelDataUpdateLabel,
   ILabel,
+  labelDataRegister,
 } from '../actions/labeldata';
 import {
   polygonDataLoad,
   polygonDataUpdatePolygon,
 } from '../actions/polygondata';
-import { PublicStreetData } from '../actions/publicstreet';
-import { StreetInfoItem } from '../actions/streetInfo';
+import {
+  StreetInfoData,
+  StreetInfoItem,
+  streetInfoLoad,
+  streetInfoUpdate,
+} from '../actions/streetInfo';
 
 // We are lazy loading its reducer.
 import labelDataMap, { labelDataSelector } from '../reducers/labeldata';
 import polygonData, { polygonDataSelector } from '../reducers/polygondata';
 import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
 import { userDataSelector } from '../reducers/users';
 
 import { pathEditIcon, labelIcon, detailsIcon } from './my-icons';
 import { EditMapData, EditMapDataItem, MapPolygon } from './polygons';
 import { MarkerData } from './Markers';
-import { streetNames } from '../res/postcodeData';
 import { houseNames } from '../res/houses';
+import { streetNames } from '../res/postcodeData';
 
-if (labelDataSelector(store.getState()) === undefined) {
+if (streetInfoDataSelector(store.getState()) === undefined)
+  store.addReducers({ streetInfoData });
+if (labelDataSelector(store.getState()) === undefined)
   store.addReducers({ labelDataMap });
-}
-if (polygonDataSelector(store.getState()) === undefined) {
+if (polygonDataSelector(store.getState()) === undefined)
   store.addReducers({ polygonData });
-}
 
 const streetOrder = [
   'Sequential',
@@ -78,10 +84,6 @@ const streetOrder = [
 
 let newLabel: ILabel;
 let labels: ILabel[];
-
-function details(_el: Event) {
-  // store.dispatch(streetMapDisplayDetailsDialog());
-}
 
 function modifiedPolygon(_el: CustomEvent<{ pc: string; path: MapPolygon }>) {
   store.dispatch(polygonDataUpdatePolygon(_el.detail.pc, _el.detail.path));
@@ -128,16 +130,11 @@ export class EditMap extends connect(store)(PageViewElement) {
   @query('#map')
   private map: any;
 
-  @property({ type: Object })
   private mapPos: any;
 
   @property({ type: Array })
   private labels: any;
 
-  @property({ type: String })
-  private changedIndex: string = '';
-
-  @property({ type: Object })
   private polygon: EditMapDataItem = {
     paths: {
       coordinates: [
@@ -162,17 +159,20 @@ export class EditMap extends connect(store)(PageViewElement) {
   @property({ type: String })
   private streetName: string = '';
 
-  @property({ type: Object })
-  private data: PublicStreetData | null = null;
-
   @property({ type: Boolean })
   private addLabel: boolean = false;
 
   @property({ type: Number })
   private polygonDataStatus: LoadingStatus = LoadingStatus.Unknown;
 
+  @property({ type: Number })
+  private streetInfoDataStatus: LoadingStatus = LoadingStatus.Unknown;
+
   @property({ type: Boolean })
   private admin: boolean = false;
+
+  @property({ type: Boolean })
+  private showDetails = false; // True to show the details dialog
 
   @property({ type: String })
   private index = '';
@@ -186,9 +186,12 @@ export class EditMap extends connect(store)(PageViewElement) {
 
   private _markerData: MarkerData = {};
 
+  @property({ type: Object })
   private _editPath: { pc: string; state: boolean } = { pc: '', state: false };
 
-  private editPath = false;
+  private editPath = false; // True to edit path
+
+  private streetInfoData: StreetInfoData = {};
 
   static get styles() {
     return [
@@ -358,7 +361,7 @@ export class EditMap extends connect(store)(PageViewElement) {
         id="detailsButton"
         aria-label="Street details"
         raised
-        @click="${details}"
+        @click="${this.details}"
         >${detailsIcon}</mwc-button
       >
       <mwc-button
@@ -400,8 +403,13 @@ export class EditMap extends connect(store)(PageViewElement) {
     if (changedProps.has('polygonDataStatus'))
       NotifyStatus('Polygon data', this.polygonDataStatus);
 
+    if (changedProps.has('streetInfoDataStatus'))
+      NotifyStatus('Street info data', this.streetInfoDataStatus);
+
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       store.dispatch(polygonDataLoad());
+      store.dispatch(labelDataRegister());
+      store.dispatch(streetInfoLoad());
     }
 
     if (changedProps.has('index')) {
@@ -410,9 +418,14 @@ export class EditMap extends connect(store)(PageViewElement) {
         center: this.mapPos,
         zoom: 18,
       };
+      this.streetName = streetNames[this.index].name;
 
       this._polygon = {};
       this._polygon[this.index] = this.polygon;
+    }
+
+    if (changedProps.has('showDetails')) {
+      this.showDetailsDialog();
     }
   }
 
@@ -432,6 +445,9 @@ export class EditMap extends connect(store)(PageViewElement) {
       };
 
       this.mapPos = { lat: polygonState!._pos[0], lng: polygonState!._pos[1] };
+
+      const streetInfoState = streetInfoDataSelector(state);
+      this.streetInfoData = streetInfoState!._streetInfo;
 
       /*
       const streetMapState = streetMapSelector(state);
@@ -536,7 +552,7 @@ export class EditMap extends connect(store)(PageViewElement) {
 
   private updateStreet() {
     const streetItem: StreetInfoItem = {
-      _id: '',
+      _id: this.index,
       notes: this.editStreetNotes.value,
       firstHouse: this.editStreetFirstHouse.value,
       lastHouse: this.editStreetLastHouse.value,
@@ -544,7 +560,7 @@ export class EditMap extends connect(store)(PageViewElement) {
       numberOfProperties: this.editNumberOfProperties.value,
     };
     this.closeDialog();
-    // store.dispatch(streetMapUpdateStreetItem(index, streetItem));
+    store.dispatch(streetInfoUpdate(streetItem));
   }
 
   private closeDialog() {
@@ -581,5 +597,14 @@ export class EditMap extends connect(store)(PageViewElement) {
     this.editPath = !this.editPath;
     if (this.editPath) this._editPath = { pc: this.index, state: true };
     else this._editPath = { pc: this.index, state: false };
+  }
+
+  private details(_el: Event) {
+    this.showDetails = !this.showDetails;
+  }
+
+  private showDetailsDialog() {
+    const item = this.streetInfoData[this.index];
+    this.showEditStreetDialog(item);
   }
 }

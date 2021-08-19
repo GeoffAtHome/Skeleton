@@ -12,6 +12,7 @@ import { Action, ActionCreator } from 'redux';
 import { LatLng } from '../components/polygons';
 import { LoadingStatus } from '../reducers/PouchDBStatus';
 
+export const REGISTER_LABEL = 'REGISTER_LABEL';
 export const GET_LABEL = 'GET_LABEL';
 export const LABELS_LOADED = 'LABELS_LOADED';
 export const ADD_LABEL = 'ADD_LABEL';
@@ -41,6 +42,8 @@ export interface LabelDataState {
   _editLabel: number;
   _index: string;
 }
+
+export interface LabelDataRegister extends Action<'REGISTER_LABEL'> {}
 
 export interface LabelDataGetLabel extends Action<'GET_LABEL'> {
   _index: string;
@@ -73,6 +76,7 @@ export interface LabelDeletes extends Action<'LABEL_DELETES'> {
 }
 
 export type LabelDataAction =
+  | LabelDataRegister
   | LabelDataGetLabel
   | LabelDataLabelsLoaded
   | LabelDataStreetAddLabel
@@ -83,12 +87,19 @@ export type LabelDataAction =
   | LabelChanges
   | LabelDeletes;
 
-export const labelDataLabelsLoaded: ActionCreator<LabelDataLabelsLoaded> = _labels => {
+export const labelDataRegister: ActionCreator<LabelDataRegister> = () => {
   return {
-    type: LABELS_LOADED,
-    _labels,
+    type: REGISTER_LABEL,
   };
 };
+
+export const labelDataLabelsLoaded: ActionCreator<LabelDataLabelsLoaded> =
+  _labels => {
+    return {
+      type: LABELS_LOADED,
+      _labels,
+    };
+  };
 
 export const labelDataGetLabel: ActionCreator<LabelDataGetLabel> = _index => {
   return {
@@ -97,12 +108,13 @@ export const labelDataGetLabel: ActionCreator<LabelDataGetLabel> = _index => {
   };
 };
 
-export const labelDataAddLabel: ActionCreator<LabelDataStreetAddLabel> = _newLabel => {
-  return {
-    type: ADD_LABEL,
-    _newLabel,
+export const labelDataAddLabel: ActionCreator<LabelDataStreetAddLabel> =
+  _newLabel => {
+    return {
+      type: ADD_LABEL,
+      _newLabel,
+    };
   };
-};
 
 export const labelDataUpdateLabel: ActionCreator<LabelDataStreetUpdateLabel> = (
   _index,
@@ -115,12 +127,13 @@ export const labelDataUpdateLabel: ActionCreator<LabelDataStreetUpdateLabel> = (
   };
 };
 
-export const labelDataDeleteLabel: ActionCreator<LabelDataStreetDeleteLabel> = _newLabel => {
-  return {
-    type: DELETE_LABEL,
-    _newLabel,
+export const labelDataDeleteLabel: ActionCreator<LabelDataStreetDeleteLabel> =
+  _newLabel => {
+    return {
+      type: DELETE_LABEL,
+      _newLabel,
+    };
   };
-};
 
 export const labelDataMoveLabel: ActionCreator<LabelDataStreetMoveLabel> = (
   _index,
@@ -133,12 +146,13 @@ export const labelDataMoveLabel: ActionCreator<LabelDataStreetMoveLabel> = (
   };
 };
 
-export const labelDataEditLabel: ActionCreator<LabelDataStreetEditLabel> = _index => {
-  return {
-    type: EDIT_LABEL,
-    _index,
+export const labelDataEditLabel: ActionCreator<LabelDataStreetEditLabel> =
+  _index => {
+    return {
+      type: EDIT_LABEL,
+      _index,
+    };
   };
-};
 
 export const labelChanges: ActionCreator<LabelChanges> = _docs => {
   return {
