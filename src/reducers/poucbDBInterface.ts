@@ -109,7 +109,10 @@ export async function createItemPouchDB(db: PouchDB.Database, item: any) {
     await db.put(item);
     await registerChange(db);
   } catch (err) {
-    pouchDBError(db, err);
+    if (err.status === 409) {
+      // eslint-disable-next-line no-use-before-define
+      await updateItemPouchDB(db, item._id, item);
+    } else pouchDBError(db, err);
   }
 }
 

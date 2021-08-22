@@ -12,7 +12,8 @@ import { Action, ActionCreator } from 'redux';
 import { LatLng } from '../components/polygons';
 import { LoadingStatus } from '../reducers/PouchDBStatus';
 
-export const REGISTER_LABEL = 'REGISTER_LABEL';
+export const LABEL_DATA_LOAD = 'LABEL_DATA_LOAD';
+export const LABEL_DATA_LOADED = 'LABEL_DATA_LOADED';
 export const GET_LABEL = 'GET_LABEL';
 export const LABELS_LOADED = 'LABELS_LOADED';
 export const ADD_LABEL = 'ADD_LABEL';
@@ -29,10 +30,14 @@ export interface ILabel {
   colour: string;
 }
 
-export interface LabelData {
+export interface LabelDataItem {
   _id: string;
   _rev?: any;
   labels: Array<ILabel>;
+}
+
+export interface LabelData {
+  [index: string]: LabelDataItem;
 }
 
 export interface LabelDataState {
@@ -41,10 +46,16 @@ export interface LabelDataState {
   _newLabel: ILabel;
   _editLabel: number;
   _index: string;
+  _labelData: LabelData;
 }
 
-export interface LabelDataRegister extends Action<'REGISTER_LABEL'> {}
-
+export interface LabelDataLoad extends Action<'LABEL_DATA_LOAD'> {
+  _admin: boolean;
+  _groupId: string;
+}
+export interface LabelDataLoaded extends Action<'LABEL_DATA_LOADED'> {
+  _data: LabelData;
+}
 export interface LabelDataGetLabel extends Action<'GET_LABEL'> {
   _index: string;
 }
@@ -52,9 +63,11 @@ export interface LabelDataLabelsLoaded extends Action<'LABELS_LOADED'> {
   _labels: Array<ILabel>;
 }
 export interface LabelDataStreetAddLabel extends Action<'ADD_LABEL'> {
+  _pc: string;
   _newLabel: ILabel;
 }
 export interface LabelDataStreetUpdateLabel extends Action<'UPDATE_LABEL'> {
+  _pc: string;
   _index: number;
   _newLabel: ILabel;
 }
@@ -62,6 +75,7 @@ export interface LabelDataStreetDeleteLabel extends Action<'DELETE_LABEL'> {
   _newLabel: ILabel;
 }
 export interface LabelDataStreetMoveLabel extends Action<'MOVE_LABEL'> {
+  _pc: string;
   _index: number;
   _latlng: LatLng;
 }
@@ -76,7 +90,8 @@ export interface LabelDeletes extends Action<'LABEL_DELETES'> {
 }
 
 export type LabelDataAction =
-  | LabelDataRegister
+  | LabelDataLoad
+  | LabelDataLoaded
   | LabelDataGetLabel
   | LabelDataLabelsLoaded
   | LabelDataStreetAddLabel
@@ -87,9 +102,21 @@ export type LabelDataAction =
   | LabelChanges
   | LabelDeletes;
 
-export const labelDataRegister: ActionCreator<LabelDataRegister> = () => {
+export const labelDataLoad: ActionCreator<LabelDataLoad> = (
+  _admin,
+  _groupId
+) => {
   return {
-    type: REGISTER_LABEL,
+    type: LABEL_DATA_LOAD,
+    _admin,
+    _groupId,
+  };
+};
+
+export const labelDataLoaded: ActionCreator<LabelDataLoaded> = _data => {
+  return {
+    type: LABEL_DATA_LOADED,
+    _data,
   };
 };
 
@@ -108,20 +135,25 @@ export const labelDataGetLabel: ActionCreator<LabelDataGetLabel> = _index => {
   };
 };
 
-export const labelDataAddLabel: ActionCreator<LabelDataStreetAddLabel> =
-  _newLabel => {
-    return {
-      type: ADD_LABEL,
-      _newLabel,
-    };
+export const labelDataAddLabel: ActionCreator<LabelDataStreetAddLabel> = (
+  _pc,
+  _newLabel
+) => {
+  return {
+    type: ADD_LABEL,
+    _pc,
+    _newLabel,
   };
+};
 
 export const labelDataUpdateLabel: ActionCreator<LabelDataStreetUpdateLabel> = (
+  _pc,
   _index,
   _newLabel
 ) => {
   return {
     type: UPDATE_LABEL,
+    _pc,
     _index,
     _newLabel,
   };
@@ -136,11 +168,13 @@ export const labelDataDeleteLabel: ActionCreator<LabelDataStreetDeleteLabel> =
   };
 
 export const labelDataMoveLabel: ActionCreator<LabelDataStreetMoveLabel> = (
+  _pc,
   _index,
   _latlng
 ) => {
   return {
     type: MOVE_LABEL,
+    _pc,
     _index,
     _latlng,
   };

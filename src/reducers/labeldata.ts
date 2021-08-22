@@ -30,11 +30,15 @@ import {
   labelChanges,
   labelDeletes,
   LabelData,
-  REGISTER_LABEL,
+  labelDataLabelsLoaded,
+  LABEL_DATA_LOAD,
+  LABEL_DATA_LOADED,
+  labelDataLoaded,
+  LabelDataItem,
 } from '../actions/labeldata';
 import { RootAction, RootState, store } from '../store';
-import { labelsURL, rootURL } from './dbconst';
 import { LoadingStatus } from './PouchDBStatus';
+import { labelsURL, rootURL } from './dbconst';
 
 function LabelChangesDispatch(docs: any) {
   store.dispatch(labelChanges(docs));
@@ -42,6 +46,11 @@ function LabelChangesDispatch(docs: any) {
 
 function LabelDeletedDispatch(docs: any) {
   store.dispatch(labelDeletes(docs));
+}
+
+async function localReadItemPouchDB(db: PouchDB.Database, id: any) {
+  const readItem = (await readItemPouchDB(db, id)) as LabelData;
+  store.dispatch(labelDataLabelsLoaded(readItem.labels));
 }
 
 let LabelDB: PouchDB.Database;
@@ -59,6 +68,7 @@ const INITIAL_STATE: LabelDataState = {
   },
   _editLabel: -1, // -1 is not editing otherwise Label index
   _index: '',
+  _labelData: {},
 };
 
 const labelData: Reducer<LabelDataState, RootAction> = (
@@ -66,25 +76,34 @@ const labelData: Reducer<LabelDataState, RootAction> = (
   action
 ) => {
   switch (action.type) {
-    case REGISTER_LABEL:
+    case LABEL_DATA_LOAD:
       LabelDB = RegisterSyncPouchDB(
         labelsURL,
         rootURL,
         LabelChangesDispatch,
         LabelDeletedDispatch
       );
+      loadPouchDB(LabelDB, labelDataLoaded);
       return {
         ...state,
         _loadingStatus: LoadingStatus.Loading,
       };
 
-    case GET_LABEL:
-      readItemPouchDB(LabelDB, action._index);
+    case LABEL_DATA_LOADED:
+      return {
+        ...state,
+        _polygonData: action._data,
+        _loadingStatus: LoadingStatus.Loaded,
+      };
+
+    case GET_LABEL: {
+      localReadItemPouchDB(LabelDB, action._index);
       return {
         ...state,
         _index: action._index,
         _loadingStatus: LoadingStatus.Loading,
       };
+    }
 
     case LABELS_LOADED:
       return {
@@ -109,13 +128,13 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       newLabel.push(action._newLabel);
 
       if (newLabel.length === 1) {
-        const newLabelData: LabelData = {
-          _id: state._index,
+        const newLabelData: LabelDataItem = {
+          _id: action._pc,
           labels: newLabel,
         };
         createItemPouchDB(LabelDB, newLabelData);
       } else {
-        updateItemPouchDB(LabelDB, state._index, newLabel);
+        updateItemPouchDB(LabelDB, action._pc, newLabel);
       }
 
       return {
@@ -129,8 +148,7 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       if (state._label) {
         const newLabel = state._label.slice(0);
         newLabel[action._index] = action._newLabel;
-
-        updateItemPouchDB(LabelDB, state._index, newLabel);
+        updateItemPouchDB(LabelDB, action._pc, newLabel);
 
         return {
           ...state,
@@ -145,7 +163,7 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       if (state._label) {
         const newLabel = state._label.slice(0);
         newLabel[action._index].latlng = action._latlng;
-        updateItemPouchDB(LabelDB, state._index, newLabel);
+        updateItemPouchDB(LabelDB, action._pc, { labels: newLabel });
 
         return {
           ...state,
