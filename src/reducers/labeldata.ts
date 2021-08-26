@@ -16,6 +16,7 @@ import {
   loadPouchDB,
   RegisterSyncPouchDB,
   updateItemPouchDB,
+  databaseRegister,
 } from './poucbDBInterface';
 
 import {
@@ -48,12 +49,12 @@ function LabelDeletedDispatch(docs: any) {
   store.dispatch(labelDeletes(docs));
 }
 
-async function localReadItemPouchDB(db: PouchDB.Database, id: any) {
+async function localReadItemPouchDB(db: databaseRegister, id: any) {
   const readItem = (await readItemPouchDB(db, id)) as LabelData;
   store.dispatch(labelDataLabelsLoaded(readItem.labels));
 }
 
-let LabelDB: PouchDB.Database;
+let LabelDB: databaseRegister;
 
 const INITIAL_STATE: LabelDataState = {
   _loadingStatus: LoadingStatus.Unknown,

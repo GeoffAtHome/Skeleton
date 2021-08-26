@@ -12,13 +12,12 @@ import syncState, {
 } from '../reducers/syncState';
 import { syncStateChange } from '../actions/syncState';
 
-if (syncStateSelector(store.getState()) === undefined) {
+if (syncStateSelector(store.getState()) === undefined)
   store.addReducers({
     syncState,
   });
-}
 
-interface databaseRegister {
+export interface databaseRegister {
   name: string;
   localDB: PouchDB.Database;
   remoteDB: PouchDB.Database;
@@ -34,9 +33,7 @@ const registeredDatabases: Array<databaseRegister> = [];
 let currentDB = 0;
 
 function getCurrentDatabase() {
-  if (registeredDatabases.length > 0) {
-    return registeredDatabases[currentDB];
-  }
+  if (registeredDatabases.length > 0) return registeredDatabases[currentDB];
   return undefined;
 }
 function getNextDatabase() {
@@ -81,11 +78,11 @@ async function registerChange(db: PouchDB.Database) {
 }
 
 export async function loadPouchDB(
-  db: PouchDB.Database,
+  db: databaseRegister,
   action: ActionCreator<any>
 ) {
   try {
-    const data = await db.allDocs({ include_docs: true });
+    const data = await db.localDB.allDocs({ include_docs: true });
     const results: DataList = {};
     for (const _item of data.rows) {
       const item: any = _item.doc;
@@ -102,24 +99,21 @@ export async function loadPouchDB(
 
 export async function createItemPouchDB(db: PouchDB.Database, item: any) {
   try {
-    if (!('_id' in item)) {
-      // eslint-disable-next-line no-param-reassign
-      item._id = Date.now().toString();
-    }
+    // eslint-disable-next-line no-param-reassign
+    if (!('_id' in item)) item._id = Date.now().toString();
     await db.put(item);
     await registerChange(db);
   } catch (err) {
-    if (err.status === 409) {
-      // eslint-disable-next-line no-use-before-define
-      await updateItemPouchDB(db, item._id, item);
-    } else pouchDBError(db, err);
+    // eslint-disable-next-line no-use-before-define
+    if (err.status === 409) await updateItemPouchDB(db, item._id, item);
+    else pouchDBError(db, err);
   }
 }
 
-export async function readItemPouchDB(db: PouchDB.Database, id: any) {
+export async function readItemPouchDB(db: databaseRegister, id: any) {
   let item = {};
   try {
-    item = await db.get(id);
+    item = await db.localDB.get(id);
     return item;
   } catch (err) {
     pouchDBError(db, err);
@@ -128,7 +122,7 @@ export async function readItemPouchDB(db: PouchDB.Database, id: any) {
 }
 
 export async function updateItemPouchDB(
-  db: PouchDB.Database,
+  db: databaseRegister,
   id: string,
   item: any
 ) {
@@ -136,17 +130,14 @@ export async function updateItemPouchDB(
   newItem._id = id;
   try {
     // Get revision
-    const revItem = await db.get(id);
+    const revItem = await db.localDB.get(id);
     newItem._rev = revItem._rev;
-    await db.put(newItem);
-    await registerChange(db);
+    await db.localDB.put(newItem);
+    await registerChange(db.localDB);
   } catch (err) {
-    if (err.status === 404) {
-      // Item does not exist so create a new one
-      createItemPouchDB(db, newItem);
-    } else {
-      pouchDBError(db, err);
-    }
+    // Item does not exist so create a new one
+    if (err.status === 404) createItemPouchDB(db.localDB, newItem);
+    else pouchDBError(db.localDB, err);
   }
 }
 
@@ -209,8 +200,8 @@ export function CancelSyncPouchDB(name: string) {
   }
 }
 
-function syncPausedCancel(localDB: PouchDB.Database) {
-  store.dispatch(syncStateChange(`${localDB.name} sync complete`));
+function syncPausedCancel(from: string, localDB: PouchDB.Database) {
+  store.dispatch(syncStateChange(`${from} ${localDB.name} syncPausedCancel`));
   CancelSyncPouchDB(localDB.name);
 }
 
@@ -243,10 +234,12 @@ function SyncOncePouchDB(
   const syncHandler: PouchDB.Replication.Sync<{}> = localDB
     .sync(remoteDB, options)
     .on('change', (info: any) => syncChange(info, localDB.name)) // handle change
-    .on('paused', (err: any) => syncPausedCancel(localDB)) // replication paused (e.g. replication up to date, user went offline)
+    .on('paused', (err: any) => syncPausedCancel('SyncOncePouchDB', localDB)) // replication paused (e.g. replication up to date, user went offline)
     .on('active', () => syncActive(localDB.name)) // replicate resumed (e.g. new changes replicating, user went back online)
     .on('denied', (err: any) => syncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
-    .on('complete', (info: any) => syncComplete(localDB.name, info)) // handle complete
+    .on('complete', (info: any) =>
+      syncComplete(`SyncOncePouchDB ${localDB.name}`, info)
+    ) // handle complete
     .on('error', (err: any) => syncError(localDB.name, err)); // handle error
 
   return syncHandler;
@@ -258,7 +251,6 @@ export function LoadPouchDB(
 ) {
   localDB.replicate.from(remoteDB).on('complete', (_info: any) => {
     syncComplete(localDB.name, _info);
-    syncPausedCancel(localDB);
   });
 }
 
@@ -324,28 +316,29 @@ export function SyncPouchDB(
 ) {
   const options = { /* live: true, */ retry: true };
   localDB.replicate.from(remoteDB).on('complete', (_info: any) => {
-    syncSyncComplete(localDB.name, _info);
+    syncSyncComplete(`SyncPouchDB ${localDB.name}`, _info);
     localDB
       .sync(remoteDB, options)
       .on('change', (info: any) => syncSyncChange(info, changes, deletes)) // handle change
       .on('paused', (err: any) => syncSyncPaused(localDB.name, err)) // replication paused (e.g. replication up to date, user went offline)
       .on('active', () => syncSyncActive(localDB.name)) // replicate resumed (e.g. new changes replicating, user went back online)
       .on('denied', (err: any) => syncSyncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
-      .on('complete', (info: any) => syncSyncComplete(localDB.name, info)) // handle complete
+      .on('complete', (info: any) =>
+        syncSyncComplete(`SyncPouchDB2 ${localDB.name}`, info)
+      ) // handle complete
       .on('error', (err: any) => syncSyncError(localDB.name, err)); // handle error
   });
 }
 
 export function syncNextDB() {
   const thisCurrentDB = getCurrentDatabase();
+  // Stop syncing current database
   if (thisCurrentDB !== undefined) {
-    // Stop syncing current database
     const nextDB = getNextDatabase();
 
     // Start syncing next database
-    if (nextDB !== undefined) {
+    if (nextDB !== undefined)
       SyncOncePouchDB(nextDB?.localDB, nextDB?.remoteDB);
-    }
   }
 }
 
@@ -356,10 +349,10 @@ export function RegisterSyncPouchDB(
   rootURL: string,
   changes: changeCallback,
   deletes: changeCallback
-) {
+): databaseRegister {
   try {
     const db = getRegisteredDatabase(name);
-    return db.localDB;
+    return db;
   } catch (err) {
     const localDB = createPouchDB(name, {});
     const remoteDB = createPouchDB(rootURL + name, {});
@@ -381,9 +374,9 @@ export function RegisterSyncPouchDB(
     if (poller === 0) {
       // create the poller
       poller = 1;
-      setInterval(syncNextDB, 500);
+      setInterval(syncNextDB, 50000);
     }
 
-    return localDB;
+    return db;
   }
 }

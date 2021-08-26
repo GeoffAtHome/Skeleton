@@ -23,6 +23,7 @@ import {
   polygonDataLoaded,
 } from '../actions/polygondata';
 import {
+  databaseRegister,
   loadPouchDB,
   RegisterSyncPouchDB,
   updateItemPouchDB,
@@ -38,7 +39,7 @@ function polygonDeletedDispatch(docs: any) {
   store.dispatch(polygonDeletes(docs));
 }
 
-let PolygonDB: PouchDB.Database;
+let PolygonDB: databaseRegister;
 
 const INITIAL_STATE: PolygonDataState = {
   _loadingStatus: LoadingStatus.Unknown,
@@ -71,6 +72,7 @@ const polygonData: Reducer<PolygonDataState, RootAction> = (
       };
 
     case POLYGON_DATA_LOADED:
+      console.log('LOADED');
       return {
         ...state,
         _polygonData: action._data,

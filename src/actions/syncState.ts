@@ -32,6 +32,7 @@ export interface SyncDeletes extends Action<'SYNC_DELETES_TODO'> {
 export type SyncStateAction = SyncStateChange | SyncChanges | SyncDeletes;
 
 export const syncStateChange: ActionCreator<SyncStateAction> = _state => {
+  console.log(_state);
   return {
     type: SYNC_STATE,
     _state,
