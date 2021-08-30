@@ -42,7 +42,6 @@ import { SharedStyles } from './shared-styles';
 import { notifyMessage } from '../actions/app';
 import { userDataSelector } from '../reducers/users';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
-import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 if (sortboxListSelector(store.getState()) === undefined) {
   store.addReducers({ sortboxList });
@@ -98,8 +97,8 @@ export class SortboxAdmin extends connect(store)(PageViewElement) {
   @property({ type: String })
   private groupId = '';
 
-  @property({ type: Number })
-  private sortboxLoading: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private sortboxLoading = '';
 
   static get styles() {
     return [

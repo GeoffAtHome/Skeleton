@@ -38,7 +38,6 @@ import {
   LabelDataItem,
 } from '../actions/labeldata';
 import { RootAction, RootState, store } from '../store';
-import { LoadingStatus } from './PouchDBStatus';
 import { labelsURL, rootURL } from './dbconst';
 
 function LabelChangesDispatch(docs: any) {
@@ -57,7 +56,7 @@ async function localReadItemPouchDB(db: databaseRegister, id: any) {
 let LabelDB: databaseRegister;
 
 const INITIAL_STATE: LabelDataState = {
-  _loadingStatus: LoadingStatus.Unknown,
+  _loadingStatus: '',
   _label: [],
   _newLabel: {
     text: '',
@@ -87,14 +86,14 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       loadPouchDB(LabelDB, labelDataLoaded);
       return {
         ...state,
-        _loadingStatus: LoadingStatus.Loading,
+        _loadingStatus: LabelDB.status,
       };
 
     case LABEL_DATA_LOADED:
       return {
         ...state,
         _polygonData: action._data,
-        _loadingStatus: LoadingStatus.Loaded,
+        _loadingStatus: LabelDB.status,
       };
 
     case GET_LABEL: {
@@ -102,7 +101,7 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       return {
         ...state,
         _index: action._index,
-        _loadingStatus: LoadingStatus.Loading,
+        _loadingStatus: LabelDB.status,
       };
     }
 
@@ -110,7 +109,7 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       return {
         ...state,
         _label: action._labels,
-        _loadingStatus: LoadingStatus.Loaded,
+        _loadingStatus: LabelDB.status,
       };
 
     case EDIT_LABEL:

@@ -12,6 +12,7 @@ import { Reducer } from 'redux';
 
 import {
   createItemPouchDB,
+  databaseRegister,
   deleteItemPouchDB,
   loadPouchDB,
   RegisterSyncPouchDB,
@@ -33,7 +34,6 @@ import {
 } from '../actions/streetInfo';
 import { RootAction, RootState, store } from '../store';
 import { UsersItem } from '../actions/users';
-import { LoadingStatus } from './PouchDBStatus';
 
 function streetInfoChangesDispatch(docs: any) {
   store.dispatch(streetInfoChanges(docs));
@@ -43,10 +43,10 @@ function streetInfoDeletedDispatch(docs: any) {
   store.dispatch(streetInfoDeletes(docs));
 }
 
-let streetInfoDB: PouchDB.Database;
+let streetInfoDB: databaseRegister;
 
 const INITIAL_STATE: StreetInfoState = {
-  _loadingStatus: LoadingStatus.Unknown,
+  _loadingStatus: '',
   _streetInfo: {},
 };
 
@@ -75,14 +75,14 @@ const streetInfoData: Reducer<StreetInfoState, RootAction> = (
 
       return {
         ...state,
-        _loadingStatus: LoadingStatus.Loading,
+        _loadingStatus: streetInfoDB.status,
       };
 
     case STREET_INFO_LOADED:
       return {
         ...state,
         _streetInfo: action._data,
-        _loadingStatus: LoadingStatus.Loaded,
+        _loadingStatus: streetInfoDB.status,
       };
 
     case STREET_INFO_UPDATE: {

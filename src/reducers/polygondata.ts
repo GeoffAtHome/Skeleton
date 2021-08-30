@@ -29,7 +29,6 @@ import {
   updateItemPouchDB,
 } from './poucbDBInterface';
 import { polygonURL, rootURL } from './dbconst';
-import { LoadingStatus } from './PouchDBStatus';
 
 function polygonChangesDispatch(docs: any) {
   store.dispatch(polygonChanges(docs));
@@ -42,7 +41,7 @@ function polygonDeletedDispatch(docs: any) {
 let PolygonDB: databaseRegister;
 
 const INITIAL_STATE: PolygonDataState = {
-  _loadingStatus: LoadingStatus.Unknown,
+  _loadingStatus: '',
   _index: '',
   _changedIndex: '',
   _pos: [0, 0],
@@ -68,7 +67,7 @@ const polygonData: Reducer<PolygonDataState, RootAction> = (
       loadPouchDB(PolygonDB, polygonDataLoaded);
       return {
         ...state,
-        _loadingStatus: LoadingStatus.Loading,
+        _loadingStatus: PolygonDB.status,
       };
 
     case POLYGON_DATA_LOADED:
@@ -76,7 +75,7 @@ const polygonData: Reducer<PolygonDataState, RootAction> = (
       return {
         ...state,
         _polygonData: action._data,
-        _loadingStatus: LoadingStatus.Loaded,
+        _loadingStatus: PolygonDB.status,
       };
 
     case POLYGON_UPDATED:

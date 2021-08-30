@@ -101,7 +101,7 @@ import '@material/mwc-button';
 import './edit-map';
 import { EditMapData, MapPolygon } from './polygons';
 import { notifyMessage } from '../actions/app';
-import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import { NotifyStatus } from '../reducers/PouchDBStatus';
 
 let LAssignedData: AssignedData = {};
 
@@ -128,23 +128,23 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   @query('#map')
   private map: any;
 
-  @property({ type: Number })
-  private assignedDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private assignedDataStatus= '';
 
-  @property({ type: Number })
-  private sortBoxStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private sortBoxStatus= '';
 
-  @property({ type: Number })
-  private groupDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private groupDataStatus= '';
 
-  @property({ type: Number })
-  private roundDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private roundDataStatus= '';
 
-  @property({ type: Number })
-  private polygonDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private polygonDataStatus= '';
 
-  @property({ type: Number })
-  private streetInfoStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private streetInfoStatus= '';
 
   @property({ type: Array })
   private data: Array<PublicStreet> = [];

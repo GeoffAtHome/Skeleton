@@ -16,10 +16,9 @@ import {
   AllowedViews,
 } from '../actions/publicstreet';
 import { RootAction, RootState } from '../store';
-import { LoadingStatus } from './PouchDBStatus';
 
 const INITIAL_STATE: PublicStreetState = {
-  _loadingStatus: LoadingStatus.Unknown,
+  _loadingStatus: '',
   streetName: '',
   index: '',
   selectedView: AllowedViews.Both,

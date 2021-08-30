@@ -54,7 +54,7 @@ import { labelIcon } from './my-icons';
 import { notifyMessage } from '../actions/app';
 import { userDataSelector } from '../reducers/users';
 import { roundDataLoad } from '../actions/roundsdata';
-import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import { NotifyStatus } from '../reducers/PouchDBStatus';
 
 if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({ groupData });
@@ -104,8 +104,8 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
   @property({ type: String })
   private _id = '';
 
-  @property({ type: Number })
-  private groupDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private groupDataStatus='';
 
   @internalProperty()
   private groupData: GroupData = {};

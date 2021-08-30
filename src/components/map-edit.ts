@@ -57,7 +57,7 @@ import {
 // We are lazy loading its reducer.
 import labelData, { labelDataSelector } from '../reducers/labeldata';
 import polygonData, { polygonDataSelector } from '../reducers/polygondata';
-import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import { NotifyStatus } from '../reducers/PouchDBStatus';
 import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
 import { userDataSelector } from '../reducers/users';
 
@@ -172,11 +172,11 @@ export class EditMap extends connect(store)(PageViewElement) {
   @property({ type: Boolean })
   private addLabel: boolean = false;
 
-  @property({ type: Number })
-  private polygonDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private polygonDataStatus ='';
 
-  @property({ type: Number })
-  private streetInfoDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private streetInfoDataStatus ='';
 
   @property({ type: Boolean })
   private admin: boolean = false;

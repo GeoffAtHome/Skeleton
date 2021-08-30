@@ -9,7 +9,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Action, ActionCreator } from 'redux';
-import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const GROUP_ID = 'GROUP_ID';
 export const GROUP_DATA_LOAD = 'GROUP_DATA_LOAD';
@@ -42,7 +41,7 @@ export interface GroupFilter {
 }
 
 export interface GroupDataState {
-  _loadingStatus: LoadingStatus;
+  _loadingStatus: string;
   _newGroup: GroupDataItem;
   _index: string;
   _groupData: GroupData;

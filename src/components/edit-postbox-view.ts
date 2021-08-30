@@ -49,7 +49,7 @@ import {
 import postBoxState, { postboxSelector } from '../reducers/postboxes';
 import { MarkerData } from './Markers';
 import { PageViewElement } from './page-view-element';
-import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import { NotifyStatus } from '../reducers/PouchDBStatus';
 
 if (postboxSelector(store.getState()) === undefined) {
   store.addReducers({
@@ -102,8 +102,8 @@ export class EditPostboxView extends connect(store)(PageViewElement) {
   @query('#lat')
   private editLat: any;
 
-  @property({ type: Number })
-  private postBoxDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private postBoxDataStatus='';
 
   @internalProperty()
   private _mapOptions = {

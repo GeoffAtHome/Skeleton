@@ -9,7 +9,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Action, ActionCreator } from 'redux';
-import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const PUBLICSTREET_ID = 'PUBLICSTREET_ID';
 export const PUBLIC_STREET_DATA_LOADED = 'PUBLIC_STREET_DATA_LOADED';
@@ -35,7 +34,7 @@ export enum AllowedViews {
 }
 
 export interface PublicStreetState {
-  _loadingStatus: LoadingStatus;
+  _loadingStatus: string;
   streetName: string;
   index: string;
   selectedView: AllowedViews;

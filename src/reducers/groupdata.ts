@@ -29,12 +29,12 @@ import { rootURL, groupDataURL, groupsURL } from './dbconst';
 
 import {
   createItemPouchDB,
+  databaseRegister,
   deleteItemPouchDB,
   loadPouchDB,
   RegisterSyncPouchDB,
   updateItemPouchDB,
 } from './poucbDBInterface';
-import { LoadingStatus } from './PouchDBStatus';
 
 function groupDataChangesDispatch(docs: any) {
   store.dispatch(groupDataChanges(docs));
@@ -44,10 +44,10 @@ function groupDataDeletedDispatch(docs: any) {
   store.dispatch(groupDataDeletes(docs));
 }
 
-let groupDataDB: PouchDB.Database;
+let groupDataDB: databaseRegister;
 
 const INITIAL_STATE: GroupDataState = {
-  _loadingStatus: LoadingStatus.Unknown,
+  _loadingStatus: '',
   _newGroup: {
     _id: '',
     name: '',
@@ -88,14 +88,14 @@ const groupData: Reducer<GroupDataState, RootAction> = (
       loadPouchDB(groupDataDB, groupDataLoaded);
       return {
         ...state,
-        _loadingStatus: LoadingStatus.Loading,
+        _loadingStatus: groupDataDB.status,
       };
 
     case GROUP_DATA_LOADED:
       return {
         ...state,
         _groupData: action._data,
-        _loadingStatus: LoadingStatus.Loaded,
+        _loadingStatus: groupDataDB.status,
       };
 
     case ADD_GROUP: {

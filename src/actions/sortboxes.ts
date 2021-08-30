@@ -9,7 +9,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Action, ActionCreator } from 'redux';
-import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const SORTBOX_LOAD = 'SORTBOX_LOAD';
 export const SORTBOX_LOADED = 'SORTBOX_LOADED';
@@ -33,7 +32,7 @@ export interface SortboxList {
 }
 
 export interface SortboxState {
-  _loadingStatus: LoadingStatus;
+  _loadingStatus: string;
   _newSortbox: SortboxItem;
   _index: string;
   _sortboxList: SortboxList;

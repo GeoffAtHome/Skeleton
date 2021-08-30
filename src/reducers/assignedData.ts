@@ -26,12 +26,12 @@ import { rootURL, groupDataURL, assignedDataURL } from './dbconst';
 
 import {
   createItemPouchDB,
+  databaseRegister,
   deleteItemPouchDB,
   loadPouchDB,
   RegisterSyncPouchDB,
   updateItemPouchDB,
 } from './poucbDBInterface';
-import { LoadingStatus } from './PouchDBStatus';
 
 function assignedDataChangesDispatch(docs: any) {
   store.dispatch(assignedDataChanges(docs));
@@ -41,10 +41,10 @@ function assignedDataDeletedDispatch(docs: any) {
   store.dispatch(assignedDataDeletes(docs));
 }
 
-let assignedDataDB: PouchDB.Database;
+let assignedDataDB: databaseRegister;
 
 const INITIAL_STATE: AssignedDataState = {
-  _loadingStatus: LoadingStatus.Unknown,
+  _loadingStatus: '',
   _assignedData: {},
 };
 
@@ -63,14 +63,14 @@ const assignedData: Reducer<AssignedDataState, RootAction> = (
       loadPouchDB(assignedDataDB, assignedDataLoaded);
       return {
         ...state,
-        _loadingStatus: LoadingStatus.Loading,
+        _loadingStatus: assignedDataDB.status,
       };
 
     case ASSIGNED_DATA_LOADED:
       return {
         ...state,
         _assignedData: action._data,
-        _loadingStatus: LoadingStatus.Loaded,
+        _loadingStatus: assignedDataDB.status,
       };
 
     case ASSIGNED_DATA_UPDATE_GROUP:
@@ -93,7 +93,7 @@ const assignedData: Reducer<AssignedDataState, RootAction> = (
     case ASSIGNED_DATA_CHANGES:
       return {
         ...state,
-        _assignedData: { ...state._assignedData, ...action._docs },
+        _loadingStatus: assignedDataDB.status,
       };
 
     case ASSIGNED_DATA_DELETES: {

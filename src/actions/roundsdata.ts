@@ -9,7 +9,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Action, ActionCreator } from 'redux';
-import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const ROUND_DATA_LOAD = 'ROUND_DATA_LOAD';
 export const ROUND_DATA_LOADED = 'ROUND_DATA_LOADED';
@@ -33,7 +32,7 @@ export interface RoundData {
 }
 
 export interface RoundDataState {
-  _loadingStatus: LoadingStatus;
+  _loadingStatus: string;
   _roundData: RoundData;
 }
 

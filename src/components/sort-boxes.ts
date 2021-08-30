@@ -56,7 +56,7 @@ import { userDataSelector } from '../reducers/users';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
-import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import { NotifyStatus } from '../reducers/PouchDBStatus';
 
 if (assignedDataSelector(store.getState()) === undefined) {
   store.addReducers({ assignedData });
@@ -153,20 +153,20 @@ export class SortBoxes extends connect(store)(PageViewElement) {
   @property({ type: String })
   private groupId = '';
 
-  @property({ type: Number })
-  private assignedDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private assignedDataStatus = '';
 
-  @property({ type: Number })
-  private streetInfoDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private streetInfoDataStatus = '';
 
-  @property({ type: Number })
-  private sortDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private sortDataStatus = '';
 
-  @property({ type: Number })
-  private sortboxListStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private sortboxListStatus = '';
 
-  @property({ type: Number })
-  private cRoundDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private cRoundDataStatus = '';
 
   static get styles() {
     return [

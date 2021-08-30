@@ -60,7 +60,7 @@ import assignedData, { assignedDataSelector } from '../reducers/assignedData';
 import publicStreetMap, {
   publicStreetMapSelector,
 } from '../reducers/publicstreet';
-import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import { NotifyStatus } from '../reducers/PouchDBStatus';
 import polygonData, { polygonDataSelector } from '../reducers/polygondata';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
@@ -188,20 +188,20 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
   @property({ type: String })
   private groupId = '';
 
-  @property({ type: Number })
-  private assignedDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private assignedDataStatus = '';
 
-  @property({ type: Number })
-  private sortBoxStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private sortBoxStatus = '';
 
-  @property({ type: Number })
-  private roundDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private roundDataStatus = '';
 
-  @property({ type: Number })
-  private streetInfoDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private streetInfoDataStatus = '';
 
-  @property({ type: Number })
-  private polygonDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private polygonDataStatus = '';
 
   @query('#selectView')
   private selectView: any;
@@ -398,19 +398,11 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
     const item = this.grid.activeItem;
     this.grid.activeItem = {};
     if ('_id' in item) {
-      if (
-        this.assignedDataStatus !== LoadingStatus.Loaded ||
-        this.streetInfoDataStatus !== LoadingStatus.Loaded ||
-        this.polygonDataStatus !== LoadingStatus.Loaded
-      ) {
-        store.dispatch(notifyMessage('Data still loading.'));
-      } else {
         store.dispatch(polygonDataGetPolygon(item._id));
         store.dispatch(labelDataGetLabel(item._id));
         const newLocation = `/#mapEdit`;
         window.history.pushState({}, '', newLocation);
         store.dispatch(navigate(decodeURIComponent(newLocation)));
-      }
     }
   }
 

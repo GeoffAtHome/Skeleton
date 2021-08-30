@@ -9,7 +9,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 
 import { Action, ActionCreator } from 'redux';
-import { LoadingStatus } from '../reducers/PouchDBStatus';
 
 export const POSTBOX_DATA_LOAD = 'POSTBOX_DATA_LOAD';
 export const POSTBOX_DATA_LOADED = 'POSTBOX_DATA_LOADED';
@@ -39,7 +38,7 @@ export interface PostBoxList {
 }
 
 export interface IPostBoxState {
-  _loadingStatus: LoadingStatus;
+  _loadingStatus: string;
   _data: PostBoxList;
   _newPostbox: PostBoxData;
   _postBoxKey: string;

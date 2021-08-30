@@ -23,6 +23,7 @@ export interface databaseRegister {
   remoteDB: PouchDB.Database;
   changes: changeCallback;
   deletes: changeCallback;
+  status: string;
   state: boolean;
   active: boolean;
   changed: boolean;
@@ -52,7 +53,7 @@ function getRegisteredDatabase(name: string) {
   throw new Error('Database not found');
 }
 
-function pouchDBError(db: PouchDB.Database, error: any) {
+function pouchDBError(db: databaseRegister, error: any) {
   // eslint-disable-next-line no-console
   console.log(`DB Error in ${db.name}:  ${error}`);
 }
@@ -62,7 +63,7 @@ export interface DataList {
 
 type changeCallback = (change: any) => void;
 
-async function registerChange(db: PouchDB.Database) {
+async function registerChange(db: databaseRegister) {
   try {
     const item: any = await syncChangesDB.get(db.name);
     item.value += 1;
@@ -97,11 +98,11 @@ export async function loadPouchDB(
   }
 }
 
-export async function createItemPouchDB(db: PouchDB.Database, item: any) {
+export async function createItemPouchDB(db: databaseRegister, item: any) {
   try {
     // eslint-disable-next-line no-param-reassign
     if (!('_id' in item)) item._id = Date.now().toString();
-    await db.put(item);
+    await db.localDB.put(item);
     await registerChange(db);
   } catch (err) {
     // eslint-disable-next-line no-use-before-define
@@ -133,18 +134,18 @@ export async function updateItemPouchDB(
     const revItem = await db.localDB.get(id);
     newItem._rev = revItem._rev;
     await db.localDB.put(newItem);
-    await registerChange(db.localDB);
+    await registerChange(db);
   } catch (err) {
     // Item does not exist so create a new one
-    if (err.status === 404) createItemPouchDB(db.localDB, newItem);
-    else pouchDBError(db.localDB, err);
+    if (err.status === 404) createItemPouchDB(db, newItem);
+    else pouchDBError(db, err);
   }
 }
 
-export async function deleteItemPouchDB(db: PouchDB.Database, id: string) {
+export async function deleteItemPouchDB(db: databaseRegister, id: string) {
   try {
-    const revItem = await db.get(id);
-    await db.remove(revItem._id, revItem._rev);
+    const revItem = await db.localDB.get(id);
+    await db.localDB.remove(revItem._id, revItem._rev);
     await registerChange(db);
   } catch (err) {
     pouchDBError(db, err);
@@ -186,7 +187,7 @@ async function syncChange(
     db.deletes(removes);
   }
   db.changed = true;
-  await registerChange(db.localDB);
+  await registerChange(db);
 }
 
 /// -------------------------------------------------------------------------
@@ -366,6 +367,7 @@ export function RegisterSyncPouchDB(
       state: false,
       active: false,
       changed: false,
+      status: '',
     };
 
     registeredDatabases.push(db);

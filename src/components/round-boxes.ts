@@ -54,7 +54,7 @@ import { notifyMessage } from '../actions/app';
 
 // We are lazy loading its reducer.
 import assignedData, { assignedDataSelector } from '../reducers/assignedData';
-import { LoadingStatus, NotifyStatus } from '../reducers/PouchDBStatus';
+import { NotifyStatus } from '../reducers/PouchDBStatus';
 import groupData, { groupDataSelector } from '../reducers/groupdata';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
@@ -212,23 +212,23 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
   @property({ type: Boolean })
   private printing: boolean = false;
 
-  @property({ type: Number })
-  private assignedDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private assignedDataStatus = '';
 
-  @property({ type: Number })
-  private streetInfoDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private streetInfoDataStatus = '';
 
-  @property({ type: Number })
-  private sortDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private sortDataStatus = '';
 
-  @property({ type: Number })
-  private sortboxListStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private sortboxListStatus= '';
 
-  @property({ type: Number })
-  private cRoundDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private cRoundDataStatus= '';
 
-  @property({ type: Number })
-  private roundDataStatus: LoadingStatus = LoadingStatus.Unknown;
+  @property({ type: String })
+  private roundDataStatus= '';
 
   static get styles() {
     return [

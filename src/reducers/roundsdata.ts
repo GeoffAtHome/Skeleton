@@ -30,12 +30,12 @@ import { rootURL, roundsURL } from './dbconst';
 
 import {
   createItemPouchDB,
+  databaseRegister,
   deleteItemPouchDB,
   loadPouchDB,
   RegisterSyncPouchDB,
   updateItemPouchDB,
 } from './poucbDBInterface';
-import { LoadingStatus } from './PouchDBStatus';
 
 function roundDataChangesDispatch(docs: any) {
   store.dispatch(roundDataChanges(docs));
@@ -45,10 +45,10 @@ function roundDataDeletedDispatch(docs: any) {
   store.dispatch(roundDataDeletes(docs));
 }
 
-let roundDataDB: PouchDB.Database;
+let roundDataDB: databaseRegister;
 
 const INITIAL_STATE: RoundDataState = {
-  _loadingStatus: LoadingStatus.Unknown,
+  _loadingStatus: '',
   _roundData: {},
 };
 
@@ -67,14 +67,14 @@ const roundData: Reducer<RoundDataState, RootAction> = (
       loadPouchDB(roundDataDB, roundDataLoaded);
       return {
         ...state,
-        _loadingStatus: LoadingStatus.Loading,
+        _loadingStatus: roundDataDB.status,
       };
 
     case ROUND_DATA_LOADED:
       return {
         ...state,
         _roundData: action._data,
-        _loadingStatus: LoadingStatus.Loaded,
+        _loadingStatus: roundDataDB.status,
       };
 
     case ROUND_DATA_UPDATE_ROUND: {
