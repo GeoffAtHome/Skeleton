@@ -5,7 +5,7 @@ export const SYNC_CHANGES_TODO = 'SYNC_CHANGES_TODO';
 export const SYNC_DELETES_TODO = 'SYNC_DELETES_TODO';
 
 export interface ISync {
-  databaseName: string;
+  status: string;
 }
 
 export interface SyncDataList {
@@ -14,11 +14,13 @@ export interface SyncDataList {
 
 export interface ISyncState {
   _lastSyncState: string;
+  _lastSyncDatabase: string;
   _docs: SyncDataList;
 }
 
 export interface SyncStateChange extends Action<'SYNC_STATE'> {
-  _state: string;
+  _databaseName: string;
+  _status: string;
 }
 
 export interface SyncChanges extends Action<'SYNC_CHANGES_TODO'> {
@@ -31,11 +33,14 @@ export interface SyncDeletes extends Action<'SYNC_DELETES_TODO'> {
 
 export type SyncStateAction = SyncStateChange | SyncChanges | SyncDeletes;
 
-export const syncStateChange: ActionCreator<SyncStateAction> = _state => {
-  console.log(_state);
+export const syncStateChange: ActionCreator<SyncStateChange> = (
+  _databaseName,
+   _status
+   ) => {
   return {
     type: SYNC_STATE,
-    _state,
+     _databaseName,
+     _status,
   };
 };
 

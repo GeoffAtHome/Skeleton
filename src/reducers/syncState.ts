@@ -34,6 +34,7 @@ SyncPouchDB(syncChangesDB, remoteDB, syncChangesDispatch, syncDeletedDispatch);
 
 const INITIAL_STATE: ISyncState = {
   _lastSyncState: '',
+  _lastSyncDatabase: '',
   _docs: {},
 };
 
@@ -42,11 +43,16 @@ const syncState: Reducer<ISyncState, RootAction> = (
   action
 ) => {
   switch (action.type) {
-    case SYNC_STATE:
+    case SYNC_STATE:{
+      const docs = state._docs;
+      docs[action._databaseName] = {status: action._status};
       return {
         ...state,
-        _lastSyncState: action._state,
+        _lastSyncState: action._status,
+        _lastSyncDatabase: action._databaseName,
+        _docs: docs,
       };
+    }
 
     default:
       return state;

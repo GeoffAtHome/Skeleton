@@ -202,24 +202,24 @@ export function CancelSyncPouchDB(name: string) {
 }
 
 function syncPausedCancel(from: string, localDB: PouchDB.Database) {
-  store.dispatch(syncStateChange(`${from} ${localDB.name} syncPausedCancel`));
+  store.dispatch(syncStateChange(localDB.name, 'syncPausedCancel'));
   CancelSyncPouchDB(localDB.name);
 }
 
 function syncActive(localDB: string) {
-  store.dispatch(syncStateChange(`${localDB} reconnected`));
+  store.dispatch(syncStateChange(localDB, 'Reconnected'));
   const db = getRegisteredDatabase(localDB);
   db.active = true;
 }
 function syncDenied(localDB: string, x: any) {
-  store.dispatch(syncStateChange(`${localDB} denied`));
+  store.dispatch(syncStateChange(localDB, 'Denied'));
 }
 function syncComplete(localDB: string, x: any) {
-  store.dispatch(syncStateChange(`${localDB} sync complete`));
+  store.dispatch(syncStateChange(localDB, 'Complete'));
 }
 
 function syncError(localDB: string, x: any) {
-  store.dispatch(syncStateChange(`${localDB} Error: ${x}`));
+  store.dispatch(syncStateChange(localDB, 'Error'));
 }
 
 export function createPouchDB(dbName: string, options: any): PouchDB.Database {
@@ -239,7 +239,7 @@ function SyncOncePouchDB(
     .on('active', () => syncActive(localDB.name)) // replicate resumed (e.g. new changes replicating, user went back online)
     .on('denied', (err: any) => syncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
     .on('complete', (info: any) =>
-      syncComplete(`SyncOncePouchDB ${localDB.name}`, info)
+      syncComplete(localDB.name, info)
     ) // handle complete
     .on('error', (err: any) => syncError(localDB.name, err)); // handle error
 
