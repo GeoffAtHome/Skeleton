@@ -461,18 +461,6 @@ export class EditMap extends connect(store)(PageViewElement) {
       this._polygon[this.pc] = this.polygon;
     }
 
-    if (changedProps.has('labels')) {
-      if (this.labels.length > 0) {
-        this.labels.forEach((label, index) => {
-          this._markerData[`${this.pc}:${index}`] = {
-            position: label.latlng,
-            title: label.text,
-            shape: svgText(label.text, label.colour),
-          };
-        });
-      }
-    }
-
     if (changedProps.has('showDetails')) {
       this.showDetailsDialog();
     }
@@ -500,10 +488,31 @@ export class EditMap extends connect(store)(PageViewElement) {
       this.streetInfoData = streetInfoState!._streetInfo;
 
       const labelDataState = labelDataSelector(state);
-      this.labels = labelDataState!._labels;
+      if (
+        JSON.stringify(this.labels) !==
+        JSON.stringify(labelDataState!._labelData[this.pc].labels)
+      ) {
+        this.labels = JSON.parse(
+          JSON.stringify(labelDataState!._labelData[this.pc].labels)
+        );
+        const markerData: MarkerData = {};
+        if (this.labels.length > 0) {
+          this.labels.forEach((label, index) => {
+            markerData[`${this.pc}:${index}`] = {
+              position: label.latlng,
+              title: label.text,
+              shape: svgText(label.text, label.colour),
+            };
+          });
+        }
+        this._markerData = JSON.parse(JSON.stringify(markerData));
+      }
 
       if (labelDataState!._editLabel !== -1) {
-        newLabel = labelDataState!._labels[labelDataState!._editLabel];
+        newLabel =
+          labelDataState!._labelData[this.pc].labels[
+            labelDataState!._editLabel
+          ];
         this.addLabel = false;
         this.addUpdate.textContent = 'Update';
         this.showEditLabelDialog('Edit Label', newLabel);

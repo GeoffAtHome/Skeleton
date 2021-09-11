@@ -50,15 +50,6 @@ let LabelDB: databaseRegister;
 
 const INITIAL_STATE: LabelDataState = {
   _loadingStatus: '',
-  _labels: [],
-  _newLabel: {
-    text: '',
-    latlng: {
-      lat: 51.50502153288204,
-      lng: -3.240311294225257,
-    },
-    colour: '',
-  },
   _editLabel: -1, // -1 is not editing otherwise Label index
   _pc: '',
   _labelData: {},
@@ -96,7 +87,6 @@ const labelData: Reducer<LabelDataState, RootAction> = (
           : state._labelData[action._pc];
       return {
         ...state,
-        _labels: thisLabelData.labels,
         _pc: action._pc,
         _loadingStatus: LabelDB.status,
       };
@@ -110,10 +100,10 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       };
 
     case ADD_LABEL: {
-      const newLabel = state._labels;
+      const newLabelData = state._labelData;
+      const newLabel = newLabelData[action._pc].labels;
       newLabel.push(action._newLabel);
 
-      const newLabelData = state._labelData;
       const newLabelItem: LabelDataItem = {
         _id: action._pc,
         labels: newLabel,
@@ -128,21 +118,20 @@ const labelData: Reducer<LabelDataState, RootAction> = (
 
       return {
         ...state,
-        _labels: newLabel,
         _labelData: newLabelData,
         _editPath: false,
       };
     }
 
     case UPDATE_LABEL:
-      if (state._labels) {
-        const newLabel = state._labels;
-        newLabel[action._index] = action._newLabel;
-        updateItemPouchDB(LabelDB, action._pc, newLabel);
+      if (state._labelData[action._pc].labels) {
+        const newLabelData = state._labelData;
+        newLabelData[action._pc].labels[action._index] = action._newLabel;
+        updateItemPouchDB(LabelDB, action._pc, newLabelData[action._pc]);
 
         return {
           ...state,
-          _labels: newLabel,
+          _labelData: newLabelData,
           _editPath: false,
           _editLabel: -1,
         };
@@ -150,14 +139,14 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       return state;
 
     case MOVE_LABEL:
-      if (state._labels) {
+      if (state._labelData[action._pc].labels) {
         const newLabelData = state._labelData;
         newLabelData[action._pc].labels[action._index].latlng = action._latlng;
         updateItemPouchDB(LabelDB, action._pc, newLabelData[action._pc]);
 
         return {
           ...state,
-          _labels: newLabelData[action._pc].labels,
+          _labelData: newLabelData,
           _editPath: false,
           _editLabel: -1,
         };
@@ -165,13 +154,12 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       return state;
 
     case DELETE_LABEL: {
+      const newLabelData = state._labelData;
       if (state._labelData[action._pc].labels.length <= 1) {
-        const newLabelData = state._labelData;
         delete newLabelData[action._pc];
         deleteItemPouchDB(LabelDB, action._pc);
         return {
           ...state,
-          _labels: [],
           _labelData: newLabelData,
           _editPath: false,
           _editLabel: -1,
@@ -179,11 +167,12 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       }
       const newLabel = state._labelData[action._pc];
 
-      newLabel.labels.splice(action._index, -1);
+      newLabel.labels.splice(action._index, 1);
+      newLabelData[action._pc] = newLabel;
       updateItemPouchDB(LabelDB, action._pc, newLabel);
       return {
         ...state,
-        _label: newLabel,
+        _labelData: newLabelData,
         _editPath: false,
         _editLabel: -1,
       };
