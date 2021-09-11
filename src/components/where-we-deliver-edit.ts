@@ -365,7 +365,6 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
       store.dispatch(assignedDataLoad());
       store.dispatch(streetInfoLoad());
       store.dispatch(polygonDataLoad());
-      store.dispatch(labelDataLoad(this.admin, this.groupId));
     }
 
     if (
@@ -403,7 +402,6 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
     this.grid.activeItem = {};
     if ('_id' in item) {
       store.dispatch(polygonDataGetPolygon(item._id));
-      store.dispatch(labelDataGetLabel(item._id));
       const newLocation = `/#mapEdit`;
       window.history.pushState({}, '', newLocation);
       store.dispatch(navigate(decodeURIComponent(newLocation)));

@@ -489,8 +489,9 @@ export class EditMap extends connect(store)(PageViewElement) {
 
       const labelDataState = labelDataSelector(state);
       if (
+        labelDataState!._labelData[this.pc] !== undefined &&
         JSON.stringify(this.labels) !==
-        JSON.stringify(labelDataState!._labelData[this.pc].labels)
+          JSON.stringify(labelDataState!._labelData[this.pc].labels)
       ) {
         this.labels = JSON.parse(
           JSON.stringify(labelDataState!._labelData[this.pc].labels)
