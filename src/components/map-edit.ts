@@ -42,6 +42,7 @@ import {
   ILabel,
   labelDataLoad,
   labelDataMoveLabel,
+  labelDataEditLabel,
 } from '../actions/labeldata';
 import {
   polygonDataLoad,
@@ -89,10 +90,26 @@ function modifiedPolygon(_el: CustomEvent<{ pc: string; path: MapPolygon }>) {
   store.dispatch(polygonDataUpdatePolygon(_el.detail.pc, _el.detail.path));
 }
 
+function getPartsFromKey(key: string) {
+  const parts = key.split(':');
+  return { pc: parts[0], key: Number(parts[1]) };
+}
+
 function moveMarker(
-  _el: CustomEvent<{ key: number; pos: { lat: number; lng: number } }>
+  _el: CustomEvent<{
+    key: string;
+    pos: { lat: number; lng: number };
+  }>
 ) {
-  store.dispatch(labelDataMoveLabel(_el.detail.key, 0, _el.detail.pos));
+  const parts = getPartsFromKey(_el.detail.key);
+  store.dispatch(labelDataMoveLabel(parts.pc, parts.key, _el.detail.pos));
+}
+
+function clickedMarker(
+  _el: CustomEvent<{ key: string; marker: google.maps.Marker }>
+) {
+  const parts = getPartsFromKey(_el.detail.key);
+  store.dispatch(labelDataEditLabel(parts.pc, parts.key));
 }
 
 function svgText(txt: String, colour: string) {
@@ -173,10 +190,10 @@ export class EditMap extends connect(store)(PageViewElement) {
   private addLabel: boolean = false;
 
   @property({ type: String })
-  private polygonDataStatus ='';
+  private polygonDataStatus = '';
 
   @property({ type: String })
-  private streetInfoDataStatus ='';
+  private streetInfoDataStatus = '';
 
   @property({ type: Boolean })
   private admin: boolean = false;
@@ -188,7 +205,10 @@ export class EditMap extends connect(store)(PageViewElement) {
   private showDetails = false; // True to show the details dialog
 
   @property({ type: String })
-  private index = '';
+  private pc = '';
+
+  @property({ type: Number })
+  private index = -1;
 
   private _mapOptions = {
     center: { lat: 51.50502153288204, lng: -3.240311294225257 },
@@ -393,7 +413,7 @@ export class EditMap extends connect(store)(PageViewElement) {
       >
       <div class="flex-container">
         <ul id="streetList">
-          ${Object.entries(houseNames[this.index]).map(
+          ${Object.entries(houseNames[this.pc]).map(
             i => html`<li>${i[1]}, ${this.streetName}</li>`
           )}
         </ul>
@@ -411,7 +431,7 @@ export class EditMap extends connect(store)(PageViewElement) {
 
   firstUpdated(changedProps: PropertyValues) {
     this.map.addEventListener('modifiedPolygon', modifiedPolygon);
-    this.map.addEventListener('clickedMarker', this.clickedMarker);
+    this.map.addEventListener('clickedMarker', clickedMarker);
     this.map.addEventListener('moveMarker', moveMarker);
     // this.map.addEventListener('moveMap', moveMap);
   }
@@ -429,16 +449,28 @@ export class EditMap extends connect(store)(PageViewElement) {
       store.dispatch(streetInfoLoad());
     }
 
-    if (changedProps.has('index')) {
+    if (changedProps.has('pc')) {
       this.editPath = false;
       this._mapOptions = {
         center: this.mapPos,
         zoom: 18,
       };
-      this.streetName = streetNames[this.index].name;
+      this.streetName = streetNames[this.pc].name;
 
       this._polygon = {};
-      this._polygon[this.index] = this.polygon;
+      this._polygon[this.pc] = this.polygon;
+    }
+
+    if (changedProps.has('labels')) {
+      if (this.labels.length > 0) {
+        this.labels.forEach((label, index) => {
+          this._markerData[`${this.pc}:${index}`] = {
+            position: label.latlng,
+            title: label.text,
+            shape: svgText(label.text, label.colour),
+          };
+        });
+      }
     }
 
     if (changedProps.has('showDetails')) {
@@ -453,7 +485,7 @@ export class EditMap extends connect(store)(PageViewElement) {
       this.groupId = usersState!._newUser.claims.group;
 
       const polygonState = polygonDataSelector(state);
-      this.index = polygonState!._index;
+      this.pc = polygonState!._index;
       this.polygon = {
         paths: polygonState!._polygon,
         options: {
@@ -468,21 +500,15 @@ export class EditMap extends connect(store)(PageViewElement) {
       this.streetInfoData = streetInfoState!._streetInfo;
 
       const labelDataState = labelDataSelector(state);
-      this.labels = labelDataState!._label;
-      if (this.labels.length > 0) {
-        this._markerData[this.index] = {
-          position: this.labels[0].latlng,
-          title: this.labels[0].text,
-          shape: svgText(this.labels[0].text, this.labels[0].colour),
-        };
+      this.labels = labelDataState!._labels;
 
-        if (labelDataState!._editLabel !== -1) {
-          newLabel = labelDataState!._label[labelDataState!._editLabel];
-          this.addLabel = false;
-          this.addUpdate.textContent = 'Update';
-          this.showEditLabelDialog('Edit Label', newLabel);
-        }
+      if (labelDataState!._editLabel !== -1) {
+        newLabel = labelDataState!._labels[labelDataState!._editLabel];
+        this.addLabel = false;
+        this.addUpdate.textContent = 'Update';
+        this.showEditLabelDialog('Edit Label', newLabel);
       }
+      this.index = labelDataState!._editLabel;
 
       /*
       const streetMapState = streetMapSelector(state);
@@ -536,7 +562,7 @@ export class EditMap extends connect(store)(PageViewElement) {
   private addLabelDialog(_el: Event) {
     newLabel = {
       text: 'name',
-      latlng: { lat: 51.50502153288204, lng: -3.240311294225257 },
+      latlng: this.mapPos,
       colour: '#00ff00',
     };
     this.addLabel = true;
@@ -575,7 +601,7 @@ export class EditMap extends connect(store)(PageViewElement) {
 
   private updateStreet() {
     const streetItem: StreetInfoItem = {
-      _id: this.index,
+      _id: this.pc,
       notes: this.editStreetNotes.value,
       firstHouse: this.editStreetFirstHouse.value,
       lastHouse: this.editStreetLastHouse.value,
@@ -600,26 +626,26 @@ export class EditMap extends connect(store)(PageViewElement) {
     newLabel.colour = this.editLabelColour.value;
     this.closeDialog();
     if (this.addLabel) {
-      store.dispatch(labelDataAddLabel(this.index, newLabel));
+      store.dispatch(labelDataAddLabel(this.pc, this.index, newLabel));
     } else {
       const lIndex = Object.keys(this.labels).find(
         (key: any) =>
           this.labels[key].latlng.lat === newLabel.latlng.lat &&
           this.labels[key].latlng.lng === newLabel.latlng.lng
       );
-      store.dispatch(labelDataUpdateLabel(this.index, lIndex, newLabel));
+      store.dispatch(labelDataUpdateLabel(this.pc, this.index, newLabel));
     }
   }
 
   private deleteLabel() {
-    store.dispatch(labelDataDeleteLabel(newLabel));
+    store.dispatch(labelDataDeleteLabel(this.pc, this.index));
     this.closeDialog();
   }
 
   private clickEditPath(_el: Event) {
     this.editPath = !this.editPath;
-    if (this.editPath) this._editPath = { pc: this.index, state: true };
-    else this._editPath = { pc: this.index, state: false };
+    if (this.editPath) this._editPath = { pc: this.pc, state: true };
+    else this._editPath = { pc: this.pc, state: false };
   }
 
   private details(_el: Event) {
@@ -627,14 +653,7 @@ export class EditMap extends connect(store)(PageViewElement) {
   }
 
   private showDetailsDialog() {
-    const item = this.streetInfoData[this.index];
+    const item = this.streetInfoData[this.pc];
     this.showEditStreetDialog(item);
-  }
-
-  private clickedMarker(
-    _el: CustomEvent<{ key: number; marker: google.maps.Marker }>
-  ) {
-    const label = this.labels[_el.detail.key];
-    this.showEditLabelDialog('Edit Label', label);
   }
 }

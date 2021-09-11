@@ -66,7 +66,7 @@ import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
 import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
 import { userDataSelector } from '../reducers/users';
-import syncState, {syncStateSelector} from '../reducers/syncState'
+import syncState, { syncStateSelector } from '../reducers/syncState';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
@@ -402,23 +402,24 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
     const item = this.grid.activeItem;
     this.grid.activeItem = {};
     if ('_id' in item) {
-        store.dispatch(polygonDataGetPolygon(item._id));
-        store.dispatch(labelDataGetLabel(item._id));
-        const newLocation = `/#mapEdit`;
-        window.history.pushState({}, '', newLocation);
-        store.dispatch(navigate(decodeURIComponent(newLocation)));
+      store.dispatch(polygonDataGetPolygon(item._id));
+      store.dispatch(labelDataGetLabel(item._id));
+      const newLocation = `/#mapEdit`;
+      window.history.pushState({}, '', newLocation);
+      store.dispatch(navigate(decodeURIComponent(newLocation)));
     }
   }
 
   stateChanged(state: RootState) {
     if (state.app!.page === 'whereWeDeliverEdit') {
-      const syncState = syncStateSelector(state)
-      const docs = syncState!._docs;
+      const _syncState = syncStateSelector(state);
+      const docs = _syncState!._docs;
       const list: Array<string> = [];
-      for(const [key,doc] of Object.entries(docs)) {
-        if (docs[key].status === 'Complete') list.push(doc.status)
+      for (const [key, doc] of Object.entries(docs)) {
+        if (docs[key].status === 'Complete') list.push(doc.status);
       }
-      this.streetInfoDataStatus = (list.length !== Object.keys(docs).length) ? 'Loading' : 'Loaded';
+      this.streetInfoDataStatus =
+        list.length !== Object.keys(docs).length ? 'Loading' : 'Loaded';
 
       const usersState = userDataSelector(state);
       this.admin = usersState!._newUser.claims.administrator;

@@ -14,7 +14,6 @@ import { LatLng } from '../components/polygons';
 export const LABEL_DATA_LOAD = 'LABEL_DATA_LOAD';
 export const LABEL_DATA_LOADED = 'LABEL_DATA_LOADED';
 export const GET_LABEL = 'GET_LABEL';
-export const LABELS_LOADED = 'LABELS_LOADED';
 export const ADD_LABEL = 'ADD_LABEL';
 export const UPDATE_LABEL = 'UPDATE_LABEL';
 export const DELETE_LABEL = 'DELETE_LABEL';
@@ -41,10 +40,10 @@ export interface LabelData {
 
 export interface LabelDataState {
   _loadingStatus: string;
-  _label: Array<ILabel>;
+  _labels: Array<ILabel>;
   _newLabel: ILabel;
   _editLabel: number;
-  _index: string;
+  _pc: string;
   _labelData: LabelData;
 }
 
@@ -56,13 +55,14 @@ export interface LabelDataLoaded extends Action<'LABEL_DATA_LOADED'> {
   _data: LabelData;
 }
 export interface LabelDataGetLabel extends Action<'GET_LABEL'> {
-  _index: string;
+  _pc: string;
 }
 export interface LabelDataLabelsLoaded extends Action<'LABELS_LOADED'> {
   _labels: Array<ILabel>;
 }
 export interface LabelDataStreetAddLabel extends Action<'ADD_LABEL'> {
   _pc: string;
+  _index: number;
   _newLabel: ILabel;
 }
 export interface LabelDataStreetUpdateLabel extends Action<'UPDATE_LABEL'> {
@@ -71,7 +71,8 @@ export interface LabelDataStreetUpdateLabel extends Action<'UPDATE_LABEL'> {
   _newLabel: ILabel;
 }
 export interface LabelDataStreetDeleteLabel extends Action<'DELETE_LABEL'> {
-  _newLabel: ILabel;
+  _pc: string;
+  _index: number;
 }
 export interface LabelDataStreetMoveLabel extends Action<'MOVE_LABEL'> {
   _pc: string;
@@ -79,6 +80,7 @@ export interface LabelDataStreetMoveLabel extends Action<'MOVE_LABEL'> {
   _latlng: LatLng;
 }
 export interface LabelDataStreetEditLabel extends Action<'EDIT_LABEL'> {
+  _pc: string;
   _index: number;
 }
 export interface LabelChanges extends Action<'LABEL_CHANGES'> {
@@ -119,28 +121,25 @@ export const labelDataLoaded: ActionCreator<LabelDataLoaded> = _data => {
   };
 };
 
-export const labelDataLabelsLoaded: ActionCreator<LabelDataLabelsLoaded> =
-  _labels => {
-    return {
-      type: LABELS_LOADED,
-      _labels,
-    };
-  };
-
-export const labelDataGetLabel: ActionCreator<LabelDataGetLabel> = _index => {
+export const labelDataGetLabel: ActionCreator<LabelDataGetLabel> = (
+  _pc,
+  _index
+) => {
   return {
     type: GET_LABEL,
-    _index,
+    _pc,
   };
 };
 
 export const labelDataAddLabel: ActionCreator<LabelDataStreetAddLabel> = (
   _pc,
+  _index,
   _newLabel
 ) => {
   return {
     type: ADD_LABEL,
     _pc,
+    _index,
     _newLabel,
   };
 };
@@ -158,13 +157,16 @@ export const labelDataUpdateLabel: ActionCreator<LabelDataStreetUpdateLabel> = (
   };
 };
 
-export const labelDataDeleteLabel: ActionCreator<LabelDataStreetDeleteLabel> =
-  _newLabel => {
-    return {
-      type: DELETE_LABEL,
-      _newLabel,
-    };
+export const labelDataDeleteLabel: ActionCreator<LabelDataStreetDeleteLabel> = (
+  _pc,
+  _index
+) => {
+  return {
+    type: DELETE_LABEL,
+    _pc,
+    _index,
   };
+};
 
 export const labelDataMoveLabel: ActionCreator<LabelDataStreetMoveLabel> = (
   _pc,
@@ -179,13 +181,16 @@ export const labelDataMoveLabel: ActionCreator<LabelDataStreetMoveLabel> = (
   };
 };
 
-export const labelDataEditLabel: ActionCreator<LabelDataStreetEditLabel> =
-  _index => {
-    return {
-      type: EDIT_LABEL,
-      _index,
-    };
+export const labelDataEditLabel: ActionCreator<LabelDataStreetEditLabel> = (
+  _pc,
+  _index
+) => {
+  return {
+    type: EDIT_LABEL,
+    _pc,
+    _index,
   };
+};
 
 export const labelChanges: ActionCreator<LabelChanges> = _docs => {
   return {

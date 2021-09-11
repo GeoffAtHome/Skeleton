@@ -14,6 +14,7 @@ import { createPouchDB, ReSyncPouchDB, SyncPouchDB } from './poucbDBInterface';
 function syncChangesDispatch(docs: any) {
   store.dispatch(syncChanges(docs));
   Object.keys(docs).forEach(db => {
+    console.log(`ReSyncDB => ${db}`);
     ReSyncPouchDB(db);
   });
 }
@@ -43,9 +44,9 @@ const syncState: Reducer<ISyncState, RootAction> = (
   action
 ) => {
   switch (action.type) {
-    case SYNC_STATE:{
+    case SYNC_STATE: {
       const docs = state._docs;
-      docs[action._databaseName] = {status: action._status};
+      docs[action._databaseName] = { status: action._status };
       return {
         ...state,
         _lastSyncState: action._status,

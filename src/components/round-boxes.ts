@@ -222,13 +222,13 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
   private sortDataStatus = '';
 
   @property({ type: String })
-  private sortboxListStatus= '';
+  private sortboxListStatus = '';
 
   @property({ type: String })
-  private cRoundDataStatus= '';
+  private cRoundDataStatus = '';
 
   @property({ type: String })
-  private roundDataStatus= '';
+  private roundDataStatus = '';
 
   static get styles() {
     return [
@@ -547,7 +547,12 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
   ) {
     if (Object.keys(this.roundData).length !== 0) {
       try {
-        const index = item.key === undefined ? 0 : item.key;
+        // const index = item.key === undefined ? 0 : item.key;
+        const index =
+          item.key === undefined ||
+          Number(item.key) >= Object.entries(this.roundData).length
+            ? 0
+            : item.key;
 
         const thisItem: GridData = {
           round: item.key,
