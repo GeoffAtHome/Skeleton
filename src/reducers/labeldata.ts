@@ -101,7 +101,10 @@ const labelData: Reducer<LabelDataState, RootAction> = (
 
     case ADD_LABEL: {
       const newLabelData = state._labelData;
-      const newLabel = newLabelData[action._pc].labels;
+      const newLabel =
+        newLabelData[action._pc] === undefined
+          ? []
+          : newLabelData[action._pc].labels;
       newLabel.push(action._newLabel);
 
       const newLabelItem: LabelDataItem = {
