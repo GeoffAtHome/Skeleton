@@ -25,12 +25,11 @@ import '@vaadin/vaadin-grid/vaadin-grid-filter-column';
 import '@vaadin/vaadin-grid/vaadin-grid-sorter';
 import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
-
+import './loading-spinner';
 // This element is connected to the Redux store.
 import { store, RootState } from '../store';
 
 // These are the actions needed by this element.
-import { labelDataGetLabel, labelDataLoad } from '../actions/labeldata';
 import { navigate, notifyMessage } from '../actions/app';
 
 // These are the actions needed by this element.
@@ -54,6 +53,7 @@ import {
   StreetInfoItem,
   streetInfoLoad,
 } from '../actions/streetInfo';
+import { fullyLoaded } from '../actions/syncState';
 
 // We are lazy loading its reducer.
 import assignedData, { assignedDataSelector } from '../reducers/assignedData';
@@ -71,6 +71,11 @@ import syncState, { syncStateSelector } from '../reducers/syncState';
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 import { streetNames } from '../res/postcodeData';
+import {
+  assignedDataURL,
+  polygonURL,
+  streetInfoURL,
+} from '../reducers/dbconst';
 
 if (publicStreetMapSelector(store.getState()) === undefined) {
   store.addReducers({ publicStreetMap });
@@ -93,6 +98,9 @@ if (polygonDataSelector(store.getState()) === undefined) {
 if (syncStateSelector(store.getState()) === undefined) {
   store.addReducers({ syncState });
 }
+
+const publicDB: Array<string> = [polygonURL, assignedDataURL, streetInfoURL];
+const userDB: Array<string> = [];
 
 function viewSelected(evt: any) {
   store.dispatch(publicStreetSelectedView(<AllowedViews>evt.target.value));
@@ -204,6 +212,9 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
   @property({ type: String })
   private streetInfoDataStatus = '';
 
+  @property({ type: Boolean })
+  private _loading = true;
+
   @property({ type: String })
   private polygonDataStatus = '';
 
@@ -243,6 +254,7 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
+      <loading-spinner ?loading="${this._loading}"></loading-spinner>
       ${this.printing !== true
         ? html` <mwc-select
               id="selectView"
@@ -411,13 +423,7 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
   stateChanged(state: RootState) {
     if (state.app!.page === 'whereWeDeliverEdit') {
       const _syncState = syncStateSelector(state);
-      const docs = _syncState!._docs;
-      const list: Array<string> = [];
-      for (const [key, doc] of Object.entries(docs)) {
-        if (docs[key].status === 'Complete') list.push(doc.status);
-      }
-      this.streetInfoDataStatus =
-        list.length !== Object.keys(docs).length ? 'Loading' : 'Loaded';
+      this._loading = fullyLoaded(publicDB, userDB, this.id, _syncState!._docs);
 
       const usersState = userDataSelector(state);
       this.admin = usersState!._newUser.claims.administrator;
@@ -425,7 +431,6 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
 
       const streetInfoState = streetInfoDataSelector(state);
       this.streetInfoData = streetInfoState!._streetInfo;
-      // this.streetInfoDataStatus = streetInfoState!._loadingStatus;
 
       const assignedDataState = assignedDataSelector(state);
       this.assignedData = assignedDataState!._assignedData;

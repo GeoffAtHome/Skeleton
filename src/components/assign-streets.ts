@@ -15,7 +15,6 @@ import {
   query,
   property,
   PropertyValues,
-  internalProperty,
 } from 'lit-element';
 
 // These are the shared styles needed by this element.
@@ -64,6 +63,7 @@ import polygonData, { polygonDataSelector } from '../reducers/polygondata';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
 import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
+import syncState, { syncStateSelector } from '../reducers/syncState';
 import userData, { userDataSelector } from '../reducers/users';
 
 if (assignedDataSelector(store.getState()) === undefined) {
@@ -89,6 +89,13 @@ if (streetInfoDataSelector(store.getState()) === undefined) {
 if (userDataSelector(store.getState()) === undefined) {
   store.addReducers({ userData });
 }
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({ syncState });
+}
+
+const publicDB: Array<string> = [assignedDataURL, polygonURL, streetInfoURL];
+const userDB: Array<string> = [sortBoxesURL, roundsURL, groupsURL];
+const adminDB: Array<string> = [groupDataURL];
 
 // These are the elements needed by this element.
 import '@material/mwc-dialog';
@@ -99,9 +106,20 @@ import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
 import '@material/mwc-button';
 import './edit-map';
+import './loading-spinner';
 import { EditMapData, MapPolygon } from './polygons';
 import { notifyMessage } from '../actions/app';
 import { NotifyStatus } from '../reducers/PouchDBStatus';
+import { fullyLoaded } from '../actions/syncState';
+import {
+  assignedDataURL,
+  polygonURL,
+  streetInfoURL,
+  sortBoxesURL,
+  roundsURL,
+  groupDataURL,
+  groupsURL,
+} from '../reducers/dbconst';
 
 let LAssignedData: AssignedData = {};
 
@@ -129,22 +147,25 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   private map: any;
 
   @property({ type: String })
-  private assignedDataStatus= '';
+  private assignedDataStatus = '';
 
   @property({ type: String })
-  private sortBoxStatus= '';
+  private sortBoxStatus = '';
+
+  @property({ type: Boolean })
+  private _loading = true;
 
   @property({ type: String })
-  private groupDataStatus= '';
+  private groupDataStatus = '';
 
   @property({ type: String })
-  private roundDataStatus= '';
+  private roundDataStatus = '';
 
   @property({ type: String })
-  private polygonDataStatus= '';
+  private polygonDataStatus = '';
 
   @property({ type: String })
-  private streetInfoStatus= '';
+  private streetInfoStatus = '';
 
   @property({ type: Array })
   private data: Array<PublicStreet> = [];
@@ -176,22 +197,13 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   @property({ type: Object })
   private polygonData: PolygonData = {};
 
-  @internalProperty()
   private _mapOptions = {
     center: { lat: 51.50502153288204, lng: -3.240311294225257 },
     zoom: 10,
   };
-
-  @internalProperty()
   private sortBoxList: SortboxList = {};
-
-  @internalProperty()
   private assignedData: AssignedData = {};
-
-  @internalProperty()
   private roundsData: RoundData = {};
-
-  @internalProperty()
   private lastSyncState: string = '';
 
   static get styles() {
@@ -243,6 +255,7 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
+      <loading-spinner ?loading="${this._loading}"></loading-spinner>
       <mwc-dialog
         id="selectGroupDialog"
         heading="Select groups to display"
@@ -339,13 +352,11 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       // Load the data required for this page
-      if (this.admin === false && this.groupId === '') {
-        store.dispatch(groupDataLoad(this.admin, this.groupId));
-      } else {
-        store.dispatch(groupDataLoad(this.admin, this.groupId));
+      if (!this.admin) {
         store.dispatch(roundDataLoad(this.admin, this.groupId));
         store.dispatch(sortboxLoad(this.groupId));
       }
+      store.dispatch(groupDataLoad(this.admin, this.groupId));
       store.dispatch(polygonDataLoad());
       store.dispatch(assignedDataLoad());
       store.dispatch(streetInfoLoad());
@@ -430,6 +441,15 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       this.admin = usersState!._newUser.claims.administrator;
       this.groupId = usersState!._newUser.claims.group;
       admin = this.admin;
+
+      const _syncState = syncStateSelector(state);
+      const uDB = this.admin ? [...adminDB] : [...userDB];
+      this._loading = fullyLoaded(
+        publicDB,
+        uDB,
+        this.groupId,
+        _syncState!._docs
+      );
 
       const groupDataState = groupDataSelector(state);
       selectedGroup = groupDataState!._newGroup;

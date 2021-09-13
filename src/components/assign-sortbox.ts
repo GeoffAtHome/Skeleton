@@ -25,6 +25,7 @@ import '@vaadin/vaadin-grid/vaadin-grid-filter-column';
 import '@vaadin/vaadin-grid/vaadin-grid-sorter';
 import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
+import './loading-spinner';
 
 // This element is connected to the Redux store.
 import { store, RootState } from '../store';
@@ -58,6 +59,7 @@ import {
   publicStreetSelectedView,
   getNames,
 } from '../actions/publicstreet';
+import { fullyLoaded } from '../actions/syncState';
 
 // We are lazy loading its reducer.
 import assignedData, { assignedDataSelector } from '../reducers/assignedData';
@@ -74,6 +76,14 @@ import { streetNames } from '../res/postcodeData';
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 import { NotifyStatus } from '../reducers/PouchDBStatus';
+import {
+  assignedDataURL,
+  streetInfoURL,
+  sortBoxesURL,
+  roundsURL,
+  sortDataURL,
+} from '../reducers/dbconst';
+import syncState, { syncStateSelector } from '../reducers/syncState';
 
 if (assignedDataSelector(store.getState()) === undefined) {
   store.addReducers({ assignedData });
@@ -93,6 +103,12 @@ if (publicStreetMapSelector(store.getState()) === undefined) {
 if (roundDataSelector(store.getState()) === undefined) {
   store.addReducers({ roundData });
 }
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({ syncState });
+}
+
+const publicDB: Array<string> = [assignedDataURL, streetInfoURL];
+const userDB: Array<string> = [sortBoxesURL, roundsURL, sortDataURL];
 
 interface GridData {
   name: string;
@@ -153,6 +169,9 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
   @property({ type: Object })
   private streetInfoData: StreetInfoData = {};
 
+  @property({ type: Boolean })
+  private _loading = true;
+
   @query('#selectView')
   private selectView: any;
 
@@ -193,19 +212,19 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
   private groupId = '';
 
   @property({ type: String })
-  private assignedDataStatus= '';
+  private assignedDataStatus = '';
 
   @property({ type: String })
-  private streetInfoDataStatus= '';
+  private streetInfoDataStatus = '';
 
   @property({ type: String })
-  private sortDataStatus= '';
+  private sortDataStatus = '';
 
   @property({ type: String })
-  private sortboxListStatus= '';
+  private sortboxListStatus = '';
 
   @property({ type: String })
-  private cRoundDataStatus= '';
+  private cRoundDataStatus = '';
 
   static get styles() {
     return [
@@ -237,6 +256,7 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
+      <loading-spinner ?loading="${this._loading}"></loading-spinner>
       ${this.printing !== true
         ? html` <mwc-select
               id="selectView"
@@ -447,6 +467,14 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
     }
 
     if (state.app!.page === 'assignSortBox') {
+      const _syncState = syncStateSelector(state);
+      this._loading = fullyLoaded(
+        publicDB,
+        userDB,
+        this.groupId,
+        _syncState!._docs
+      );
+
       const usersState = userDataSelector(state);
       this.admin = usersState!._newUser.claims.administrator;
       this.groupId = usersState!._newUser.claims.group;

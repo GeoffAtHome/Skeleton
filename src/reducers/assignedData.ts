@@ -22,12 +22,10 @@ import {
   ASSIGNED_DATA_LOAD,
 } from '../actions/assignedData';
 import { RootAction, RootState, store } from '../store';
-import { rootURL, groupDataURL, assignedDataURL } from './dbconst';
+import { rootURL, assignedDataURL } from './dbconst';
 
 import {
-  createItemPouchDB,
   databaseRegister,
-  deleteItemPouchDB,
   loadPouchDB,
   RegisterSyncPouchDB,
   updateItemPouchDB,

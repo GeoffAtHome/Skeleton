@@ -47,7 +47,7 @@ function _logOutButtonClicked() {
   logUserOut();
 }
 
-function getTitle(page: string) {
+function getTitle(page: string, admin: boolean) {
   let title = '';
 
   switch (page) {
@@ -57,7 +57,7 @@ function getTitle(page: string) {
       break;
 
     case 'assignStreets':
-      title = 'Assign Streets';
+      title = admin ? 'Assign Streets' : 'Assign rounds';
       break;
 
     case 'sortBoxAdmin':
@@ -73,19 +73,19 @@ function getTitle(page: string) {
       break;
 
     case 'whereWeDeliverEdit':
-      title = 'where We Deliver Edit';
+      title = 'Edit streets';
       break;
 
     case 'postBoxView':
-      title = 'Post Box View';
+      title = 'Postbox view';
       break;
 
     case 'editPostBoxView':
-      title = 'Edit Post Box View';
+      title = 'Edit postbox view';
       break;
 
     case 'groupAdmin':
-      title = 'Group Admin';
+      title = admin ? 'Group Admin' : 'Round Admin';
       break;
 
     case 'userLogin':
@@ -154,6 +154,10 @@ export class MyApp extends connect(store)(LitElement) {
           --app-section-odd-color: white;
           --mdc-drawer-width: 170px;
           --mdc-theme-primary: #7413dc;
+        }
+
+        mwc-drawer[open] mwc-top-app-bar {
+          --mdc-top-app-bar-width: calc(100% - var(--mdc-drawer-width));
         }
 
         .parent {
@@ -242,7 +246,7 @@ export class MyApp extends connect(store)(LitElement) {
         <span slot="title"
           ><img
             class="img-welcome"
-            src="../../images/welcome.png"
+            src="./src/images/welcome.png"
             alt="Menu"
           />Menu</span
         >
@@ -271,7 +275,7 @@ export class MyApp extends connect(store)(LitElement) {
                   <a
                     ?selected="${this._page === 'whereWeDeliverEdit'}"
                     href="/#whereWeDeliverEdit"
-                    >Edit map</a
+                    >Edit street</a
                   >
                   <a
                     ?selected="${this._page === 'editPostBoxView'}"
@@ -319,7 +323,7 @@ export class MyApp extends connect(store)(LitElement) {
                   <a
                     ?selected="${this._page === 'whereWeDeliverEdit'}"
                     href="/#whereWeDeliverEdit"
-                    >Edit map</a
+                    >Edit street</a
                   >
                 `
               : html``}
@@ -457,7 +461,7 @@ export class MyApp extends connect(store)(LitElement) {
     this._offline = state.app!.offline;
     this._snackbarOpened = state.app!.snackbarOpened;
     this._drawerOpened = state.app!.drawerOpened;
-    this.appTitle = getTitle(this._page);
+    this.appTitle = getTitle(this._page, this._admin);
 
     const usersState = userDataSelector(state);
     this._admin = usersState!._newUser.claims.administrator;

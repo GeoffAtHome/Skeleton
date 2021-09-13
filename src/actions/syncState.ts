@@ -35,12 +35,12 @@ export type SyncStateAction = SyncStateChange | SyncChanges | SyncDeletes;
 
 export const syncStateChange: ActionCreator<SyncStateChange> = (
   _databaseName,
-   _status
-   ) => {
+  _status
+) => {
   return {
     type: SYNC_STATE,
-     _databaseName,
-     _status,
+    _databaseName,
+    _status,
   };
 };
 
@@ -57,3 +57,23 @@ export const syncDeletes: ActionCreator<SyncDeletes> = _docs => {
     _docs,
   };
 };
+
+export function fullyLoaded(
+  publicDB: Array<string>,
+  userDB: Array<string>,
+  userId: string,
+  status: SyncDataList
+) {
+  if (status === {}) return true;
+
+  for (const db of publicDB) {
+    if (status[db] === undefined || status[db].status !== 'Complete')
+      return true;
+  }
+  for (const db of userDB) {
+    const dbName = `${db}${userId}`;
+    if (status[dbName] === undefined || status[dbName].status !== 'Complete')
+      return true;
+  }
+  return false;
+}
