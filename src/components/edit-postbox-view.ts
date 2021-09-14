@@ -13,9 +13,7 @@ import {
   customElement,
   css,
   query,
-  LitElement,
   property,
-  internalProperty,
   PropertyValues,
 } from 'lit-element';
 
@@ -31,6 +29,7 @@ import '@material/mwc-textfield';
 import '@material/mwc-button';
 
 import './edit-map';
+import './loading-spinner';
 import { labelIcon } from './my-icons';
 
 // These are the actions needed by this element.
@@ -47,15 +46,24 @@ import {
 
 // We are lazy loading its reducer.
 import postBoxState, { postboxSelector } from '../reducers/postboxes';
+import syncState, { syncStateSelector } from '../reducers/syncState';
 import { MarkerData } from './Markers';
 import { PageViewElement } from './page-view-element';
 import { NotifyStatus } from '../reducers/PouchDBStatus';
+import { fullyLoaded } from '../actions/syncState';
+import { postboxURL } from '../reducers/dbconst';
 
 if (postboxSelector(store.getState()) === undefined) {
   store.addReducers({
     postBoxState,
   });
 }
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({ syncState });
+}
+
+const publicDB: Array<string> = [postboxURL];
+const userDB: Array<string> = [];
 
 let postBoxData: PostBoxList = {};
 let newPostBoxItem: PostBoxData;
@@ -102,31 +110,28 @@ export class EditPostboxView extends connect(store)(PageViewElement) {
   @query('#lat')
   private editLat: any;
 
-  @property({ type: String })
-  private postBoxDataStatus='';
+  @property({ type: Boolean })
+  private _loading = true;
 
-  @internalProperty()
+  @property({ type: String })
+  private postBoxDataStatus = '';
+
   private _mapOptions = {
     center: { lat: 51.50502153288204, lng: -3.240311294225257 },
     zoom: 10,
   };
 
-  @internalProperty()
   private _markerData: MarkerData = {};
 
-  @internalProperty()
   private addPostbox: boolean = false;
 
-  @internalProperty()
   private newPostbox: boolean = false;
 
-  @internalProperty()
   private mapPos: google.maps.LatLngLiteral = {
     lat: 51.50502153288204,
     lng: -3.240311294225257,
   };
 
-  @internalProperty()
   private editPostBox: string = '';
 
   static get styles() {
@@ -158,6 +163,7 @@ export class EditPostboxView extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
+      <loading-spinner ?loading="${this._loading}"></loading-spinner>
       <mwc-dialog id="editPostbox" heading="Postbox" scrimClickAction="">
         <div>
           <div>
@@ -261,6 +267,9 @@ export class EditPostboxView extends connect(store)(PageViewElement) {
 
   stateChanged(state: RootState) {
     if (this.active) {
+      const _syncState = syncStateSelector(state);
+      this._loading = fullyLoaded(publicDB, userDB, '', _syncState!._docs);
+
       const postboxState = postboxSelector(state);
       postBoxData = { ...postboxState!._data };
       this.postBoxDataStatus = postboxState!._loadingStatus;
