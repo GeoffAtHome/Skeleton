@@ -15,7 +15,6 @@ import {
   customElement,
   css,
   PropertyValues,
-  internalProperty,
 } from 'lit-element';
 
 // These are the elements needed by this element.
@@ -30,6 +29,7 @@ import '@material/mwc-textfield';
 import '@material/mwc-button';
 import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
+import './loading-spinner';
 
 // This element is connected to the Redux store.
 import { store, RootState } from '../store';
@@ -53,12 +53,21 @@ import { SharedStyles } from './shared-styles';
 import { labelIcon } from './my-icons';
 import { notifyMessage } from '../actions/app';
 import { userDataSelector } from '../reducers/users';
-import { roundDataLoad } from '../actions/roundsdata';
 import { NotifyStatus } from '../reducers/PouchDBStatus';
+import syncState, { syncStateSelector } from '../reducers/syncState';
+import { fullyLoaded } from '../actions/syncState';
+import { groupDataURL, groupsURL } from '../reducers/dbconst';
 
 if (groupDataSelector(store.getState()) === undefined) {
   store.addReducers({ groupData });
 }
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({ syncState });
+}
+
+const publicDB: Array<string> = [];
+const userDB: Array<string> = [groupsURL];
+const adminDB: Array<string> = [groupDataURL];
 
 @customElement('group-admin')
 export class GroupAdmin extends connect(store)(PageViewElement) {
@@ -104,10 +113,12 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
   @property({ type: String })
   private _id = '';
 
-  @property({ type: String })
-  private groupDataStatus='';
+  @property({ type: Boolean })
+  private _loading = true;
 
-  @internalProperty()
+  @property({ type: String })
+  private groupDataStatus = '';
+
   private groupData: GroupData = {};
 
   static get styles() {
@@ -145,6 +156,7 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
+      <loading-spinner ?loading="${this._loading}"></loading-spinner>
       <mwc-dialog id="editGroup" heading="Group">
         <div>
           <div>
@@ -273,11 +285,7 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
       NotifyStatus('Group data', this.groupDataStatus);
 
     if (changedProps.has('admin') || changedProps.has('groupId')) {
-      if (!(this.admin === false && this.groupId === '')) {
-        store.dispatch(groupDataLoad(this.admin, this.groupId));
-      } else {
-        store.dispatch(roundDataLoad(this.admin, this.groupId));
-      }
+      store.dispatch(groupDataLoad(this.admin, this.groupId));
     }
   }
 
@@ -290,6 +298,15 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
       const usersState = userDataSelector(state);
       this.admin = usersState!._newUser.claims.administrator;
       this.groupId = usersState!._newUser.claims.group;
+
+      const _syncState = syncStateSelector(state);
+      const uDB = this.admin ? [...adminDB] : [...userDB];
+      this._loading = fullyLoaded(
+        publicDB,
+        uDB,
+        this.groupId,
+        _syncState!._docs
+      );
     }
   }
 
