@@ -53,7 +53,6 @@ import { SharedStyles } from './shared-styles';
 import { labelIcon } from './my-icons';
 import { notifyMessage } from '../actions/app';
 import { userDataSelector } from '../reducers/users';
-import { NotifyStatus } from '../reducers/PouchDBStatus';
 import syncState, { syncStateSelector } from '../reducers/syncState';
 import { fullyLoaded } from '../actions/syncState';
 import { groupDataURL, groupsURL } from '../reducers/dbconst';
@@ -115,9 +114,6 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
 
   @property({ type: Boolean })
   private _loading = true;
-
-  @property({ type: String })
-  private groupDataStatus = '';
 
   private groupData: GroupData = {};
 
@@ -281,9 +277,6 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
-    if (changedProps.has('groupDataStatus'))
-      NotifyStatus('Group data', this.groupDataStatus);
-
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       store.dispatch(groupDataLoad(this.admin, this.groupId));
     }

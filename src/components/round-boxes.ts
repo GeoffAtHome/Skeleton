@@ -54,7 +54,6 @@ import { RoundData, roundDataLoad } from '../actions/roundsdata';
 
 // We are lazy loading its reducer.
 import assignedData, { assignedDataSelector } from '../reducers/assignedData';
-import { NotifyStatus } from '../reducers/PouchDBStatus';
 import groupData, { groupDataSelector } from '../reducers/groupdata';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
@@ -230,24 +229,6 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
   @property({ type: Boolean })
   private printing: boolean = false;
 
-  @property({ type: String })
-  private assignedDataStatus = '';
-
-  @property({ type: String })
-  private streetInfoDataStatus = '';
-
-  @property({ type: String })
-  private sortDataStatus = '';
-
-  @property({ type: String })
-  private sortboxListStatus = '';
-
-  @property({ type: String })
-  private cRoundDataStatus = '';
-
-  @property({ type: String })
-  private roundDataStatus = '';
-
   static get styles() {
     return [
       SharedStyles,
@@ -415,24 +396,6 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
-    if (changedProps.has('assignedDataStatus'))
-      NotifyStatus('Assigned data', this.assignedDataStatus);
-
-    if (changedProps.has('streetInfoDataStatus'))
-      NotifyStatus('Street info', this.streetInfoDataStatus);
-
-    if (changedProps.has('sortDataStatus'))
-      NotifyStatus('Sort data', this.sortDataStatus);
-
-    if (changedProps.has('sortboxListStatus'))
-      NotifyStatus('Sort boxes', this.sortboxListStatus);
-
-    if (changedProps.has('cRoundDataStatus'))
-      NotifyStatus('Round data', this.cRoundDataStatus);
-
-    if (changedProps.has('roundDataStatus'))
-      NotifyStatus('Group data', this.roundDataStatus);
-
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       // Load the data required for this page
       store.dispatch(groupDataLoad(this.admin, this.groupId));

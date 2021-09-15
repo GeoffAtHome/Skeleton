@@ -60,7 +60,6 @@ import assignedData, { assignedDataSelector } from '../reducers/assignedData';
 import publicStreetMap, {
   publicStreetMapSelector,
 } from '../reducers/publicstreet';
-import { NotifyStatus } from '../reducers/PouchDBStatus';
 import polygonData, { polygonDataSelector } from '../reducers/polygondata';
 import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
@@ -200,23 +199,8 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
   @property({ type: String })
   private groupId = '';
 
-  @property({ type: String })
-  private assignedDataStatus = '';
-
-  @property({ type: String })
-  private sortBoxStatus = '';
-
-  @property({ type: String })
-  private roundDataStatus = '';
-
-  @property({ type: String })
-  private streetInfoDataStatus = '';
-
   @property({ type: Boolean })
   private _loading = true;
-
-  @property({ type: String })
-  private polygonDataStatus = '';
 
   @query('#selectView')
   private selectView: any;
@@ -353,21 +337,6 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
-    /* if (changedProps.has('assignedDataStatus'))
-      NotifyStatus('Assigned data', this.assignedDataStatus); */
-
-    if (changedProps.has('streetInfoDataStatus'))
-      NotifyStatus('Street info', this.streetInfoDataStatus);
-
-    /* if (changedProps.has('sortBoxStatus'))
-      NotifyStatus('Sort box', this.sortBoxStatus);
-
-    if (changedProps.has('roundDataStatus'))
-      NotifyStatus('Rounds data', this.roundDataStatus);
-
-    if (changedProps.has('polygonDataStatus'))
-      NotifyStatus('Polygon data', this.polygonDataStatus); */
-
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       // Load the data required for this page
       if (this.admin === false && this.groupId !== '') {

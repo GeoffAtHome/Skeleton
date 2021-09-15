@@ -48,7 +48,6 @@ import { fullyLoaded } from '../actions/syncState';
 import postBoxState, { postboxSelector } from '../reducers/postboxes';
 import syncState, { syncStateSelector } from '../reducers/syncState';
 import { postboxURL } from '../reducers/dbconst';
-import { NotifyStatus } from '../reducers/PouchDBStatus';
 import { MarkerData } from './Markers';
 import { PageViewElement } from './page-view-element';
 
@@ -111,9 +110,6 @@ export class EditPostboxView extends connect(store)(PageViewElement) {
 
   @property({ type: Boolean })
   private _loading = true;
-
-  @property({ type: String })
-  private postBoxDataStatus = '';
 
   private _mapOptions = {
     center: { lat: 51.50502153288204, lng: -3.240311294225257 },
@@ -257,11 +253,6 @@ export class EditPostboxView extends connect(store)(PageViewElement) {
     this.map.addEventListener('moveMap', this._moveMap);
     this.map.addEventListener('moveMarker', _moveMarker);
     this.map.addEventListener('clickedMarker', _MarkerClick);
-  }
-
-  updated(changedProps: PropertyValues) {
-    if (changedProps.has('postBoxDataStatus'))
-      NotifyStatus('post box data', this.postBoxDataStatus);
   }
 
   stateChanged(state: RootState) {

@@ -59,7 +59,6 @@ import {
 // We are lazy loading its reducer.
 import labelData, { labelDataSelector } from '../reducers/labeldata';
 import polygonData, { polygonDataSelector } from '../reducers/polygondata';
-import { NotifyStatus } from '../reducers/PouchDBStatus';
 import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
 import { userDataSelector } from '../reducers/users';
 import syncState, { syncStateSelector } from '../reducers/syncState';
@@ -206,14 +205,8 @@ export class EditMap extends connect(store)(PageViewElement) {
   @property({ type: Boolean })
   private addLabel: boolean = false;
 
-  @property({ type: String })
-  private polygonDataStatus = '';
-
   @property({ type: Boolean })
   private _loading = true;
-
-  @property({ type: String })
-  private streetInfoDataStatus = '';
 
   @property({ type: Boolean })
   private admin: boolean = false;
@@ -458,12 +451,6 @@ export class EditMap extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
-    if (changedProps.has('polygonDataStatus'))
-      NotifyStatus('Polygon data', this.polygonDataStatus);
-
-    if (changedProps.has('streetInfoDataStatus'))
-      NotifyStatus('Street info data', this.streetInfoDataStatus);
-
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       store.dispatch(polygonDataLoad());
       store.dispatch(labelDataLoad());

@@ -75,7 +75,6 @@ import { userDataSelector } from '../reducers/users';
 import { streetNames } from '../res/postcodeData';
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
-import { NotifyStatus } from '../reducers/PouchDBStatus';
 import {
   assignedDataURL,
   streetInfoURL,
@@ -210,21 +209,6 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
 
   @property({ type: String })
   private groupId = '';
-
-  @property({ type: String })
-  private assignedDataStatus = '';
-
-  @property({ type: String })
-  private streetInfoDataStatus = '';
-
-  @property({ type: String })
-  private sortDataStatus = '';
-
-  @property({ type: String })
-  private sortboxListStatus = '';
-
-  @property({ type: String })
-  private cRoundDataStatus = '';
 
   static get styles() {
     return [
@@ -379,21 +363,6 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
-    if (changedProps.has('assignedDataStatus'))
-      NotifyStatus('Assigned data', this.assignedDataStatus);
-
-    if (changedProps.has('streetInfoDataStatus'))
-      NotifyStatus('Street info', this.streetInfoDataStatus);
-
-    if (changedProps.has('sortDataStatus'))
-      NotifyStatus('Sort data', this.sortDataStatus);
-
-    if (changedProps.has('sortboxListStatus'))
-      NotifyStatus('Sort boxes', this.sortboxListStatus);
-
-    if (changedProps.has('cRoundDataStatus'))
-      NotifyStatus('Round data', this.cRoundDataStatus);
-
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       // Load the data required for this page
       store.dispatch(sortboxLoad(this.groupId));

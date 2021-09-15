@@ -109,7 +109,6 @@ import './edit-map';
 import './loading-spinner';
 import { EditMapData, MapPolygon } from './polygons';
 import { notifyMessage } from '../actions/app';
-import { NotifyStatus } from '../reducers/PouchDBStatus';
 import { fullyLoaded } from '../actions/syncState';
 import {
   assignedDataURL,
@@ -146,26 +145,8 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   @query('#map')
   private map: any;
 
-  @property({ type: String })
-  private assignedDataStatus = '';
-
-  @property({ type: String })
-  private sortBoxStatus = '';
-
   @property({ type: Boolean })
   private _loading = true;
-
-  @property({ type: String })
-  private groupDataStatus = '';
-
-  @property({ type: String })
-  private roundDataStatus = '';
-
-  @property({ type: String })
-  private polygonDataStatus = '';
-
-  @property({ type: String })
-  private streetInfoStatus = '';
 
   @property({ type: Array })
   private data: Array<PublicStreet> = [];
@@ -332,24 +313,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   }
 
   updated(changedProps: PropertyValues) {
-    if (changedProps.has('groupDataStatus'))
-      NotifyStatus('Group data', this.groupDataStatus);
-
-    if (changedProps.has('assignedDataStatus'))
-      NotifyStatus('Assigned data', this.assignedDataStatus);
-
-    if (changedProps.has('roundDataStatus'))
-      NotifyStatus('Round data', this.roundDataStatus);
-
-    if (changedProps.has('polygonDataStatus'))
-      NotifyStatus('Polygon data', this.polygonDataStatus);
-
-    if (changedProps.has('streetInfoStatus'))
-      NotifyStatus('Street info', this.streetInfoStatus);
-
-    if (changedProps.has('sortBoxStatus'))
-      NotifyStatus('Sort box', this.sortBoxStatus);
-
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       // Load the data required for this page
       if (!this.admin) {
