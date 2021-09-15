@@ -45,10 +45,7 @@ export interface LabelDataState {
   _labelData: LabelData;
 }
 
-export interface LabelDataLoad extends Action<'LABEL_DATA_LOAD'> {
-  _admin: boolean;
-  _groupId: string;
-}
+export interface LabelDataLoad extends Action<'LABEL_DATA_LOAD'> {}
 export interface LabelDataLoaded extends Action<'LABEL_DATA_LOADED'> {
   _data: LabelData;
 }
@@ -101,14 +98,9 @@ export type LabelDataAction =
   | LabelChanges
   | LabelDeletes;
 
-export const labelDataLoad: ActionCreator<LabelDataLoad> = (
-  _admin,
-  _groupId
-) => {
+export const labelDataLoad: ActionCreator<LabelDataLoad> = () => {
   return {
     type: LABEL_DATA_LOAD,
-    _admin,
-    _groupId,
   };
 };
 

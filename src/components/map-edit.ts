@@ -30,6 +30,7 @@ import '@material/mwc-button';
 import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
 import './edit-map';
+import './loading-spinner';
 
 // This element is connected to the Redux store.
 import { store, RootState } from '../store';
@@ -61,12 +62,15 @@ import polygonData, { polygonDataSelector } from '../reducers/polygondata';
 import { NotifyStatus } from '../reducers/PouchDBStatus';
 import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
 import { userDataSelector } from '../reducers/users';
+import syncState, { syncStateSelector } from '../reducers/syncState';
 
 import { pathEditIcon, labelIcon, detailsIcon } from './my-icons';
 import { EditMapData, EditMapDataItem, MapPolygon } from './polygons';
 import { MarkerData } from './Markers';
 import { houseNames } from '../res/houses';
 import { streetNames } from '../res/postcodeData';
+import { fullyLoaded } from '../actions/syncState';
+import { labelsURL, polygonURL, streetInfoURL } from '../reducers/dbconst';
 
 if (streetInfoDataSelector(store.getState()) === undefined)
   store.addReducers({ streetInfoData });
@@ -74,6 +78,12 @@ if (labelDataSelector(store.getState()) === undefined)
   store.addReducers({ labelData });
 if (polygonDataSelector(store.getState()) === undefined)
   store.addReducers({ polygonData });
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({ syncState });
+}
+
+const publicDB: Array<string> = [labelsURL, polygonURL, streetInfoURL];
+const userDB: Array<string> = [];
 
 const streetOrder = [
   'Sequential',
@@ -199,6 +209,9 @@ export class EditMap extends connect(store)(PageViewElement) {
   @property({ type: String })
   private polygonDataStatus = '';
 
+  @property({ type: Boolean })
+  private _loading = true;
+
   @property({ type: String })
   private streetInfoDataStatus = '';
 
@@ -304,6 +317,7 @@ export class EditMap extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
+      <loading-spinner ?loading="${this._loading}"></loading-spinner>
       <mwc-dialog
         id="editLabel"
         heading="Edit label"
@@ -452,7 +466,7 @@ export class EditMap extends connect(store)(PageViewElement) {
 
     if (changedProps.has('admin') || changedProps.has('groupId')) {
       store.dispatch(polygonDataLoad());
-      store.dispatch(labelDataLoad(this.admin, this.groupId));
+      store.dispatch(labelDataLoad());
       store.dispatch(streetInfoLoad());
     }
 
@@ -478,6 +492,14 @@ export class EditMap extends connect(store)(PageViewElement) {
       const usersState = userDataSelector(state);
       this.admin = usersState!._newUser.claims.administrator;
       this.groupId = usersState!._newUser.claims.group;
+
+      const _syncState = syncStateSelector(state);
+      this._loading = fullyLoaded(
+        publicDB,
+        userDB,
+        this.groupId,
+        _syncState!._docs
+      );
 
       const polygonState = polygonDataSelector(state);
       this.pc = polygonState!._index;

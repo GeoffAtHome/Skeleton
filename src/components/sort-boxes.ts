@@ -25,6 +25,7 @@ import '@vaadin/vaadin-grid/vaadin-grid-filter-column';
 import '@vaadin/vaadin-grid/vaadin-grid-sorter';
 import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
+import './loading-spinner';
 
 // This element is connected to the Redux store.
 import { store, RootState } from '../store';
@@ -51,12 +52,20 @@ import roundData, { roundDataSelector } from '../reducers/roundsdata';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
 import sortDataList, { sortDataSelector } from '../reducers/sortData';
 import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
-
+import syncState, { syncStateSelector } from '../reducers/syncState';
+import {
+  assignedDataURL,
+  roundsURL,
+  sortBoxesURL,
+  sortDataURL,
+  streetInfoURL,
+} from '../reducers/dbconst';
 import { userDataSelector } from '../reducers/users';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 import { NotifyStatus } from '../reducers/PouchDBStatus';
+import { fullyLoaded } from '../actions/syncState';
 
 if (assignedDataSelector(store.getState()) === undefined) {
   store.addReducers({ assignedData });
@@ -73,6 +82,12 @@ if (streetInfoDataSelector(store.getState()) === undefined) {
 if (roundDataSelector(store.getState()) === undefined) {
   store.addReducers({ roundData });
 }
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({ syncState });
+}
+
+const publicDB: Array<string> = [streetInfoURL, assignedDataURL];
+const userDB: Array<string> = [sortBoxesURL, roundsURL, sortDataURL];
 
 interface GridData {
   name: string;
@@ -152,6 +167,9 @@ export class SortBoxes extends connect(store)(PageViewElement) {
 
   @property({ type: String })
   private groupId = '';
+
+  @property({ type: Boolean })
+  private _loading = true;
 
   @property({ type: String })
   private assignedDataStatus = '';
@@ -272,34 +290,35 @@ export class SortBoxes extends connect(store)(PageViewElement) {
   protected render() {
     return html`
       ${this.printing !== true
-        ? html` <div class="cards">
-            ${Object.entries(this.sortboxList).map(([key, sortBox]) =>
-              this.getSortboxDataSize(key) > 0
-                ? html` <div class="sb">
-                    <header
-                      style="--cl: ${sortBox.colour}; --tx: ${getTextColor(
-                        sortBox.colour
-                      )}"
-                    >
-                      <span class="al">${sortBox.name}</span>
-                      <span class="ar">${key}</span>
-                    </header>
-                    <main>
-                      ${this.getSortboxData(key).map(
-                        item => html`
-                          <div class="row">
-                            <span class="al">${item.name}</span>
-                            <span class="ar it">${item.round}</span>
-                          </div>
-                        `
-                      )}
-                      <p>${this.getPostcodes(key)}</p>
-                    </main>
-                    <footer>${sortBox.notes}</footer>
-                  </div>`
-                : ''
-            )}
-          </div>`
+        ? html` <loading-spinner ?loading="${this._loading}"></loading-spinner>
+            <div class="cards">
+              ${Object.entries(this.sortboxList).map(([key, sortBox]) =>
+                this.getSortboxDataSize(key) > 0
+                  ? html` <div class="sb">
+                      <header
+                        style="--cl: ${sortBox.colour}; --tx: ${getTextColor(
+                          sortBox.colour
+                        )}"
+                      >
+                        <span class="al">${sortBox.name}</span>
+                        <span class="ar">${key}</span>
+                      </header>
+                      <main>
+                        ${this.getSortboxData(key).map(
+                          item => html`
+                            <div class="row">
+                              <span class="al">${item.name}</span>
+                              <span class="ar it">${item.round}</span>
+                            </div>
+                          `
+                        )}
+                        <p>${this.getPostcodes(key)}</p>
+                      </main>
+                      <footer>${sortBox.notes}</footer>
+                    </div>`
+                  : ''
+              )}
+            </div>`
         : html`
             <div class="cards">
               ${Object.entries(this.sortboxList).map(([key, sortBox]) =>
@@ -438,6 +457,14 @@ export class SortBoxes extends connect(store)(PageViewElement) {
       const usersState = userDataSelector(state);
       this.admin = usersState!._newUser.claims.administrator;
       this.groupId = usersState!._newUser.claims.group;
+
+      const _syncState = syncStateSelector(state);
+      this._loading = fullyLoaded(
+        publicDB,
+        userDB,
+        this.groupId,
+        _syncState!._docs
+      );
 
       const assignedDataState = assignedDataSelector(state);
       this.assignedData = assignedDataState!._assignedData;

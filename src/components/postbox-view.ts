@@ -8,20 +8,13 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-import {
-  html,
-  customElement,
-  css,
-  query,
-  LitElement,
-  property,
-  internalProperty,
-} from 'lit-element';
+import { html, customElement, css, query, property } from 'lit-element';
 
 import '@material/mwc-dialog';
 import '@material/mwc-textfield';
 import '@material/mwc-button';
 import '@material/mwc-select';
+import './loading-spinner';
 
 // These are the shared styles needed by this element.
 import { connect } from 'pwa-helpers/connect-mixin';
@@ -39,9 +32,12 @@ import {
   postBoxEdit,
   PostBoxList,
 } from '../actions/postboxes';
+import { fullyLoaded } from '../actions/syncState';
 
 // We are lazy loading its reducer.
 import postBoxState, { postboxSelector } from '../reducers/postboxes';
+import syncState, { syncStateSelector } from '../reducers/syncState';
+import { postboxURL } from '../reducers/dbconst';
 import { MarkerData } from './Markers';
 import { PageViewElement } from './page-view-element';
 
@@ -50,6 +46,12 @@ if (postboxSelector(store.getState()) === undefined) {
     postBoxState,
   });
 }
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({ syncState });
+}
+
+const publicDB: Array<string> = [postboxURL];
+const userDB: Array<string> = [];
 
 function _MarkerClick(el: any) {
   const markerClicked = el.detail.key;
@@ -66,25 +68,22 @@ export class PostboxView extends connect(store)(PageViewElement) {
   @query('#editPostbox')
   private dialog: any;
 
-  @internalProperty()
+  @property({ type: Boolean })
+  private _loading = true;
+
   private _mapOptions = {
     center: { lat: 51.50502153288204, lng: -3.240311294225257 },
     zoom: 10,
   };
 
-  @internalProperty()
   private _markerData: MarkerData = {};
 
-  @internalProperty()
   private _name = '';
 
-  @internalProperty()
   private _address = '';
 
-  @internalProperty()
   private _openingTimes = '';
 
-  @internalProperty()
   private _notes = '';
 
   static get styles() {
@@ -107,6 +106,7 @@ export class PostboxView extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
+      <loading-spinner ?loading="${this._loading}"></loading-spinner>
       <mwc-dialog
         id="editPostbox"
         heading="Postbox"
@@ -162,6 +162,8 @@ export class PostboxView extends connect(store)(PageViewElement) {
 
   stateChanged(state: RootState) {
     if (this.active) {
+      const _syncState = syncStateSelector(state);
+      this._loading = fullyLoaded(publicDB, userDB, '', _syncState!._docs);
       const postboxState = postboxSelector(state);
       postBoxData = postboxState!._data;
       this.drawLabels(postBoxData);
@@ -185,19 +187,3 @@ export class PostboxView extends connect(store)(PageViewElement) {
     this.dialog.show();
   }
 }
-
-/*
-function _MarkerMouseover(el: any) {
-  if (activeIcon.options.iconSize !== el.target.getIcon().options.iconSize) {
-    el.target.setIcon(activeIcon);
-    setTimeout(() => {
-      console.log('End timeout');
-      el.target.setIcon(divIcon);
-    }, 500);
-  }
-}
-
-function _MarkerMouseout(el: any) {
-  el.target.setIcon(divIcon);
-}
-*/

@@ -8,7 +8,14 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-import { html, property, query, customElement, css } from 'lit-element';
+import {
+  html,
+  property,
+  query,
+  customElement,
+  css,
+  PropertyValues,
+} from 'lit-element';
 
 // These are the elements needed by this element.
 import { connect } from 'pwa-helpers/connect-mixin';
@@ -22,6 +29,7 @@ import '@material/mwc-textfield';
 import '@material/mwc-button';
 import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
+import './loading-spinner';
 
 import { labelIcon } from './my-icons';
 
@@ -42,10 +50,19 @@ import { SharedStyles } from './shared-styles';
 import { notifyMessage } from '../actions/app';
 import { userDataSelector } from '../reducers/users';
 import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
+import syncState, { syncStateSelector } from '../reducers/syncState';
+import { sortBoxesURL } from '../reducers/dbconst';
+import { fullyLoaded } from '../actions/syncState';
 
 if (sortboxListSelector(store.getState()) === undefined) {
   store.addReducers({ sortboxList });
 }
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({ syncState });
+}
+
+const publicDB: Array<string> = [];
+const userDB: Array<string> = [sortBoxesURL];
 
 @customElement('sortbox-admin')
 export class SortboxAdmin extends connect(store)(PageViewElement) {
@@ -94,6 +111,9 @@ export class SortboxAdmin extends connect(store)(PageViewElement) {
   @property({ type: Boolean })
   private admin: boolean = true;
 
+  @property({ type: Boolean })
+  private _loading = true;
+
   @property({ type: String })
   private groupId = '';
 
@@ -135,6 +155,7 @@ export class SortboxAdmin extends connect(store)(PageViewElement) {
 
   protected render() {
     return html`
+      <loading-spinner ?loading="${this._loading}"></loading-spinner>
       <mwc-dialog id="editSortBox" heading="Sort boxes">
         <div>
           <div>
@@ -258,24 +279,27 @@ export class SortboxAdmin extends connect(store)(PageViewElement) {
     `;
   }
 
+  updated(changedProps: PropertyValues) {
+    if (changedProps.has('admin') || changedProps.has('groupId')) {
+      // Load the data required for this page
+      store.dispatch(sortboxLoad(this.groupId));
+    }
+  }
+
   stateChanged(state: RootState) {
     this._page = state.app!.page;
     if (this._page === 'sortBoxAdmin') {
       const usersState = userDataSelector(state);
-      if (usersState) {
-        if (
-          this.admin !== usersState._newUser.claims.administrator ||
-          this.groupId !== usersState._newUser.claims.group
-        ) {
-          this.admin = usersState._newUser.claims.administrator;
-          this.groupId = usersState._newUser.claims.group;
+      this.admin = usersState!._newUser.claims.administrator;
+      this.groupId = usersState!._newUser.claims.group;
 
-          if (!(this.admin === false && this.groupId === '')) {
-            store.dispatch(notifyMessage('Loading: Sort boxes'));
-            store.dispatch(sortboxLoad(this.groupId));
-          }
-        }
-      }
+      const _syncState = syncStateSelector(state);
+      this._loading = fullyLoaded(
+        publicDB,
+        userDB,
+        this.groupId,
+        _syncState!._docs
+      );
 
       const sortBoxesState = sortboxListSelector(state);
       this.sortboxList = sortBoxesState!._sortboxList;

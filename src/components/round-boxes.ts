@@ -25,6 +25,7 @@ import '@vaadin/vaadin-grid/vaadin-grid-filter-column';
 import '@vaadin/vaadin-grid/vaadin-grid-sorter';
 import '@material/mwc-select';
 import '@material/mwc-list/mwc-list-item';
+import './loading-spinner';
 
 // This element is connected to the Redux store.
 import { store, RootState } from '../store';
@@ -50,7 +51,6 @@ import {
 } from '../actions/assigneddata';
 import { SortData, sortDataLoad } from '../actions/sortData';
 import { RoundData, roundDataLoad } from '../actions/roundsdata';
-import { notifyMessage } from '../actions/app';
 
 // We are lazy loading its reducer.
 import assignedData, { assignedDataSelector } from '../reducers/assignedData';
@@ -61,11 +61,20 @@ import sortboxList, { sortboxListSelector } from '../reducers/sortboxes';
 import sortDataList, { sortDataSelector } from '../reducers/sortData';
 import streetInfoData, { streetInfoDataSelector } from '../reducers/streetInfo';
 import { userDataSelector } from '../reducers/users';
+import syncState, { syncStateSelector } from '../reducers/syncState';
+import {
+  assignedDataURL,
+  groupsURL,
+  roundsURL,
+  sortDataURL,
+  streetInfoURL,
+} from '../reducers/dbconst';
 
 import { streetNames } from '../res/postcodeData';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
+import { fullyLoaded } from '../actions/syncState';
 
 interface GridData {
   name: string;
@@ -97,6 +106,12 @@ if (sortboxListSelector(store.getState()) === undefined) {
 if (roundDataSelector(store.getState()) === undefined) {
   store.addReducers({ roundData });
 }
+if (syncStateSelector(store.getState()) === undefined) {
+  store.addReducers({ syncState });
+}
+
+const publicDB: Array<string> = [streetInfoURL, assignedDataURL];
+const userDB: Array<string> = [groupsURL, roundsURL, sortDataURL];
 
 function getRoundDataSize(gridData: GridData[], key: string) {
   const data = gridData.filter(item => {
@@ -181,6 +196,9 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
 
   @property({ type: Boolean })
   private admin = false;
+
+  @property({ type: Boolean })
+  private _loading = true;
 
   @property({ type: Object })
   private data: PublicStreetData | null = null;
@@ -338,34 +356,35 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
   protected render() {
     return html`
       ${this.printing !== true
-        ? html` <div class="cards">
-            ${Object.entries(this.roundData).map(([key, round]) =>
-              getRoundDataSize(this.gridData, key) > 0
-                ? html` <div class="sb">
-                    <header
-                      style="--cl: ${round.colour}; --tx: ${getTextColor(
-                        round.colour
-                      )}"
-                    >
-                      <div class="al">${round.name}</div>
-                      <div class="ar">${key}</div>
-                    </header>
-                    <main>
-                      ${getRoundData(this.gridData, key).map(
-                        item => html`
-                          <div class="row">
-                            <div class="al">${item.name}</div>
-                            <div class="ar it">${item.sb}</div>
-                          </div>
-                        `
-                      )}
-                      <p>${getPostcodes(this.gridData, key)}</p>
-                    </main>
-                    <footer class="end">${round.notes}</footer>
-                  </div>`
-                : ''
-            )}
-          </div>`
+        ? html` <loading-spinner ?loading="${this._loading}"></loading-spinner>
+            <div class="cards">
+              ${Object.entries(this.roundData).map(([key, round]) =>
+                getRoundDataSize(this.gridData, key) > 0
+                  ? html` <div class="sb">
+                      <header
+                        style="--cl: ${round.colour}; --tx: ${getTextColor(
+                          round.colour
+                        )}"
+                      >
+                        <div class="al">${round.name}</div>
+                        <div class="ar">${key}</div>
+                      </header>
+                      <main>
+                        ${getRoundData(this.gridData, key).map(
+                          item => html`
+                            <div class="row">
+                              <div class="al">${item.name}</div>
+                              <div class="ar it">${item.sb}</div>
+                            </div>
+                          `
+                        )}
+                        <p>${getPostcodes(this.gridData, key)}</p>
+                      </main>
+                      <footer class="end">${round.notes}</footer>
+                    </div>`
+                  : ''
+              )}
+            </div>`
         : html`
             <div class="cards">
               ${Object.entries(this.roundData).map(([key, round]) =>
@@ -464,6 +483,14 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
       const usersState = userDataSelector(state);
       this.admin = usersState!._newUser.claims.administrator;
       this.groupId = usersState!._newUser.claims.group;
+
+      const _syncState = syncStateSelector(state);
+      this._loading = fullyLoaded(
+        publicDB,
+        userDB,
+        this.groupId,
+        _syncState!._docs
+      );
 
       const streetInfoDataState = streetInfoDataSelector(state);
       this.streetInfoData = streetInfoDataState!._streetInfo;

@@ -27,65 +27,64 @@
  * ```
  */
 
+import { apiKey } from './config';
 
-import { apiKey } from './config.js'
-let googleMapsApiLoaded = false
+let googleMapsApiLoaded = false;
 
 function mapApiIsLoaded(): void {
-    googleMapsApiLoaded = true
+  googleMapsApiLoaded = true;
 }
 
 export default (() => {
-    let isApiSetUp = false
+  let isApiSetUp = false;
 
-    return (element: Element) => {
-        if (typeof document === 'undefined') {
-            // Do nothing if run from server-side
-            return
-        }
-
-        if (!isApiSetUp) {
-            isApiSetUp = true
-
-            window.mapApiIsLoaded = mapApiIsLoaded
-
-            const googleMapScript = document.createElement('SCRIPT')
-            const url = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=mapApiIsLoaded&libraries=drawing&v=weekly`
-            googleMapScript.setAttribute('src', url)
-            googleMapScript.setAttribute('async', '')
-            googleMapScript.setAttribute('defer', '')
-            document.head.appendChild(googleMapScript)
-            waitForMapsToLoaded(element)
-        } else {
-            waitForMapsToLoaded(element)
-        }
+  return (element: Element) => {
+    if (typeof document === 'undefined') {
+      // Do nothing if run from server-side
+      return;
     }
-})()
+
+    if (!isApiSetUp) {
+      isApiSetUp = true;
+
+      window.mapApiIsLoaded = mapApiIsLoaded;
+
+      const googleMapScript = document.createElement('SCRIPT');
+      const url = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=mapApiIsLoaded&libraries=drawing&v=weekly`;
+      googleMapScript.setAttribute('src', url);
+      googleMapScript.setAttribute('async', '');
+      googleMapScript.setAttribute('defer', '');
+      document.head.appendChild(googleMapScript);
+      waitForMapsToLoaded(element);
+    } else {
+      waitForMapsToLoaded(element);
+    }
+  };
+})();
 
 declare global {
-    interface Window {
-        mapApiIsLoaded: Function;
-    }
+  interface Window {
+    mapApiIsLoaded: Function;
+  }
 }
 
 function waitFor(conditionFunction: () => boolean) {
+  const poll = (resolve: () => void) => {
+    if (conditionFunction()) resolve();
+    else setTimeout(() => poll(resolve), 400);
+  };
 
-    const poll = (resolve: () => void) => {
-        if (conditionFunction()) resolve();
-        else setTimeout(() => poll(resolve), 400);
-    }
-
-    return new Promise<void>(poll);
+  return new Promise<void>(poll);
 }
 
 function isGoogleMapsApiLoaded(): boolean {
-    return googleMapsApiLoaded === true
+  return googleMapsApiLoaded === true;
 }
 
 async function waitForMapsToLoaded(element: Element) {
-    await waitFor(isGoogleMapsApiLoaded);
-    const event = new CustomEvent('MapsLoaded')
-    if (element) {
-        element.dispatchEvent(event)
-    }
+  await waitFor(isGoogleMapsApiLoaded);
+  const event = new CustomEvent('MapsLoaded');
+  if (element) {
+    element.dispatchEvent(event);
+  }
 }
