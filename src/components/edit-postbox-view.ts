@@ -27,7 +27,6 @@ import { store, RootState } from '../store';
 import '@material/mwc-dialog';
 import '@material/mwc-textfield';
 import '@material/mwc-button';
-
 import './edit-map';
 import './loading-spinner';
 import { labelIcon } from './my-icons';
@@ -43,15 +42,15 @@ import {
   postBoxDelete,
   postBoxEdit,
 } from '../actions/postboxes';
+import { fullyLoaded } from '../actions/syncState';
 
 // We are lazy loading its reducer.
 import postBoxState, { postboxSelector } from '../reducers/postboxes';
 import syncState, { syncStateSelector } from '../reducers/syncState';
+import { postboxURL } from '../reducers/dbconst';
+import { NotifyStatus } from '../reducers/PouchDBStatus';
 import { MarkerData } from './Markers';
 import { PageViewElement } from './page-view-element';
-import { NotifyStatus } from '../reducers/PouchDBStatus';
-import { fullyLoaded } from '../actions/syncState';
-import { postboxURL } from '../reducers/dbconst';
 
 if (postboxSelector(store.getState()) === undefined) {
   store.addReducers({
