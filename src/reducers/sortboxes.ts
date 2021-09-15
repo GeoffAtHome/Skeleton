@@ -46,7 +46,6 @@ function sortboxDeletedDispatch(docs: any) {
 let sortboxDB: databaseRegister;
 
 const INITIAL_STATE: SortboxState = {
-  _loadingStatus: '',
   _newSortbox: {
     _id: '',
     name: '',
@@ -73,14 +72,12 @@ const sortboxList: Reducer<SortboxState, RootAction> = (
       loadPouchDB(sortboxDB, sortboxLoaded);
       return {
         ...state,
-        _loadingStatus: sortboxDB.status,
       };
 
     case SORTBOX_LOADED:
       return {
         ...state,
         _sortboxList: action._data,
-        _loadingStatus: sortboxDB.status,
       };
 
     case SELECT_SORTBOX:

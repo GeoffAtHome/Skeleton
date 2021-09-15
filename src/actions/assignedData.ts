@@ -28,7 +28,6 @@ export interface AssignedData {
 }
 
 export interface AssignedDataState {
-  _loadingStatus: string;
   _assignedData: AssignedData;
 }
 export interface AssignedDataLoad extends Action<'ASSIGNED_DATA_LOAD'> {}
@@ -86,27 +85,27 @@ export const assignedDataUpdateGroup: ActionCreator<AssignedDataUpdateGroup> = (
   };
 };
 
-export const assignedDataGroupUpdated: ActionCreator<AssignedDataGroupUpdated> = (
-  _id,
-  _groupKey
-) => {
-  return {
-    type: ASSIGNED_DATA_GROUP_UPDATED,
-    _id,
-    _groupKey,
+export const assignedDataGroupUpdated: ActionCreator<AssignedDataGroupUpdated> =
+  (_id, _groupKey) => {
+    return {
+      type: ASSIGNED_DATA_GROUP_UPDATED,
+      _id,
+      _groupKey,
+    };
   };
-};
 
-export const assignedDataChanges: ActionCreator<AssignedDataChanges> = _docs => {
-  return {
-    type: ASSIGNED_DATA_CHANGES,
-    _docs,
+export const assignedDataChanges: ActionCreator<AssignedDataChanges> =
+  _docs => {
+    return {
+      type: ASSIGNED_DATA_CHANGES,
+      _docs,
+    };
   };
-};
 
-export const assignedDataDeletes: ActionCreator<AssignedDataDeletes> = _docs => {
-  return {
-    type: ASSIGNED_DATA_DELETES,
-    _docs,
+export const assignedDataDeletes: ActionCreator<AssignedDataDeletes> =
+  _docs => {
+    return {
+      type: ASSIGNED_DATA_DELETES,
+      _docs,
+    };
   };
-};

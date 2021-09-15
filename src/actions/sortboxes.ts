@@ -32,7 +32,6 @@ export interface SortboxList {
 }
 
 export interface SortboxState {
-  _loadingStatus: string;
   _newSortbox: SortboxItem;
   _index: string;
   _sortboxList: SortboxList;

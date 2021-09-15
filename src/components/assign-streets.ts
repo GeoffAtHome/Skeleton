@@ -454,27 +454,21 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       const groupDataState = groupDataSelector(state);
       selectedGroup = groupDataState!._newGroup;
       this.groupData = groupDataState!._groupData;
-      this.groupDataStatus = groupDataState!._loadingStatus;
 
       const roundsDataState = roundDataSelector(state);
       this.roundsData = roundsDataState!._roundData;
-      this.roundDataStatus = roundsDataState!._loadingStatus;
 
       const assignedDataState = assignedDataSelector(state);
       this.assignedData = assignedDataState!._assignedData;
-      this.assignedDataStatus = assignedDataState!._loadingStatus;
 
       const polygonDataState = polygonDataSelector(state);
-      this.polygonDataStatus = polygonDataState!._loadingStatus;
       this.polygonData = polygonDataState!._polygonData;
 
       const streetInfoState = streetInfoDataSelector(state);
       this.streetInfoData = streetInfoState!._streetInfo;
-      this.streetInfoStatus = streetInfoState!._loadingStatus;
 
       const sortboxState = sortboxListSelector(state);
       this.sortBoxList = sortboxState!._sortboxList;
-      this.sortBoxStatus = sortboxState!._loadingStatus;
     }
   }
 

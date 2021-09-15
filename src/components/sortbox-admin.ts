@@ -303,7 +303,6 @@ export class SortboxAdmin extends connect(store)(PageViewElement) {
 
       const sortBoxesState = sortboxListSelector(state);
       this.sortboxList = sortBoxesState!._sortboxList;
-      this.sortboxLoading = sortBoxesState!._loadingStatus;
     }
   }
 

@@ -44,7 +44,6 @@ export interface StreetInfoData {
 }
 
 export interface StreetInfoState {
-  _loadingStatus: string;
   _streetInfo: StreetInfoData;
 }
 
@@ -86,12 +85,13 @@ export const streetInfoLoaded: ActionCreator<StreetInfoLoaded> = _data => {
   };
 };
 
-export const streetInfoUpdate: ActionCreator<StreetInfoUpdate> = _updateItem => {
-  return {
-    type: STREET_INFO_UPDATE,
-    _updateItem,
+export const streetInfoUpdate: ActionCreator<StreetInfoUpdate> =
+  _updateItem => {
+    return {
+      type: STREET_INFO_UPDATE,
+      _updateItem,
+    };
   };
-};
 
 export const streetInfoChanges: ActionCreator<StreetInfoChanges> = _docs => {
   return {

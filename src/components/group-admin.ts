@@ -293,7 +293,6 @@ export class GroupAdmin extends connect(store)(PageViewElement) {
     if (state.app?.page === 'groupAdmin') {
       const groupDataState = groupDataSelector(state);
       this.groupData = { ...groupDataState!._groupData };
-      this.groupDataStatus = groupDataState!._loadingStatus;
 
       const usersState = userDataSelector(state);
       this.admin = usersState!._newUser.claims.administrator;

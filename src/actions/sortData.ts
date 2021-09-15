@@ -30,7 +30,6 @@ export interface SortData {
 }
 
 export interface SortDataState {
-  _loadingStatus: string;
   _sortData: SortData;
 }
 

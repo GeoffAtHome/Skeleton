@@ -47,7 +47,6 @@ function groupDataDeletedDispatch(docs: any) {
 let groupDataDB: databaseRegister;
 
 const INITIAL_STATE: GroupDataState = {
-  _loadingStatus: '',
   _newGroup: {
     _id: '',
     name: '',
@@ -88,14 +87,12 @@ const groupData: Reducer<GroupDataState, RootAction> = (
       loadPouchDB(groupDataDB, groupDataLoaded);
       return {
         ...state,
-        _loadingStatus: groupDataDB.status,
       };
 
     case GROUP_DATA_LOADED:
       return {
         ...state,
         _groupData: action._data,
-        _loadingStatus: groupDataDB.status,
       };
 
     case ADD_GROUP: {

@@ -434,21 +434,15 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
 
       const assignedDataState = assignedDataSelector(state);
       this.assignedData = assignedDataState!._assignedData;
-      this.assignedDataStatus = assignedDataState!._loadingStatus;
 
       const roundsDataState = roundDataSelector(state);
       this.roundsData = roundsDataState!._roundData;
-      this.roundDataStatus = roundsDataState!._loadingStatus;
 
       const publicStreetState = publicStreetMapSelector(state);
       this.selectedView = publicStreetState!.selectedView;
 
       const sortboxState = sortboxListSelector(state);
       this.sortBoxList = sortboxState!._sortboxList;
-      this.sortBoxStatus = sortboxState!._loadingStatus;
-
-      const polygonDataState = polygonDataSelector(state);
-      this.polygonDataStatus = polygonDataState!._loadingStatus;
     }
   }
 

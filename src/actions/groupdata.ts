@@ -41,7 +41,6 @@ export interface GroupFilter {
 }
 
 export interface GroupDataState {
-  _loadingStatus: string;
   _newGroup: GroupDataItem;
   _index: string;
   _groupData: GroupData;
@@ -118,33 +117,37 @@ export const groupDataLoaded: ActionCreator<GroupDataLoaded> = _data => {
   };
 };
 
-export const groupDataAddGroup: ActionCreator<GroupDataAddGroup> = _newGroup => {
-  return {
-    type: ADD_GROUP,
-    _newGroup,
+export const groupDataAddGroup: ActionCreator<GroupDataAddGroup> =
+  _newGroup => {
+    return {
+      type: ADD_GROUP,
+      _newGroup,
+    };
   };
-};
 
-export const groupDataDeleteGroup: ActionCreator<GroupDataDeleteGroup> = _newGroup => {
-  return {
-    type: DELETE_GROUP,
-    _newGroup,
+export const groupDataDeleteGroup: ActionCreator<GroupDataDeleteGroup> =
+  _newGroup => {
+    return {
+      type: DELETE_GROUP,
+      _newGroup,
+    };
   };
-};
 
-export const groupDataUpdateGroup: ActionCreator<GroupDataUpdateGroup> = _newGroup => {
-  return {
-    type: UPDATE_GROUP,
-    _newGroup,
+export const groupDataUpdateGroup: ActionCreator<GroupDataUpdateGroup> =
+  _newGroup => {
+    return {
+      type: UPDATE_GROUP,
+      _newGroup,
+    };
   };
-};
 
-export const groupDataSelectGroup: ActionCreator<GroupDataSelectGroup> = _newGroup => {
-  return {
-    type: SELECT_GROUP,
-    _newGroup,
+export const groupDataSelectGroup: ActionCreator<GroupDataSelectGroup> =
+  _newGroup => {
+    return {
+      type: SELECT_GROUP,
+      _newGroup,
+    };
   };
-};
 
 export const groupDataChanges: ActionCreator<GroupDataChanges> = _docs => {
   return {

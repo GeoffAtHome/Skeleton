@@ -481,23 +481,18 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
 
       const assignedDataState = assignedDataSelector(state);
       this.assignedData = assignedDataState!._assignedData;
-      this.assignedDataStatus = assignedDataState!._loadingStatus;
 
       const streetInfoState = streetInfoDataSelector(state);
       this.streetInfoData = streetInfoState!._streetInfo;
-      this.streetInfoDataStatus = streetInfoState!._loadingStatus;
 
       const sortDataState = sortDataSelector(state);
       this.sortData = sortDataState!._sortData;
-      this.sortDataStatus = sortDataState!._loadingStatus;
 
       const sortboxListState = sortboxListSelector(state);
       this.sortboxList = sortboxListState!._sortboxList;
-      this.sortboxListStatus = sortboxListState!._loadingStatus;
 
       const roundDataState = roundDataSelector(state);
       this.cRoundData = roundDataState!._roundData;
-      this.cRoundDataStatus = roundDataState!._loadingStatus;
 
       const publicStreetState = publicStreetMapSelector(state);
       this.selectedView = publicStreetState!.selectedView;

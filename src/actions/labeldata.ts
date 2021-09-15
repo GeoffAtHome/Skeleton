@@ -39,7 +39,6 @@ export interface LabelData {
 }
 
 export interface LabelDataState {
-  _loadingStatus: string;
   _editLabel: number;
   _pc: string;
   _labelData: LabelData;

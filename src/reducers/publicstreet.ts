@@ -18,7 +18,6 @@ import {
 import { RootAction, RootState } from '../store';
 
 const INITIAL_STATE: PublicStreetState = {
-  _loadingStatus: '',
   streetName: '',
   index: '',
   selectedView: AllowedViews.Both,

@@ -271,7 +271,6 @@ export class EditPostboxView extends connect(store)(PageViewElement) {
 
       const postboxState = postboxSelector(state);
       postBoxData = { ...postboxState!._data };
-      this.postBoxDataStatus = postboxState!._loadingStatus;
       this.drawLabels(postBoxData);
 
       if (postboxState!._postBoxKey !== '') {

@@ -46,7 +46,6 @@ function streetInfoDeletedDispatch(docs: any) {
 let streetInfoDB: databaseRegister;
 
 const INITIAL_STATE: StreetInfoState = {
-  _loadingStatus: '',
   _streetInfo: {},
 };
 
@@ -75,14 +74,12 @@ const streetInfoData: Reducer<StreetInfoState, RootAction> = (
 
       return {
         ...state,
-        _loadingStatus: streetInfoDB.status,
       };
 
     case STREET_INFO_LOADED:
       return {
         ...state,
         _streetInfo: action._data,
-        _loadingStatus: streetInfoDB.status,
       };
 
     case STREET_INFO_UPDATE: {

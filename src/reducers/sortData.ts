@@ -46,7 +46,6 @@ function sortDataDeletedDispatch(docs: any) {
 let sortDataDB: databaseRegister;
 
 const INITIAL_STATE: SortDataState = {
-  _loadingStatus: '',
   _sortData: {},
 };
 
@@ -65,14 +64,12 @@ const sortDataList: Reducer<SortDataState, RootAction> = (
       loadPouchDB(sortDataDB, sortDataLoaded);
       return {
         ...state,
-        _loadingStatus: sortDataDB.status,
       };
 
     case SORTDATA_LOADED:
       return {
         ...state,
         _sortData: action._data,
-        _loadingStatus: sortDataDB.status,
       };
 
     case SELECT_SORTDATA:

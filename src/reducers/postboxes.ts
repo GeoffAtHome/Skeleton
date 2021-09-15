@@ -54,7 +54,6 @@ const postboxDB = RegisterSyncPouchDB(
 const defaultPos = { lat: 51.50502153288204, lng: -3.240311294225257 };
 
 const INITIAL_STATE: IPostBoxState = {
-  _loadingStatus: '',
   _newPostbox: {
     pos: defaultPos,
     description: {
@@ -78,14 +77,12 @@ const postBoxState: Reducer<IPostBoxState, RootAction> = (
       loadPouchDB(postboxDB, postBoxDataLoaded);
       return {
         ...state,
-        _loadingStatus: postboxDB.status,
       };
 
     case POSTBOX_DATA_LOADED:
       return {
         ...state,
         _data: { ...action._data },
-        _loadingStatus: postboxDB.status,
       };
 
     case EDIT_POSTBOX:

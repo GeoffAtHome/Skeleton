@@ -38,7 +38,6 @@ export interface PostBoxList {
 }
 
 export interface IPostBoxState {
-  _loadingStatus: string;
   _data: PostBoxList;
   _newPostbox: PostBoxData;
   _postBoxKey: string;

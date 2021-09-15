@@ -42,7 +42,6 @@ function assignedDataDeletedDispatch(docs: any) {
 let assignedDataDB: databaseRegister;
 
 const INITIAL_STATE: AssignedDataState = {
-  _loadingStatus: '',
   _assignedData: {},
 };
 
@@ -61,14 +60,12 @@ const assignedData: Reducer<AssignedDataState, RootAction> = (
       loadPouchDB(assignedDataDB, assignedDataLoaded);
       return {
         ...state,
-        _loadingStatus: assignedDataDB.status,
       };
 
     case ASSIGNED_DATA_LOADED:
       return {
         ...state,
         _assignedData: action._data,
-        _loadingStatus: assignedDataDB.status,
       };
 
     case ASSIGNED_DATA_UPDATE_GROUP:
@@ -91,7 +88,6 @@ const assignedData: Reducer<AssignedDataState, RootAction> = (
     case ASSIGNED_DATA_CHANGES:
       return {
         ...state,
-        _loadingStatus: assignedDataDB.status,
       };
 
     case ASSIGNED_DATA_DELETES: {

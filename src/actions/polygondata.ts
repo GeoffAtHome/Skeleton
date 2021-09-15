@@ -37,7 +37,6 @@ export interface PolygonData {
 }
 
 export interface PolygonDataState {
-  _loadingStatus: string;
   _index: string;
   _changedIndex: string;
   _pos: [number, number];

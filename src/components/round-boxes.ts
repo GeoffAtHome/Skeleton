@@ -494,23 +494,18 @@ export class RoundBoxes extends connect(store)(PageViewElement) {
 
       const streetInfoDataState = streetInfoDataSelector(state);
       this.streetInfoData = streetInfoDataState!._streetInfo;
-      this.streetInfoDataStatus = streetInfoDataState!._loadingStatus;
 
       const groupDataState = groupDataSelector(state);
       this.roundData = groupDataState!._groupData;
-      this.roundDataStatus = groupDataState!._loadingStatus;
 
       const assignedDataState = assignedDataSelector(state);
       this.assignedData = assignedDataState!._assignedData;
-      this.assignedDataStatus = assignedDataState!._loadingStatus;
 
       const roundDataState = roundDataSelector(state);
       this.cRoundData = roundDataState!._roundData;
-      this.cRoundDataStatus = roundDataState!._loadingStatus;
 
       const sortDataState = sortDataSelector(state);
       this.sortData = sortDataState!._sortData;
-      this.sortDataStatus = sortDataState!._loadingStatus;
     }
   }
 

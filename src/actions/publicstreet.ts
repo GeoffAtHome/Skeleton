@@ -34,7 +34,6 @@ export enum AllowedViews {
 }
 
 export interface PublicStreetState {
-  _loadingStatus: string;
   streetName: string;
   index: string;
   selectedView: AllowedViews;
@@ -64,12 +63,13 @@ export const publicStreetState: ActionCreator<PublicStreetPublicStreetID> = (
   };
 };
 
-export const publicStreetSelectedView: ActionCreator<PublicStreetSelectedView> = _selectedView => {
-  return {
-    type: PUBLICSTREET_SELECTED_VIEW,
-    _selectedView,
+export const publicStreetSelectedView: ActionCreator<PublicStreetSelectedView> =
+  _selectedView => {
+    return {
+      type: PUBLICSTREET_SELECTED_VIEW,
+      _selectedView,
+    };
   };
-};
 
 export function getNames(view: AllowedViews, item: PublicStreet) {
   const names = [];

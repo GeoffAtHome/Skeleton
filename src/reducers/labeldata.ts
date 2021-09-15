@@ -49,7 +49,6 @@ function LabelDeletedDispatch(docs: any) {
 let LabelDB: databaseRegister;
 
 const INITIAL_STATE: LabelDataState = {
-  _loadingStatus: '',
   _editLabel: -1, // -1 is not editing otherwise Label index
   _pc: '',
   _labelData: {},
@@ -70,14 +69,12 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       loadPouchDB(LabelDB, labelDataLoaded);
       return {
         ...state,
-        _loadingStatus: LabelDB.status,
       };
 
     case LABEL_DATA_LOADED:
       return {
         ...state,
         _labelData: action._data,
-        _loadingStatus: LabelDB.status,
       };
 
     case GET_LABEL: {
@@ -88,7 +85,6 @@ const labelData: Reducer<LabelDataState, RootAction> = (
       return {
         ...state,
         _pc: action._pc,
-        _loadingStatus: LabelDB.status,
       };
     }
 

@@ -32,7 +32,6 @@ export interface RoundData {
 }
 
 export interface RoundDataState {
-  _loadingStatus: string;
   _roundData: RoundData;
 }
 
@@ -126,33 +125,37 @@ export const roundDataRoundUpdated: ActionCreator<RoundDataRoundUpdated> = (
   };
 };
 
-export const roundDataAddGroup: ActionCreator<RoundDataAddGroup> = _newGroup => {
-  return {
-    type: ADD_ROUND,
-    _newGroup,
+export const roundDataAddGroup: ActionCreator<RoundDataAddGroup> =
+  _newGroup => {
+    return {
+      type: ADD_ROUND,
+      _newGroup,
+    };
   };
-};
 
-export const roundDataDeleteGroup: ActionCreator<RoundDataDeleteGroup> = _newGroup => {
-  return {
-    type: DELETE_ROUND,
-    _newGroup,
+export const roundDataDeleteGroup: ActionCreator<RoundDataDeleteGroup> =
+  _newGroup => {
+    return {
+      type: DELETE_ROUND,
+      _newGroup,
+    };
   };
-};
 
-export const roundDataUpdateGroup: ActionCreator<RoundDataUpdateGroup> = _newGroup => {
-  return {
-    type: UPDATE_ROUND,
-    _newGroup,
+export const roundDataUpdateGroup: ActionCreator<RoundDataUpdateGroup> =
+  _newGroup => {
+    return {
+      type: UPDATE_ROUND,
+      _newGroup,
+    };
   };
-};
 
-export const roundDataSelectGroup: ActionCreator<RoundDataSelectGroup> = _newGroup => {
-  return {
-    type: SELECT_ROUND,
-    _newGroup,
+export const roundDataSelectGroup: ActionCreator<RoundDataSelectGroup> =
+  _newGroup => {
+    return {
+      type: SELECT_ROUND,
+      _newGroup,
+    };
   };
-};
 
 export const roundDataChanges: ActionCreator<RoundDataChanges> = _docs => {
   return {

@@ -48,7 +48,6 @@ function roundDataDeletedDispatch(docs: any) {
 let roundDataDB: databaseRegister;
 
 const INITIAL_STATE: RoundDataState = {
-  _loadingStatus: '',
   _roundData: {},
 };
 
@@ -67,14 +66,12 @@ const roundData: Reducer<RoundDataState, RootAction> = (
       loadPouchDB(roundDataDB, roundDataLoaded);
       return {
         ...state,
-        _loadingStatus: roundDataDB.status,
       };
 
     case ROUND_DATA_LOADED:
       return {
         ...state,
         _roundData: action._data,
-        _loadingStatus: roundDataDB.status,
       };
 
     case ROUND_DATA_UPDATE_ROUND: {
