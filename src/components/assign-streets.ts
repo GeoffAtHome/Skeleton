@@ -314,6 +314,9 @@ export class AssignStreets extends connect(store)(PageViewElement) {
 
   updated(changedProps: PropertyValues) {
     if (changedProps.has('admin') || changedProps.has('groupId')) {
+      // Reset loading flag
+      this._loading = true;
+
       // Load the data required for this page
       if (!this.admin) {
         store.dispatch(roundDataLoad(this.admin, this.groupId));
@@ -405,14 +408,16 @@ export class AssignStreets extends connect(store)(PageViewElement) {
       this.groupId = usersState!._newUser.claims.group;
       admin = this.admin;
 
-      const _syncState = syncStateSelector(state);
-      const uDB = this.admin ? [...adminDB] : [...userDB];
-      this._loading = fullyLoaded(
-        publicDB,
-        uDB,
-        this.groupId,
-        _syncState!._docs
-      );
+      if (this._loading) {
+        const _syncState = syncStateSelector(state);
+        const uDB = this.admin ? [...adminDB] : [...userDB];
+        this._loading = fullyLoaded(
+          publicDB,
+          uDB,
+          this.groupId,
+          _syncState!._docs
+        );
+      }
 
       const groupDataState = groupDataSelector(state);
       selectedGroup = groupDataState!._newGroup;

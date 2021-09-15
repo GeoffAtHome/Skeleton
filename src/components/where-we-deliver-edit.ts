@@ -338,6 +338,9 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
 
   updated(changedProps: PropertyValues) {
     if (changedProps.has('admin') || changedProps.has('groupId')) {
+      // Reset loading flag
+      this._loading = true;
+
       // Load the data required for this page
       if (this.admin === false && this.groupId !== '') {
         store.dispatch(roundDataLoad(this.admin, this.groupId));
@@ -391,8 +394,15 @@ export class WhereWeDeliverEdit extends connect(store)(PageViewElement) {
 
   stateChanged(state: RootState) {
     if (state.app!.page === 'whereWeDeliverEdit') {
-      const _syncState = syncStateSelector(state);
-      this._loading = fullyLoaded(publicDB, userDB, this.id, _syncState!._docs);
+      if (this._loading) {
+        const _syncState = syncStateSelector(state);
+        this._loading = fullyLoaded(
+          publicDB,
+          userDB,
+          this.id,
+          _syncState!._docs
+        );
+      }
 
       const usersState = userDataSelector(state);
       this.admin = usersState!._newUser.claims.administrator;

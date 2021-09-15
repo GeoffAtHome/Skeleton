@@ -238,9 +238,7 @@ function SyncOncePouchDB(
     .on('paused', (err: any) => syncPausedCancel('SyncOncePouchDB', localDB)) // replication paused (e.g. replication up to date, user went offline)
     .on('active', () => syncActive(localDB.name)) // replicate resumed (e.g. new changes replicating, user went back online)
     .on('denied', (err: any) => syncDenied(localDB.name, err)) // a document failed to replicate (e.g. due to permissions)
-    .on('complete', (info: any) =>
-      syncComplete(localDB.name, info)
-    ) // handle complete
+    .on('complete', (info: any) => syncComplete(localDB.name, info)) // handle complete
     .on('error', (err: any) => syncError(localDB.name, err)); // handle error
 
   return syncHandler;
@@ -376,7 +374,7 @@ export function RegisterSyncPouchDB(
     if (poller === 0) {
       // create the poller
       poller = 1;
-      setInterval(syncNextDB, 50000);
+      setInterval(syncNextDB, 5000);
     }
 
     return db;

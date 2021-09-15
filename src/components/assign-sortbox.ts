@@ -364,6 +364,9 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
 
   updated(changedProps: PropertyValues) {
     if (changedProps.has('admin') || changedProps.has('groupId')) {
+      // Reset loading flag
+      this._loading = true;
+
       // Load the data required for this page
       store.dispatch(sortboxLoad(this.groupId));
       store.dispatch(roundDataLoad(this.admin, this.groupId));
@@ -436,13 +439,15 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
     }
 
     if (state.app!.page === 'assignSortBox') {
-      const _syncState = syncStateSelector(state);
-      this._loading = fullyLoaded(
-        publicDB,
-        userDB,
-        this.groupId,
-        _syncState!._docs
-      );
+      if (this._loading) {
+        const _syncState = syncStateSelector(state);
+        this._loading = fullyLoaded(
+          publicDB,
+          userDB,
+          this.groupId,
+          _syncState!._docs
+        );
+      }
 
       const usersState = userDataSelector(state);
       this.admin = usersState!._newUser.claims.administrator;

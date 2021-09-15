@@ -162,13 +162,15 @@ export class PostboxView extends connect(store)(PageViewElement) {
 
   stateChanged(state: RootState) {
     if (this.active) {
-      const _syncState = syncStateSelector(state);
-      this._loading = fullyLoaded(publicDB, userDB, '', _syncState!._docs);
-      const postboxState = postboxSelector(state);
-      postBoxData = postboxState!._data;
-      this.drawLabels(postBoxData);
-      if (postboxState!._postBoxKey !== '') {
-        this.displayPostBox(postboxState!._postBoxKey);
+      if (this._loading) {
+        const _syncState = syncStateSelector(state);
+        this._loading = fullyLoaded(publicDB, userDB, '', _syncState!._docs);
+        const postboxState = postboxSelector(state);
+        postBoxData = postboxState!._data;
+        this.drawLabels(postBoxData);
+        if (postboxState!._postBoxKey !== '') {
+          this.displayPostBox(postboxState!._postBoxKey);
+        }
       }
     }
   }

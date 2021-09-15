@@ -384,6 +384,9 @@ export class SortBoxes extends connect(store)(PageViewElement) {
 
   updated(changedProps: PropertyValues) {
     if (changedProps.has('admin') || changedProps.has('groupId')) {
+      // Reset loading flag
+      this._loading = true;
+
       // Load the data required for this page
       store.dispatch(sortboxLoad(this.groupId));
       store.dispatch(roundDataLoad(this.admin, this.groupId));

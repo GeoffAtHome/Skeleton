@@ -452,6 +452,10 @@ export class EditMap extends connect(store)(PageViewElement) {
 
   updated(changedProps: PropertyValues) {
     if (changedProps.has('admin') || changedProps.has('groupId')) {
+      // Reset loading flag
+      this._loading = true;
+
+      // Load the data required for this page
       store.dispatch(polygonDataLoad());
       store.dispatch(labelDataLoad());
       store.dispatch(streetInfoLoad());
@@ -480,13 +484,15 @@ export class EditMap extends connect(store)(PageViewElement) {
       this.admin = usersState!._newUser.claims.administrator;
       this.groupId = usersState!._newUser.claims.group;
 
-      const _syncState = syncStateSelector(state);
-      this._loading = fullyLoaded(
-        publicDB,
-        userDB,
-        this.groupId,
-        _syncState!._docs
-      );
+      if (this._loading) {
+        const _syncState = syncStateSelector(state);
+        this._loading = fullyLoaded(
+          publicDB,
+          userDB,
+          this.groupId,
+          _syncState!._docs
+        );
+      }
 
       const polygonState = polygonDataSelector(state);
       this.pc = polygonState!._index;
