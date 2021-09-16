@@ -33,6 +33,10 @@ export interface databaseRegister {
 const registeredDatabases: Array<databaseRegister> = [];
 let currentDB = 0;
 
+export function resetRegisteredDatabases() {
+  registeredDatabases.length = 0;
+}
+
 function getCurrentDatabase() {
   if (registeredDatabases.length > 0) return registeredDatabases[currentDB];
   return undefined;

@@ -37,6 +37,7 @@ import userData, { userDataSelector } from '../reducers/users';
 import { UsersItem, userDataSelectUser } from '../actions/users';
 import { navigate, notifyMessage } from '../actions/app';
 import { rootURL } from '../reducers/dbconst';
+import { resetRegisteredDatabases } from '../reducers/poucbDBInterface';
 // We are lazy loading its reducer.
 if (userDataSelector(store.getState()) === undefined) {
   store.addReducers({
@@ -101,7 +102,7 @@ export async function logUserIn() {
       window.history.pushState({}, '', newLocation);
       store.dispatch(navigate(decodeURIComponent(newLocation)));
     }
-  } catch (err) {
+  } catch (err: any) {
     if (err === undefined || err.code === 'ETIMEDOUT' || err.status === 0) {
       const thisUser: UsersItem = {
         displayName: 'Login',
@@ -128,6 +129,7 @@ export async function logUserOut() {
     claims: { administrator: false, member: false, group: '' },
   };
   store.dispatch(userDataSelectUser(thisUser));
+  resetRegisteredDatabases();
   const newLocation = `/#userLogin`;
   window.history.pushState({}, '', newLocation);
   store.dispatch(navigate(decodeURIComponent(newLocation)));

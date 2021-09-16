@@ -61,15 +61,15 @@ function getTitle(page: string, admin: boolean) {
       break;
 
     case 'sortBoxAdmin':
-      title = 'Sort Box Admin';
+      title = 'Sortbox admin';
       break;
 
     case 'assignSortBox':
-      title = 'Assign Sort Box';
+      title = 'Assign sortbox';
       break;
 
     case 'sortBoxes':
-      title = 'Sort Boxes';
+      title = 'Sortboxes';
       break;
 
     case 'whereWeDeliverEdit':
@@ -85,11 +85,11 @@ function getTitle(page: string, admin: boolean) {
       break;
 
     case 'groupAdmin':
-      title = admin ? 'Group Admin' : 'Round Admin';
+      title = admin ? 'Group admin' : 'Round admin';
       break;
 
     case 'userLogin':
-      title = 'User Login';
+      title = 'User login';
       break;
 
     case 'rounds':
@@ -119,9 +119,6 @@ export class MyApp extends connect(store)(LitElement) {
   private _message: string = '';
 
   @property({ type: Boolean })
-  private _offline = false;
-
-  @property({ type: Boolean })
   private _admin: boolean = false;
 
   @property({ type: Boolean })
@@ -130,8 +127,8 @@ export class MyApp extends connect(store)(LitElement) {
   @property({ type: Boolean })
   private _loggedIn: boolean = false;
 
-  @property({ type: String })
-  private _groupId: string = '';
+  @property({ type: Boolean })
+  private printing: boolean = false;
 
   @property({ type: String })
   private _displayName: string = '';
@@ -234,6 +231,50 @@ export class MyApp extends connect(store)(LitElement) {
           display: inline;
           max-width: 200px;
           max-height: 30px;
+        }
+
+        @media print {
+          .main-content {
+            padding-top: 20px;
+          }
+
+          app-header {
+            display: none;
+          }
+
+          app-header {
+            position: relative;
+          }
+
+          footer {
+            position: relative;
+          }
+
+          .photo {
+            position: relative;
+          }
+
+          .username {
+            position: relative;
+          }
+
+          aside {
+            width: 0px;
+          }
+
+          mwc-top-app-bar,
+          snack-bar,
+          .toolbar-list,
+          .menu-btn,
+          .login {
+            display: none !important;
+          }
+        }
+
+        @page {
+          size: A4;
+          margin-top: 1cm;
+          margin-bottom: 0cm;
         }
       `,
     ];
@@ -371,42 +412,52 @@ export class MyApp extends connect(store)(LitElement) {
                 ? html`
                     <postbox-view
                       class="page"
+                      .printing="${this.printing}"
                       ?active="${this._page === 'postBoxView'}"
                     ></postbox-view>
                     <edit-postbox-view
                       class="page"
+                      .printing="${this.printing}"
                       ?active="${this._page === 'editPostBoxView'}"
                     ></edit-postbox-view>
                     <group-admin
                       class="page"
+                      .printing="${this.printing}"
                       ?active="${this._page === 'groupAdmin'}"
                     ></group-admin>
                     <round-boxes
                       class="page"
+                      .printing="${this.printing}"
                       ?active="${this._page === 'rounds'}"
                     ></round-boxes>
                     <assign-streets
                       class="page"
+                      .printing="${this.printing}"
                       ?active="${this._page === 'assignStreets'}"
                     ></assign-streets>
                     <sortbox-admin
                       class="page"
+                      .printing="${this.printing}"
                       ?active="${this._page === 'sortBoxAdmin'}"
                     ></sortbox-admin>
                     <assign-sortbox
                       class="page"
+                      .printing="${this.printing}"
                       ?active="${this._page === 'assignSortBox'}"
                     ></assign-sortbox>
                     <sort-boxes
                       class="page"
+                      .printing="${this.printing}"
                       ?active="${this._page === 'sortBoxes'}"
                     ></sort-boxes>
                     <where-we-deliver-edit
                       class="page"
+                      .printing="${this.printing}"
                       ?active="${this._page === 'whereWeDeliverEdit'}"
                     ></where-we-deliver-edit>
                     <map-edit
                       class="page"
+                      .printing="${this.printing}"
                       ?active="${this._page === 'mapEdit'}"
                     ></map-edit>
                   `
@@ -448,6 +499,20 @@ export class MyApp extends connect(store)(LitElement) {
     logUserIn();
     this.track.addEventListener('touchstart', this.handleStart, false);
     this.track.addEventListener('touchend', this.handleEnd, false);
+    window.addEventListener('beforeprint', event => {
+      this.beforeprint(event);
+    });
+    window.addEventListener('afterprint', event => {
+      this.afterprint(event);
+    });
+  }
+
+  private beforeprint(e: Event) {
+    this.printing = true;
+  }
+
+  private afterprint(e: Event) {
+    this.printing = false;
   }
 
   private _menuButtonClicked() {
@@ -458,7 +523,6 @@ export class MyApp extends connect(store)(LitElement) {
     this._page = state.app!.page;
     this._message = state.app!.message;
 
-    this._offline = state.app!.offline;
     this._snackbarOpened = state.app!.snackbarOpened;
     this._drawerOpened = state.app!.drawerOpened;
     this.appTitle = getTitle(this._page, this._admin);
@@ -466,7 +530,6 @@ export class MyApp extends connect(store)(LitElement) {
     const usersState = userDataSelector(state);
     this._admin = usersState!._newUser.claims.administrator;
     this._member = usersState!._newUser.claims.member;
-    this._groupId = usersState!._newUser.claims.group;
     this._displayName = usersState!._newUser.displayName
       ? usersState!._newUser.displayName
       : '';

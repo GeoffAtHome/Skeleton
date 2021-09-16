@@ -157,6 +157,59 @@ function MergeAssignedData(
   return results;
 }
 
+function AddToList(
+  item: SortDataItem,
+  name: string,
+  pc: string,
+  streetInfo: StreetInfoItem,
+  gridData: GridData[],
+  lSortboxList: SortboxList
+) {
+  const index = item.sortbox === undefined ? 0 : item.sortbox;
+  const thisItem: GridData = {
+    sb: index.toString(),
+    bc: lSortboxList[index].colour,
+    tx: getTextColor(lSortboxList[index].colour),
+    name,
+    pc,
+  };
+
+  if (streetInfo !== undefined) {
+    thisItem.firstHouse = streetInfo.firstHouse.toString();
+    thisItem.lastHouse = streetInfo.lastHouse.toString();
+    thisItem.notes = streetInfo.notes;
+    thisItem.streetOrder = streetInfo.streetOrder;
+    thisItem.numberOfProperties = streetInfo.numberOfProperties;
+  }
+  gridData.push(thisItem);
+}
+
+function mergeTheData(
+  view: AllowedViews,
+  lSortData: SortData,
+  lStreetInfoData: StreetInfoData,
+  lSortboxList: SortboxList
+) {
+  const gridData: Array<GridData> = [];
+
+  if (lSortData !== undefined && streetInfoData !== undefined) {
+    for (const [pc, item] of Object.entries(lSortData)) {
+      const pci = streetNames[pc];
+      const streetInfo = lStreetInfoData[pc];
+
+      const names = getNames(view, pci);
+
+      for (const name of names) {
+        AddToList(item, name, pc, streetInfo, gridData, lSortboxList);
+      }
+    }
+    return gridData.sort((left, right) =>
+      streetNameCompare(left.name, right.name)
+    );
+  }
+  return gridData;
+}
+
 @customElement('assign-sortbox')
 export class AssignSortbox extends connect(store)(PageViewElement) {
   @property({ type: Array })
@@ -383,23 +436,11 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
       changedProps.has('streetInfoData') ||
       changedProps.has('selectedView')
     ) {
-      const assignedMergedData = MergeAssignedData(
-        this.groupId,
-        this.cRoundData,
-        this.assignedData,
-        this.sortData
-      );
-
-      this.mergeTheData(
-        this.selectedView,
-        assignedMergedData,
-        this.streetInfoData
-      );
+      this.MergeSortboxes();
     }
 
-    if (changedProps.has('gridData')) {
-      const view = this.selectedView;
-      this.selectView.select(+view);
+    if (changedProps.has('gridData') || changedProps.has('selectedView')) {
+      this.updateView(this.selectedView);
     }
   }
 
@@ -413,11 +454,28 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
       };
       store.dispatch(sortDataUpdate(sortDataItem));
       this.sortData[item.pc] = sortDataItem;
-      this.mergeTheData(this.selectedView, this.sortData, this.streetInfoData);
+
+      this.MergeSortboxes();
     } else {
       store.dispatch(notifyMessage('Select sort box to assign'));
     }
     this.grid.activeItem = {};
+  }
+
+  private MergeSortboxes() {
+    const assignedMergedData = MergeAssignedData(
+      this.groupId,
+      this.cRoundData,
+      this.assignedData,
+      this.sortData
+    );
+
+    this.gridData = mergeTheData(
+      this.selectedView,
+      assignedMergedData,
+      this.streetInfoData,
+      this.sortboxList
+    );
   }
 
   private sortboxSelected(evt: any) {
@@ -473,57 +531,9 @@ export class AssignSortbox extends connect(store)(PageViewElement) {
     }
   }
 
-  private mergeTheData(
-    view: AllowedViews,
-    lSortData: SortData,
-    lStreetInfoData: StreetInfoData
-  ) {
-    const gridData: Array<GridData> = [];
-
+  private updateView(view: AllowedViews) {
     if (this.selectView !== null) {
       this.selectView.select(+view);
     }
-
-    if (lSortData !== undefined && streetInfoData !== undefined) {
-      for (const [pc, item] of Object.entries(lSortData)) {
-        const pci = streetNames[pc];
-        const streetInfo = lStreetInfoData[pc];
-
-        const names = getNames(view, pci);
-
-        for (const name of names) {
-          this.AddToList(item, name, pc, streetInfo, gridData);
-        }
-      }
-      this.gridData = gridData.sort((left, right) =>
-        streetNameCompare(left.name, right.name)
-      );
-    }
-  }
-
-  private AddToList(
-    item: SortDataItem,
-    name: string,
-    pc: string,
-    streetInfo: StreetInfoItem,
-    gridData: GridData[]
-  ) {
-    const index = item.sortbox === undefined ? 0 : item.sortbox;
-    const thisItem: GridData = {
-      sb: index.toString(),
-      bc: this.sortboxList[index].colour,
-      tx: getTextColor(this.sortboxList[index].colour),
-      name,
-      pc,
-    };
-
-    if (streetInfo !== undefined) {
-      thisItem.firstHouse = streetInfo.firstHouse.toString();
-      thisItem.lastHouse = streetInfo.lastHouse.toString();
-      thisItem.notes = streetInfo.notes;
-      thisItem.streetOrder = streetInfo.streetOrder;
-      thisItem.numberOfProperties = streetInfo.numberOfProperties;
-    }
-    gridData.push(thisItem);
   }
 }
