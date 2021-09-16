@@ -95,6 +95,9 @@ function getTitle(page: string, admin: boolean) {
     case 'rounds':
       title = 'Rounds';
       break;
+    case 'mapEdit':
+      title = 'Edit street';
+      break;
   }
   return title;
 }
@@ -333,18 +336,9 @@ export class MyApp extends connect(store)(LitElement) {
                     >Where to purchase stamps and post</a
                   >
                   <a
-                    ?selected="${this._page === 'groupAdmin'}"
-                    href="/#groupAdmin"
-                    >Round admin
-                  </a>
-                  <a
-                    ?selected="${this._page === 'assignStreets'}"
-                    href="/#assignStreets"
-                    >Assign rounds
-                  </a>
-
-                  <a ?selected="${this._page === 'rounds'}" href="/#rounds"
-                    >Rounds</a
+                    ?selected="${this._page === 'whereWeDeliverEdit'}"
+                    href="/#whereWeDeliverEdit"
+                    >Edit street</a
                   >
                   <a
                     ?selected="${this._page === 'sortBoxAdmin'}"
@@ -362,9 +356,18 @@ export class MyApp extends connect(store)(LitElement) {
                     >Sort boxes</a
                   >
                   <a
-                    ?selected="${this._page === 'whereWeDeliverEdit'}"
-                    href="/#whereWeDeliverEdit"
-                    >Edit street</a
+                    ?selected="${this._page === 'groupAdmin'}"
+                    href="/#groupAdmin"
+                    >Round admin
+                  </a>
+                  <a
+                    ?selected="${this._page === 'assignStreets'}"
+                    href="/#assignStreets"
+                    >Assign rounds
+                  </a>
+
+                  <a ?selected="${this._page === 'rounds'}" href="/#rounds"
+                    >Rounds</a
                   >
                 `
               : html``}

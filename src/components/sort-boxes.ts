@@ -109,25 +109,14 @@ function MergeAssignedData(
 ) {
   const results: AssignedData = {};
   for (const [pc, assigned] of Object.entries(lAssignedData)) {
-    if (assigned.key === groupId) {
-      // Do we have a round for this street?
-      let round = '0'; // Round 0 is unassigned
-      let sortbox = '0'; // Sortbox 0 is unassigned
-      if (lRoundsData[pc] !== undefined) {
-        round = lRoundsData[pc].key;
-      }
-
-      // Do we have a sortbox for this street?
-      if (lSortData[pc] !== undefined) {
-        sortbox = lSortData[pc].key;
-      }
-
+    if (assigned.key === groupId)
       results[pc] = {
         _id: pc,
-        key: round,
-        sortbox,
+        // Do we have a round for this street?
+        key: lRoundsData[pc] !== undefined ? lRoundsData[pc].key : '0', // Round 0 is unassigned
+        // Do we have a sortbox for this street?
+        sortbox: lSortData[pc] !== undefined ? lSortData[pc].key : '0', // Sortbox 0 is unassigned
       };
-    }
   }
   return results;
 }

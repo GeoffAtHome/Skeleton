@@ -178,14 +178,19 @@ export class AssignStreets extends connect(store)(PageViewElement) {
   @property({ type: Object })
   private polygonData: PolygonData = {};
 
+  @property({ type: Object })
+  private sortBoxList: SortboxList = {};
+
+  @property({ type: Object })
+  private assignedData: AssignedData = {};
+
+  @property({ type: Object })
+  private roundsData: RoundData = {};
+
   private _mapOptions = {
     center: { lat: 51.50502153288204, lng: -3.240311294225257 },
     zoom: 10,
   };
-  private sortBoxList: SortboxList = {};
-  private assignedData: AssignedData = {};
-  private roundsData: RoundData = {};
-  private lastSyncState: string = '';
 
   static get styles() {
     return [
@@ -216,11 +221,6 @@ export class AssignStreets extends connect(store)(PageViewElement) {
           bottom: 23px;
           right: 270px;
           z-index: 1;
-        }
-
-        #map {
-          width: 100%;
-          height: calc(100vh - 64px);
         }
 
         @media print {
@@ -572,10 +572,14 @@ function lookupPublicStreet(postcode: string, data: PublicStreetData) {
 }
 
 function lookupStreetInfo(pc: string, streetInfoData: StreetInfoData) {
-  let info = '';
+  let info = html``;
   const streetInfo = streetInfoData[pc];
   if (streetInfo !== undefined) {
-    info = `<br><b>First house: </b>${streetInfo.firstHouse}<br><b>Last house: </b>${streetInfo.lastHouse}<br><b>Number of properties: </b>${streetInfo.numberOfProperties}<br><b>Street order: </b>${streetInfo.streetOrder}`;
+    info = html`<br /><i>First house: </i>${streetInfo.firstHouse}<br /><i
+        >Last house: </i
+      >${streetInfo.lastHouse}<br /><i>Number of properties: </i
+      >${streetInfo.numberOfProperties}<br /><i>Street order: </i
+      >${streetInfo.streetOrder}`;
   }
 
   return info;

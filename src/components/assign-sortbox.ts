@@ -186,14 +186,14 @@ function AddToList(
 
 function mergeTheData(
   view: AllowedViews,
-  lSortData: SortData,
+  sortData: SortData,
   lStreetInfoData: StreetInfoData,
   lSortboxList: SortboxList
 ) {
   const gridData: Array<GridData> = [];
 
-  if (lSortData !== undefined && streetInfoData !== undefined) {
-    for (const [pc, item] of Object.entries(lSortData)) {
+  if (sortData !== undefined && streetInfoData !== undefined) {
+    for (const [pc, item] of Object.entries(sortData)) {
       const pci = streetNames[pc];
       const streetInfo = lStreetInfoData[pc];
 

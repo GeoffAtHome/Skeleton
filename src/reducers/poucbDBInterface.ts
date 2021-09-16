@@ -108,7 +108,7 @@ export async function createItemPouchDB(db: databaseRegister, item: any) {
     if (!('_id' in item)) item._id = Date.now().toString();
     await db.localDB.put(item);
     await registerChange(db);
-  } catch (err) {
+  } catch (err: any) {
     // eslint-disable-next-line no-use-before-define
     if (err.status === 409) await updateItemPouchDB(db, item._id, item);
     else pouchDBError(db, err);
@@ -139,7 +139,7 @@ export async function updateItemPouchDB(
     newItem._rev = revItem._rev;
     await db.localDB.put(newItem);
     await registerChange(db);
-  } catch (err) {
+  } catch (err: any) {
     // Item does not exist so create a new one
     if (err.status === 404) createItemPouchDB(db, newItem);
     else pouchDBError(db, err);

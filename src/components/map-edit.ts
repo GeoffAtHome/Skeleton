@@ -263,6 +263,7 @@ export class EditMap extends connect(store)(PageViewElement) {
           overflow: auto;
           flex: 1;
           list-style-type: none;
+          padding: 10px;
         }
 
         #label {
@@ -291,7 +292,6 @@ export class EditMap extends connect(store)(PageViewElement) {
 
         #map {
           width: 60%;
-          height: 80vh;
         }
 
         mwc-textfield {

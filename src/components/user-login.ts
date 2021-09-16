@@ -53,7 +53,7 @@ const ADMIN_ROLE = 'scoutPostAdministrator';
 const usersDB: any = new PouchDB(url);
 
 function LogError(text: string, err: any) {
-  console.log(`${text}: ${err}`);
+  console.error(`${text}: ${err}`);
 }
 
 function switchToHome() {
@@ -430,7 +430,7 @@ export class UserLogin extends connect(store)(PageViewElement) {
         this.changePasswordDialog.close();
       }
       logUserIn();
-    } catch (err) {
+    } catch (err: any) {
       LogError('loginButton', err);
       this.errorCode = err.status;
       this.errorMessage = err.message;
@@ -495,7 +495,7 @@ export class UserLogin extends connect(store)(PageViewElement) {
         await usersDB.changePassword(this.username, newPassword);
         this.passwordPassword = newPassword;
         store.dispatch(notifyMessage('Password changed'));
-      } catch (err) {
+      } catch (err: any) {
         LogError('changePassword', err);
         this.errorCode = err.status;
         this.errorMessage = err.message;
