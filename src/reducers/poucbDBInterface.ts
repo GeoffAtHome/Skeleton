@@ -30,6 +30,7 @@ export interface databaseRegister {
   syncHandler?: PouchDB.Replication.Sync<{}>;
 }
 
+const enableSyncChange = false;
 const registeredDatabases: Array<databaseRegister> = [];
 let currentDB = 0;
 
@@ -107,7 +108,7 @@ export async function createItemPouchDB(db: databaseRegister, item: any) {
     // eslint-disable-next-line no-param-reassign
     if (!('_id' in item)) item._id = Date.now().toString();
     await db.localDB.put(item);
-    await registerChange(db);
+    if (enableSyncChange) await registerChange(db);
   } catch (err: any) {
     // eslint-disable-next-line no-use-before-define
     if (err.status === 409) await updateItemPouchDB(db, item._id, item);
@@ -138,7 +139,7 @@ export async function updateItemPouchDB(
     const revItem = await db.localDB.get(id);
     newItem._rev = revItem._rev;
     await db.localDB.put(newItem);
-    await registerChange(db);
+    if (enableSyncChange) await registerChange(db);
   } catch (err: any) {
     // Item does not exist so create a new one
     if (err.status === 404) createItemPouchDB(db, newItem);
@@ -150,7 +151,7 @@ export async function deleteItemPouchDB(db: databaseRegister, id: string) {
   try {
     const revItem = await db.localDB.get(id);
     await db.localDB.remove(revItem._id, revItem._rev);
-    await registerChange(db);
+    if (enableSyncChange) await registerChange(db);
   } catch (err) {
     pouchDBError(db, err);
   }
@@ -191,7 +192,7 @@ async function syncChange(
     db.deletes(removes);
   }
   db.changed = true;
-  await registerChange(db);
+  if (enableSyncChange) await registerChange(db);
 }
 
 /// -------------------------------------------------------------------------
@@ -304,11 +305,9 @@ function syncSyncChange(
 }
 
 function syncSyncPaused(localDB: string, x: any) {}
-
 function syncSyncActive(localDB: string) {}
 function syncSyncDenied(localDB: string, x: any) {}
 function syncSyncComplete(localDB: string, x: any) {}
-
 function syncSyncError(localDB: string, x: any) {}
 
 export function SyncPouchDB(
@@ -378,7 +377,7 @@ export function RegisterSyncPouchDB(
     if (poller === 0) {
       // create the poller
       poller = 1;
-      setInterval(syncNextDB, 5000);
+      setInterval(syncNextDB, 7500);
     }
 
     return db;
