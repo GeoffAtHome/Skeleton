@@ -142,11 +142,15 @@ function AddToList(
   };
 
   if (streetInfo !== undefined) {
-    thisItem.firstHouse = streetInfo.firstHouse.toString();
-    thisItem.lastHouse = streetInfo.lastHouse.toString();
-    thisItem.notes = streetInfo.notes;
-    thisItem.streetOrder = streetInfo.streetOrder;
-    thisItem.numberOfProperties = streetInfo.numberOfProperties;
+    try {
+      thisItem.firstHouse = streetInfo.firstHouse.toString();
+      thisItem.lastHouse = streetInfo.lastHouse.toString();
+      thisItem.notes = streetInfo.notes;
+      thisItem.streetOrder = streetInfo.streetOrder;
+      thisItem.numberOfProperties = streetInfo.numberOfProperties;
+    } catch (err) {
+      console.log(err);
+    }
   }
   gridData.push(thisItem);
 }
